@@ -1,0 +1,18 @@
+{
+  "name": "js-ootpviewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.2"
+  },
+  "dependencies": {
+    "tedious": "^18.2.0"
+  }
+}

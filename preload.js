@@ -12,5 +12,6 @@ window.addEventListener('DOMContentLoaded', () => {
 })
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  openFile: () => ipcRenderer.invoke('dialog:openFile')
+  openFile: () => ipcRenderer.invoke('home:openFile'),
+  getRecentTournaments: () => ipcRenderer.invoke('home:getRecentTournaments')
 })

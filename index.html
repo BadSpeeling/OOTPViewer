@@ -3,16 +3,32 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com; style-src 'unsafe-inline'">
+    <!-- <script>window.$ = window.jQuery = require('./jquery-3.4.1.min.js');</script> -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="./renderer.js"></script>
     <title>Hello World!</title>
+
+    <style>
+      #recentTournaments th {
+        padding-right: 15px;
+      }
+    </style>
+
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    
+    <div style="overflow-y: auto;height: 200px; text-align:left; width: 50%; margin: auto">
+      <table id="recentTournaments">
+        <tr>
+          <th>Entry Date</th>
+          <th>Description</th>
+          <th>Name</th>
+        </tr>
+      </table>
+    </div>
+
   </body>
 
-  <script src="./renderer.js"></script>
 
 </html>

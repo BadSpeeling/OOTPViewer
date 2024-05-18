@@ -1,12 +1,14 @@
-var Connection = require('tedious').Connection;  
+let Connection = require('tedious').Connection;  
+let Request = require('tedious').Request;  
+let TYPES = require('tedious').TYPES;  
 
-class Card {
+class DatabaseRecord {
 
-    constructor(card) {
+    constructor(record) {
         
-        for (let card_value_index = 0; card_value_index < card.length; card_value_index++) {
+        for (let card_value_index = 0; card_value_index < record.length; card_value_index++) {
             
-            let cur_col = card[card_value_index];
+            let cur_col = record[card_value_index];
             this[cur_col.metadata.colName] = cur_col.value;    
 
         }
@@ -30,9 +32,9 @@ function connect () {
                 }
             },
             options: {
-                trustServerCertificate: true
+                trustServerCertificate: true,
+                database: "ootp_data"
             }
-    
         };  
         var connection = new Connection(config);  
         connection.on('connect', function(err) {
@@ -51,25 +53,22 @@ function connect () {
 
 }
 
-async function initPageData () {
+async function queryDatabase (sqlQuery) {
 
     let connection = await connect()
 
     return new Promise ((resolve,reject) => {
-        
-        let Request = require('tedious').Request;  
-        let TYPES = require('tedious').TYPES;  
 
-        let request = new Request("SELECT TOP 5 * FROM ootp_data.dbo.pt_card_list_20240404", function(err) {  
+        let request = new Request(sqlQuery, function(err) {  
             if (err) {  
                 reject(err);
             }  
         });  
 
-        let cards = []
+        let records = []
         
         request.on('row', function(columns) {  
-            cards.push(new Card(columns));
+            records.push(new DatabaseRecord(columns));
         });  
 
         request.on('done', function(rowCount, more) {  
@@ -78,7 +77,7 @@ async function initPageData () {
 
         // Close the connection after the final event emitted by the request, after the callback passes
         request.on("requestCompleted", (rowCount,more) => {
-            resolve(cards);
+            resolve(records);
             connection.close();
         })
 
@@ -87,5 +86,4 @@ async function initPageData () {
     });
 }
 
-//module.exports.Card = Card;
-module.exports.initPageData = initPageData;
+module.exports.queryDatabase = queryDatabase;

@@ -6,10 +6,10 @@ class DatabaseRecord {
 
     constructor(record) {
         
-        for (let card_value_index = 0; card_value_index < record.length; card_value_index++) {
+        for (let cardValueIndex = 0; cardValueIndex < record.length; cardValueIndex++) {
             
-            let cur_col = record[card_value_index];
-            this[cur_col.metadata.colName] = cur_col.value;    
+            let curCol = record[cardValueIndex];
+            this[curCol.metadata.colName] = curCol.value;    
 
         }
     }

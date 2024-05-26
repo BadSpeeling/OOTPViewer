@@ -1,6 +1,6 @@
-let Connection = require('tedious').Connection;  
-let Request = require('tedious').Request;  
-let TYPES = require('tedious').TYPES;  
+const Request = require('tedious').Request;  
+const TYPES = require('tedious').TYPES;  
+const PtConnection = require('./PtConnection').PtConnection;
 
 class DatabaseRecord {
 
@@ -16,46 +16,12 @@ class DatabaseRecord {
 
 }
 
-function connect () {
 
-    return new Promise((resolve,reject) => {
-
-        var config = {  
-            server: 'localhost',
-            //port: '51397',
-            authentication: {
-                type: 'default',
-                options: {
-                    userName: 'ootp_pt',
-                    //userName: 'DESKTOP-LREGU2K\\efrye',
-                    password: 'securepassword',
-                }
-            },
-            options: {
-                trustServerCertificate: true,
-                database: "ootp_data"
-            }
-        };  
-        var connection = new Connection(config);  
-        connection.on('connect', function(err) {
-            if (err) {
-                console.log("There was an issue connecting")
-                reject(err);
-            }
-            else {
-                resolve(connection);
-            }
-        });
-        
-        connection.connect();
-
-    });
-
-}
 
 async function queryDatabase (sqlQuery) {
 
-    let connection = await connect()
+    let ptConnection = new PtConnection();
+    let connection = await ptConnection.connect();
 
     return new Promise ((resolve,reject) => {
 

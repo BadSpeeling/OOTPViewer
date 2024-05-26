@@ -1,5 +1,9 @@
 const fs = require('fs');
 const PtCard = require('./PtCard').PtCard
+const PtConnection = require('./PtConnection').PtConnection;
+
+const Request = require('tedious').Request;  
+const TYPES = require('tedious').TYPES;  
 
 function readFile (file) {
     return new Promise ((resolve,reject) => {
@@ -42,11 +46,36 @@ const removeTrailingComma = (line) => {
 
 async function readPlayerList() {
 
-    let file = 'C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 24\\online_data\\pt_card_list.csv';
+    let file = 'C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\online_data\\pt_card_list.csv';
 
-    let ptCards = await readFile(file)
-    console.log(ptCards)
+    //let ptCards = await readFile(file);
+    let ptConnection = new PtConnection();
+    let connection = await ptConnection.connect();
 
+    var table = {
+        columns: [
+          {name: 'CardID', type: TYPES.Int},
+          {name: 'CardTitle', type: TYPES.VarChar, length: 200},
+        ],
+        rows: [
+          [1, 'Eric'],
+          [2, 'John']
+        ]
+      };
+    
+      var request = new Request("spInsertCards", function(err) {
+        if (!err) {
+            console.log('spInsertCards execute without error');
+        }
+        else {
+            console.log(err);
+        }
+      });
+    
+      request.addParameter('playerCards', TYPES.TVP, table);
+    
+    let result = connection.callProcedure(request);
+    
 }
 
 readPlayerList()

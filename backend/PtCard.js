@@ -30,7 +30,7 @@ class PtCard {
                 curValue = parseInt(curValue)
             }
 
-            cardRatings[headings[curHeadingIndex]] = curValue
+            cardRatings[headings[curHeadingIndex].replace(' ', '')] = curValue
 
         }
 

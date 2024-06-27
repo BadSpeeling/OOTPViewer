@@ -8,19 +8,61 @@ async function run () {
     let settings = await loadSettings()    
     let ptFolders = await getAllPtFolders(settings.ootpRoot)
     
-    let htmlFiles = await getHtmlFiles(ptFolders)
+    let htmlFiles = await locateHtmlFiles(ptFolders)
+    let htmlFilesToProcess = []
 
     for (htmlFile of htmlFiles) {
-        if (htmlFile.isSuccess) console.log(htmlFile)
+        if (htmlFile.isSuccess) htmlFilesToProcess.push(htmlFile)
     }
     
+    let res = await parseHtmlDataExport(htmlFilesToProcess[0])
+    return res
+
+}
+
+function parseHtmlDataExport (htmlFile) {
+
+    return new Promise ((resolve,reject) => {
+        fs.readFile(htmlFile.path + htmlFile.fileName, 'utf-8', (err,data) => {
+            const root = parse(data)
+
+            const statsTable = root.querySelector('table.data.sortable')
+
+            const headers = statsTable.querySelector('tr:first-child')
+            const statsRows = statsTable.querySelectorAll('tr:not(:first-child)')
+
+            const parsedHeaders = headers.querySelectorAll('th').map((curHeader) => curHeader.text)
+            const parsedStats = []
+
+            for (statsRow of statsRows) {
+
+                const curStats = statsRow.querySelectorAll('td')
+                const curStatsTxt = curStats.map((value)=> {
+
+                    statText = value.removeWhitespace().text !== '' ? value.text : '0'
+                    statNumber = Number(statText)
+
+                    return isNaN(statNumber) ? statText : statNumber
+
+                })
+                
+                parsedStats.push(curStatsTxt)
+
+            }
+
+            resolve({parsedHeaders,parsedStats})
+
+        })
+
+    })
+
 }
 
 function getAllPtFolders (root) {
 
     return new Promise ((resolve,reject) => {
 
-        let savedGames = root + '\\saved_games'
+        let savedGames = root + 'saved_games\\'
 
         let ptFolders = []
 
@@ -28,7 +70,7 @@ function getAllPtFolders (root) {
             files.forEach((file) => {
                 
                 if (file.includes(".pt")) {
-                    ptFolders.push(savedGames + "\\" + file)
+                    ptFolders.push(savedGames + file + "\\")
                 }                
                 
             })
@@ -41,19 +83,19 @@ function getAllPtFolders (root) {
 
 }
 
-function getHtmlFiles (ptFolders) {
+function locateHtmlFiles (ptFolders) {
 
     return Promise.all(ptFolders.map((ptFolder) => {
         return new Promise ((resolve,reject) => {
-            let htmlStatsFolder = ptFolder + '\\news\\html\\temp'
-            
+            let htmlStatsFolder = ptFolder + 'news\\html\\temp\\'
+
             fs.readdir(htmlStatsFolder, (err, files) => {
                 
                 if (files.length === 1) {
                     resolve({
                         isSuccess: true,
                         ptFolder,
-                        path: htmlStatsFolder + "\\" + files[0],
+                        path: htmlStatsFolder,
                         fileName: files[0]
                     })
                 }

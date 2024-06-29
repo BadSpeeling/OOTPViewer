@@ -3,6 +3,8 @@ const fs = require('fs')
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
+const headerTypes = ["generalValues","battingValues","pitchingValues","fieldingValues"];
+
 async function run () {
 
     let settings = await loadSettings()    
@@ -16,7 +18,52 @@ async function run () {
     }
     
     let res = await parseHtmlDataExport(htmlFilesToProcess[0])
-    return res
+    let processedHtmlStats = [] 
+
+    for (stats of res.parsedStats) {
+        processedHtmlStats.push(processStatsIntoCategories(res.parsedHeaders,stats))
+    }
+
+    console.log(processedHtmlStats)
+
+}
+
+
+function processStatsIntoCategories (headers,stats) {
+
+    if (headers.length !== stats.length) {
+        throw new Error("Headers and Stats are not the same length!\n" + headers + "\n" + stats)
+    }
+
+    let statsCategories = {}
+    let curHeaderTypeIndex = 0
+    const statsTypeSeperator = 'G'
+
+    let curStatsCategory = {}
+
+    let setCurStatsCategory = () => {
+        statsCategories[headerTypes[curHeaderTypeIndex]] = curStatsCategory
+        curStatsCategory = {}
+    }
+
+    for (let curStatIndex = 0; curStatIndex < stats.length; curStatIndex++) {
+
+        curHeader = headers[curStatIndex]
+
+        if (curHeader === statsTypeSeperator) {
+
+            setCurStatsCategory()
+            curHeaderTypeIndex += 1;
+
+        }
+
+        curStatsCategory[curHeader] = stats[curStatIndex]
+
+    }
+
+    setCurStatsCategory() //the last set of stats we built still needs to be inserted
+
+    return statsCategories
 
 }
 

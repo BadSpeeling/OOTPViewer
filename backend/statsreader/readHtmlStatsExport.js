@@ -1,6 +1,12 @@
 const parse = require('node-html-parser').parse
 const fs = require('fs')
 
+const PtConnection = require('../PtConnection').PtConnection
+const {uttGeneralColumns,uttBattingColumns} = require('../uttColumns')
+
+const Request = require('tedious').Request;  
+const TYPES = require('tedious').TYPES;  
+
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
 const headerTypes = ["generalValues","battingValues","pitchingValues","fieldingValues"];
@@ -17,17 +23,127 @@ async function run () {
         if (htmlFile.isSuccess) htmlFilesToProcess.push(htmlFile)
     }
     
-    let res = await parseHtmlDataExport(htmlFilesToProcess[0])
-    let processedHtmlStats = [] 
-
-    for (stats of res.parsedStats) {
-        processedHtmlStats.push(processStatsIntoCategories(res.parsedHeaders,stats))
-    }
-
-    console.log(processedHtmlStats)
+    let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlFilesToProcess[0])
+    writeTournamentStats(tournamentOutput)
 
 }
 
+class UttParameter {
+
+    constructor (columns) {
+        this.uttColumns = columns
+        this.uttRows = []
+    }
+
+    handleUttRow (generalValues,tournamentStatRow) {
+
+        if (tournamentStatRow['G'] > 0) {
+
+            let curUttRow = [generalValues['CID'],generalValues['TM']]
+
+            for (let uttColumn of this.uttColumns) {
+
+                let curValue = tournamentStatRow[uttColumn.name]
+                curUttRow.push(curValue ? curValue : null)
+
+            }
+        
+            this.uttRows.push(curUttRow)
+
+        }
+
+    }
+
+    getSpParameter () {
+        return {
+            columns: uttGeneralColumns.concat(this.uttColumns),
+            rows: this.uttRows
+        };
+    }
+
+}
+
+function writeTournamentStats (tournamentOutput) {
+
+    return new Promise (async (resolve,reject) => {
+
+        let ptConnection = new PtConnection();
+        let connection = await ptConnection.connect();
+
+        let tournamentStats = tournamentOutput.stats
+
+        battingParam = new UttParameter(uttBattingColumns)
+        //pitchingParam = new UttParameter(uttPitchingColumns)
+        //fieldingParam = new UttParameter(uttFieldingColumns)
+
+        for (tournamentStatRow of tournamentStats) {
+
+            battingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['battingValues'])
+
+        }
+
+        var request = new Request("spInsertStats", function(err) {
+            if (!err) {
+                console.log('spInsertStats execute without error');
+            }
+            else {
+                console.log(err);
+            }
+        });
+    
+        //console.log(uttRows);
+        request.addParameter('pBattingStats', TYPES.TVP, battingParam.getSpParameter());
+        
+        let result = connection.callProcedure(request);
+
+    })
+
+}
+
+
+
+//lookup what uttColumns are present in the headers built from the output
+function buildUttColumns (headers, allUttColumns) {
+
+    let searchUttColumns = (uttColumn) => {
+        for (header of headers) {
+            if (uttColumn.name === header) {
+                return uttColumn
+            }
+        }
+    }
+
+    let uttColumnsInHeaders = []
+
+    for (uttColumn of allUttColumns) {
+        let foundUttColumn = searchUttColumns(uttColumn)
+        if (foundUttColumn) uttColumnsInHeaders.push(foundUttColumn)
+    }
+
+    return uttColumnsInHeaders
+
+}
+
+function setUttRow (curUttRow, values, uttColumns) {
+
+    if (values['G'] === 0) {
+        return null;
+    }
+
+}
+
+async function convertHtmlFileToTournamentOutput (htmlFile) {
+
+    let res = await parseHtmlDataExport(htmlFile)
+    let tournamentStats = [] 
+
+    for (stats of res.parsedStats) {
+        tournamentStats.push(processStatsIntoCategories(res.parsedHeaders,stats))
+    }
+
+    return {"stats":tournamentStats,"headers":res.parsedHeaders}
+
+}
 
 function processStatsIntoCategories (headers,stats) {
 

@@ -28,6 +28,13 @@ async function run () {
 
 }
 
+async function writeHtmlOutput (htmlOutput) {
+
+    let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
+    return await writeTournamentStats(tournamentOutput)
+
+}
+
 class UttParameter {
 
     constructor (columns) {
@@ -84,10 +91,10 @@ function writeTournamentStats (tournamentOutput) {
 
         var request = new Request("spInsertStats", function(err) {
             if (!err) {
-                console.log('spInsertStats execute without error');
+                resolve({isSuccess: true,msg:'spInsertStats execute without error'});
             }
             else {
-                console.log(err);
+                reject({isSuccess: true,msg:err});
             }
         });
     
@@ -301,4 +308,7 @@ function loadSettings () {
     })
 }
 
-run();
+module.exports.getAllPtFolders = getAllPtFolders
+module.exports.locateHtmlFiles = locateHtmlFiles
+module.exports.convertHtmlFileToTournamentOutput = convertHtmlFileToTournamentOutput
+module.exports.writeHtmlOutput = writeHtmlOutput

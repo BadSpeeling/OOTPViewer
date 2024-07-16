@@ -2,7 +2,7 @@ const parse = require('node-html-parser').parse
 const fs = require('fs')
 
 const PtConnection = require('../PtConnection').PtConnection
-const {uttGeneralColumns,uttBattingColumns} = require('../uttColumns')
+const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('../uttColumns')
 
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  
@@ -31,7 +31,7 @@ async function run () {
 async function writeHtmlOutput (htmlOutput) {
 
     let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
-    return await writeTournamentStats(tournamentOutput)
+    return await writeTournamentStats(tournamentOutput, htmlOutput)
 
 }
 
@@ -51,7 +51,7 @@ class UttParameter {
             for (let uttColumn of this.uttColumns) {
 
                 let curValue = tournamentStatRow[uttColumn.name]
-                curUttRow.push(curValue ? curValue : null)
+                curUttRow.push(curValue ? curValue : 0)
 
             }
         
@@ -70,7 +70,7 @@ class UttParameter {
 
 }
 
-function writeTournamentStats (tournamentOutput) {
+function writeTournamentStats (tournamentOutput, htmlOutput) {
 
     return new Promise (async (resolve,reject) => {
 
@@ -80,12 +80,14 @@ function writeTournamentStats (tournamentOutput) {
         let tournamentStats = tournamentOutput.stats
 
         battingParam = new UttParameter(uttBattingColumns)
-        //pitchingParam = new UttParameter(uttPitchingColumns)
-        //fieldingParam = new UttParameter(uttFieldingColumns)
+        pitchingParam = new UttParameter(uttPitchingColumns)
+        fieldingParam = new UttParameter(uttFieldingColumns)
 
         for (tournamentStatRow of tournamentStats) {
 
             battingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['battingValues'])
+            pitchingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['pitchingValues'])
+            fieldingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['fieldingValues'])
 
         }
 
@@ -100,42 +102,15 @@ function writeTournamentStats (tournamentOutput) {
     
         //console.log(uttRows);
         request.addParameter('pBattingStats', TYPES.TVP, battingParam.getSpParameter());
-        
+        request.addParameter('pPitchingStats', TYPES.TVP, pitchingParam.getSpParameter());
+        request.addParameter('pFieldingStats', TYPES.TVP, fieldingParam.getSpParameter());
+        request.addParameter('pDescription', TYPES.VarChar, htmlOutput.description);
+        request.addParameter('pTournamentTypeID', TYPES.Int, htmlOutput.tournamentTypeID)
+        request.addParameter('pIsCumulativeFlag', TYPES.Bit, htmlOutput.isCumulativeFlag)
+
         let result = connection.callProcedure(request);
 
     })
-
-}
-
-
-
-//lookup what uttColumns are present in the headers built from the output
-function buildUttColumns (headers, allUttColumns) {
-
-    let searchUttColumns = (uttColumn) => {
-        for (header of headers) {
-            if (uttColumn.name === header) {
-                return uttColumn
-            }
-        }
-    }
-
-    let uttColumnsInHeaders = []
-
-    for (uttColumn of allUttColumns) {
-        let foundUttColumn = searchUttColumns(uttColumn)
-        if (foundUttColumn) uttColumnsInHeaders.push(foundUttColumn)
-    }
-
-    return uttColumnsInHeaders
-
-}
-
-function setUttRow (curUttRow, values, uttColumns) {
-
-    if (values['G'] === 0) {
-        return null;
-    }
 
 }
 

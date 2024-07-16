@@ -8,7 +8,7 @@ $(document).ready(async function(e) {
         
         //build table rows with content
         let tableElement = model['htmlFiles'].map((htmlFile) => {
-            return `<tr key=${htmlFile['key']}><th><input type='checkbox'/></th><th>${htmlFile.fileName}</th><th><input name='Description'/></th></tr>`
+            return `<tr key=${htmlFile['key']}><td><input type='checkbox'/></td><td>${htmlFile.fileName}</td><td><input name='Description'/></td><td name='Status'></td></tr>`
             // return "  <div class='TournamentWriteSelector'>"
             //         +   `<div>${htmlFile.fileName}</div><div><input name='Description'/></div><div><input type='checkbox'/></div>`
             //         +"</div>"
@@ -16,7 +16,7 @@ $(document).ready(async function(e) {
 
         //insert table into UI
             $('#tournamentOptions').append("<table>"
-        +   "<tr><th>Include?</th><th>File</th><th>Description</th></tr>"
+        +   "<tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>"
         +   tableElement
         +   "</table>")
 
@@ -46,17 +46,27 @@ async function collectTournamentsToInsert() {
             
             htmlTournamentFilesToWrite.push({
                 ...curTournamentFile,
-                description:$(`#tournamentList tr[key=${tournamentKeys}] input[name=Description]`).val()
+                description:$(`#tournamentList tr[key=${curTournamentKey}] input[name=Description]`).val(),
+                tournamentTypeID:$('#tournamentType').val(),
+                isCumulativeFlag: 0
             })
 
         }
     }
 
     for (let curHtmlTournamentFile of htmlTournamentFilesToWrite) {
+        
+        uxTournamentRowStatus(curHtmlTournamentFile.key, 'Pending')
+
         res = await window.electronAPI.counterValue(curHtmlTournamentFile)
 
         console.log(curHtmlTournamentFile.ptFolder + " : " + res.isSuccess)
-        if (!res.isSuccess) {
+        
+        if (res.isSuccess) {
+            uxTournamentRowStatus(curHtmlTournamentFile.key, 'Success')
+        }
+        else {
+            uxTournamentRowStatus(curHtmlTournamentFile.key, 'Failure')
             console.log(res.msg)
         }
         
@@ -89,5 +99,24 @@ async function loadTournamentTypes () {
     })
 
     $('#tournamentType').append(optionElements.join(''))
+
+}
+
+function uxTournamentRowStatus (key, status) {
+
+    const statusCell = $(`tr[key=${key}] td[name=Status]`)
+    let htmlToInsert = null
+
+    if (status === 'Pending') {
+        htmlToInsert = '<div class="loader"></div>'
+    }
+    else if (status === 'Success') {
+        htmlToInsert = '<div>&#x2705;</div>'
+    }
+    else if (status === 'Failure') {
+        htmlToInsert = '<div>&#x274C;</div>'
+    }
+
+    statusCell.html(htmlToInsert)
 
 }

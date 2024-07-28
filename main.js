@@ -16,6 +16,18 @@ const createWindow = () => {
     win.loadFile('index.html')
 };
 
+const loadPtLeagueExporter = () => {
+  const win = new BrowserWindow({
+    width: 400,
+    height: 300,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    } 
+  })
+
+  win.loadFile('ptLeagueExporter.html')
+}
+
 app.whenReady().then(() => {
   ipcMain.handle('counter-value', (_event, value) => {
     console.log(value)
@@ -25,6 +37,9 @@ app.whenReady().then(() => {
   ipcMain.handle('home:getRecentTournaments', getRecentTournaments)
   ipcMain.handle('home:getTournamentTypes', getTournamentTypes)
   ipcMain.handle('home:findTournamentExports', findTournamentExports)
+
+  ipcMain.handle('home:loadPtLeagueExporter', loadPtLeagueExporter)
+
   createWindow()
 });
 

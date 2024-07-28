@@ -1,0 +1,49 @@
+<html>
+
+    <head>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+        <script>
+            $(document).ready(() => {
+                $('#leagueExportSubmit').click(() => {
+
+                    let tournamentInfo = {
+                        'ptFile': $('input[name=ptFile]').val(),
+                        'Year': $('input[name=Year]').val(),
+                        'Suffix': $('input[name=Suffix]').val(),
+                        'Level': $('select[name=Level]').val()
+                    }
+
+                    console.log(tournamentInfo)
+
+                })
+            })
+        </script>
+
+    </head>
+
+    <body>
+        <div>
+
+            <h1>League Stat Exporter</h1>
+
+            <div><b>.pt File:</b> <input name="ptFile" /></div>
+            <div><b>Level:</b>
+                <select name="Level">
+                    <option>Rookie</option>
+                    <option>Stone</option>
+                    <option>Iron</option>
+                    <option>Bronze</option>
+                    <option>Silver</option>
+                    <option>Gold</option>
+                    <option>Diamond</option>
+                    <option>Perfect</option>
+                </select>
+            </div>
+            <div><b>Year:</b><input name="Year" type="text"/></div>
+            <div><b>Suffix:</b><input name="Suffix" type="text"/></div>
+            <div><button id="leagueExportSubmit">Submit</button></div>
+        </div>
+    </body>
+
+</html>

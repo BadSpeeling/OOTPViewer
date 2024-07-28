@@ -1,11 +1,14 @@
 const parse = require('node-html-parser').parse
 const fs = require('fs')
+const path = require('path')
 
 const PtConnection = require('../PtConnection').PtConnection
 const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('../uttColumns')
 
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  
+
+const loadSettings = require('../../settings').loadSettings
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
@@ -31,7 +34,18 @@ async function run () {
 async function writeHtmlOutput (htmlOutput) {
 
     let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
-    return await writeTournamentStats(tournamentOutput, htmlOutput)
+    //return await writeTournamentStats(tournamentOutput, htmlOutput)
+
+    let writeResults = await writeTournamentStats(tournamentOutput, htmlOutput)
+
+    if (writeResults.isSuccess) {
+        let fileDeleteResults = await clearPtFolderHtmlFiles(htmlOutput.path)
+        return fileDeleteResults[0]
+    }
+    else {
+        return writeResults
+    }
+
 
 }
 
@@ -96,7 +110,7 @@ function writeTournamentStats (tournamentOutput, htmlOutput) {
                 resolve({isSuccess: true,msg:'spInsertStats execute without error'});
             }
             else {
-                reject({isSuccess: true,msg:err});
+                reject({isSuccess: false,msg:err});
             }
         });
     
@@ -168,7 +182,7 @@ function processStatsIntoCategories (headers,stats) {
 function parseHtmlDataExport (htmlFile) {
 
     return new Promise ((resolve,reject) => {
-        fs.readFile(htmlFile.path + htmlFile.fileName, 'utf-8', (err,data) => {
+        fs.readFile(path.join(htmlFile.path, htmlFile.fileName), 'utf-8', (err,data) => {
             const root = parse(data)
 
             const statsTable = root.querySelector('table.data.sortable')
@@ -203,11 +217,38 @@ function parseHtmlDataExport (htmlFile) {
 
 }
 
+//await these 
+async function clearPtFolderHtmlFiles (htmlStatsFolder) {
+
+    const files = await new Promise ((resolve,reject) => {
+        fs.readdir(htmlStatsFolder, (err, files) => {
+            if (!err) {
+                resolve(files)
+            }
+            else {
+                reject(err)
+            }
+        })
+    })
+    
+    const deletedFilesStatus = await Promise.all(files.map((file) => {
+        return new Promise((resolve,reject) => {
+            fs.unlink(path.join(htmlStatsFolder, file), (err) => {
+                if (err) reject({isSuccess: false, err});
+                resolve({isSuccess: true})
+            });
+        })
+    }))
+
+    return deletedFilesStatus
+
+}
+
 function getAllPtFolders (root) {
 
     return new Promise ((resolve,reject) => {
 
-        let savedGames = root + 'saved_games\\'
+        let savedGames = path.join(root, 'saved_games')
 
         let ptFolders = []
 
@@ -215,7 +256,7 @@ function getAllPtFolders (root) {
             files.forEach((file) => {
                 
                 if (file.includes(".pt")) {
-                    ptFolders.push(savedGames + file + "\\")
+                    ptFolders.push(path.join(savedGames,file))
                 }                
                 
             })
@@ -232,7 +273,7 @@ function locateHtmlFiles (ptFolders) {
 
     return Promise.all(ptFolders.map((ptFolder) => {
         return new Promise ((resolve,reject) => {
-            let htmlStatsFolder = ptFolder + 'news\\html\\temp\\'
+            let htmlStatsFolder = path.join(ptFolder, 'news', 'html', 'temp')
 
             fs.readdir(htmlStatsFolder, (err, files) => {
                 
@@ -246,6 +287,7 @@ function locateHtmlFiles (ptFolders) {
                 }
                 else if (files.length > 1) {
                     console.log(htmlStatsFolder + " has more than 1 output file ")
+                    clearPtFolderHtmlFiles(htmlStatsFolder)
                     resolve({
                         isSuccess: false,
                         ptFolder,
@@ -264,23 +306,6 @@ function locateHtmlFiles (ptFolders) {
         })
     }))
 
-}
-
-function loadSettings () {
-    return new Promise ((resolve,reject) => {
-
-        fs.readFile(__dirname + '\\settings.json', 'utf-8', (err, data) => {
-
-            if (!err) {
-                resolve(JSON.parse(data))
-            }
-            else {
-                reject(err)
-            }
-
-        })
-
-    })
 }
 
 module.exports.getAllPtFolders = getAllPtFolders

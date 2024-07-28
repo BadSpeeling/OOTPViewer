@@ -4,6 +4,8 @@ const {queryDatabase} = require('./backend/DatabaseRecord')
 
 const readHtmlStatsExport = require('./backend/statsreader/readHtmlStatsExport')
 
+const loadSettings = require('./settings').loadSettings
+
 const createWindow = () => {
     const win = new BrowserWindow({
       width: 800,
@@ -31,7 +33,8 @@ const loadPtLeagueExporter = () => {
 app.whenReady().then(() => {
   ipcMain.handle('counter-value', (_event, value) => {
     console.log(value)
-    return readHtmlStatsExport.writeHtmlOutput(value) // will print value to Node console
+    let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
+    return writeResults // will print value to Node console
   })
   ipcMain.handle('home:openFile', lookupData)
   ipcMain.handle('home:getRecentTournaments', getRecentTournaments)
@@ -70,7 +73,9 @@ async function getRecentTournaments (e, args) {
 
 async function findTournamentExports () {
 
-  let ptFolders = await readHtmlStatsExport.getAllPtFolders('C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\')
+  const settings = await loadSettings()
+
+  let ptFolders = await readHtmlStatsExport.getAllPtFolders(settings.ootpRoot)
     
   let htmlFiles = await readHtmlStatsExport.locateHtmlFiles(ptFolders)
 

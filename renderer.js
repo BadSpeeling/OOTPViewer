@@ -23,10 +23,17 @@ $(document).ready(async function(e) {
         $('#tournamentList').show()
 
     })
-    $('#collectTournamentsToInsert').click(collectTournamentsToInsert)
+    $('#collectTournamentsToInsert').click(handleSubmit)
 })
 
-async function collectTournamentsToInsert() {
+function handleSubmit () {
+    
+    let htmlTournamentFilesToWrite = collectTournamentsToInsert()
+    submitTournaments(htmlTournamentFilesToWrite)
+
+}
+
+function collectTournamentsToInsert() {
 
     let tournamentKeys = $('input:checked').parents('tr').toArray().map((val) => parseInt(val.getAttribute('key')))
 
@@ -53,6 +60,12 @@ async function collectTournamentsToInsert() {
 
         }
     }
+
+    return htmlTournamentFilesToWrite
+
+}
+
+async function submitTournaments (htmlTournamentFilesToWrite) {
 
     for (let curHtmlTournamentFile of htmlTournamentFilesToWrite) {
         

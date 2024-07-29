@@ -2,8 +2,8 @@ const TYPES = require('tedious').TYPES;
 
 const uttCards = 
      [
-        {name:'CardTitle', type: TYPES.VarChar, length: 200},
         {name:'CardID', type: TYPES.Int},
+        {name:'CardTitle', type: TYPES.VarChar, length: 200},
         {name:'CardValue', type: TYPES.Int},
         {name:'CardType', type: TYPES.Int},
         {name:'CardSubType', type: TYPES.Int},

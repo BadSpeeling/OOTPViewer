@@ -14,7 +14,7 @@ function readFile (file) {
             if (!err) {
                 lines = data.split('\r\n');
 
-                headers = lines[0].replace('//','').replaceAll(' ','').split(',');
+                headers = removeTrailingComma(lines[0]).replace('//','').replaceAll(' ','').split(',');
                         
                 headers = headers.map((value) => value.trim());
                 
@@ -58,7 +58,7 @@ async function readPlayerList() {
     let cards = csvResult.parsedData;
     let headers = csvResult.headers;
 
-    let uttColumns = uttCards()
+    let uttColumns = uttCards
 
     for (let cardIndex = 0; cardIndex < cards.length; cardIndex++) {
         

@@ -2,29 +2,38 @@ const model = {}
 
 $(document).ready(async function(e) {
     loadTournamentTypes();
-    $('#gatherExports').click(async () => {
-        
-        model['htmlFiles'] = await electronAPI.findTournamentExports()
-        
-        //build table rows with content
-        let tableElement = model['htmlFiles'].map((htmlFile) => {
-            return `<tr key=${htmlFile['key']}><td><input type='checkbox'/></td><td>${htmlFile.fileName}</td><td><input name='Description'/></td><td name='Status'></td></tr>`
-            // return "  <div class='TournamentWriteSelector'>"
-            //         +   `<div>${htmlFile.fileName}</div><div><input name='Description'/></div><div><input type='checkbox'/></div>`
-            //         +"</div>"
-        }).join('')
-
-        //insert table into UI
-            $('#tournamentOptions').append("<table>"
-        +   "<tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>"
-        +   tableElement
-        +   "</table>")
-
-        $('#tournamentList').show()
-
-    })
-    $('#collectTournamentsToInsert').click(handleSubmit)
+    preparePage();
+    $('#collectTournamentsToInsert').click(handleSubmit);
+    $('#reloadPage').click(reloadPage);
+    
 })
+
+async function preparePage () {
+    model['htmlFiles'] = await electronAPI.findTournamentExports()
+        
+    //build table rows with content
+    let tableElement = model['htmlFiles'].map((htmlFile) => {
+        return `<tr key=${htmlFile['key']}><td><input type='checkbox'/></td><td>${htmlFile.fileName}</td><td><input name='Description'/></td><td name='Status'></td></tr>`
+        // return "  <div class='TournamentWriteSelector'>"
+        //         +   `<div>${htmlFile.fileName}</div><div><input name='Description'/></div><div><input type='checkbox'/></div>`
+        //         +"</div>"
+    }).join('')
+
+    //insert table into UI
+        $('#tournamentOptions').append("<table>"
+    +   "<tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>"
+    +   tableElement
+    +   "</table>")
+
+    $('#tournamentList').show()
+}
+
+function reloadPage() {
+    $('option#defaultTournament').val('')
+    $('#tournamentOptions').empty()
+    $('#reloadTable').hide()
+    $('#collectTournamentsToInsert').show()
+}
 
 function handleSubmit () {
     
@@ -85,11 +94,7 @@ async function submitTournaments (htmlTournamentFilesToWrite) {
         
     }
 
-    setTimeout(() => {
-        $('#tournamentOptions').empty()
-        $('#tournamentListStatus').text('')
-        $('#tournamentList').hide()
-    },1000)
+    $('#reloadTable').show()
 
 }
 
@@ -106,10 +111,13 @@ async function getRecentTournaments () {
 async function loadTournamentTypes () {
     
     let tournamentTypes = await electronAPI.getTournamentTypes()
-    
-    let optionElements = tournamentTypes.map((value) => {
+
+    let optionElements = [`<option id=defaultTournament value>Select an option</option>`]
+    let tournamentOptions = tournamentTypes.map((value) => {
         return `<option value=${value['TournamentTypeID']}>${value['Name']}</option>`
     })
+
+    optionElements = optionElements.concat(tournamentOptions)
 
     $('#tournamentType').append(optionElements.join(''))
 

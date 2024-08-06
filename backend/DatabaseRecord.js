@@ -1,6 +1,6 @@
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  
-const PtConnection = require('./PtConnection').PtConnection;
+const PtConnection = require('./PtConnection.js').PtConnection;
 
 class DatabaseRecord {
 

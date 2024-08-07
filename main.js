@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
-const {queryDatabase} = require('./backend/DatabaseRecord')
+const {queryDatabase} = require('./backend/database/DatabaseRecord')
 
 const readHtmlStatsExport = require('./backend/statsreader/readHtmlStatsExport')
 

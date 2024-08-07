@@ -1,11 +1,11 @@
 const fs = require('fs');
 const PtCard = require('./PtCard').PtCard
-const PtConnection = require('./PtConnection').PtConnection;
+const PtConnection = require('./database/PtConnection').PtConnection;
 
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  
 
-const uttCards = require('./uttColumns').uttCards
+const uttCards = require('./database/uttColumns').uttCards
 
 function readFile (file) {
     return new Promise ((resolve,reject) => {

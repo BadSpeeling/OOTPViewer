@@ -2,8 +2,8 @@ const parse = require('node-html-parser').parse
 const fs = require('fs')
 const path = require('path')
 
-const PtConnection = require('../PtConnection').PtConnection
-const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('../uttColumns')
+const PtConnection = require('../database/PtConnection').PtConnection
+const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('../database/uttColumns')
 
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  

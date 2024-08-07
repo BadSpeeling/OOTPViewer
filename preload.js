@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTournamentTypes: () => ipcRenderer.invoke('home:getTournamentTypes'),
   findTournamentExports: () => ipcRenderer.invoke('home:findTournamentExports'),
   
-  loadPtLeagueExporter: () => ipcRenderer.invoke('home:loadPtLeagueExporter')
+  loadPtLeagueExporter: () => ipcRenderer.invoke('home:loadPtLeagueExporter'),
+
+  getTournamentStats: (value) => ipcRenderer.invoke('getTournamentStats', value)
 
 })

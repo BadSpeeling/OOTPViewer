@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
+
 const {queryDatabase} = require('./backend/database/DatabaseRecord')
+const sqlServerScript = require('./backend/database/sqlServerScript')
 
 const readHtmlStatsExport = require('./backend/statsreader/readHtmlStatsExport')
 
@@ -36,6 +38,15 @@ app.whenReady().then(() => {
     let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
     return writeResults // will print value to Node console
   })
+
+  ipcMain.handle('getTournamentStats', (_event, value) => {
+    console.log(value)
+
+    let battingDataScript = sqlServerScript.battingDataScript.replace('{{tournamentTypeID}}',value.tournamentTypeID)
+    return queryDatabase(battingDataScript)
+
+  })
+
   ipcMain.handle('home:openFile', lookupData)
   ipcMain.handle('home:getRecentTournaments', getRecentTournaments)
   ipcMain.handle('home:getTournamentTypes', getTournamentTypes)

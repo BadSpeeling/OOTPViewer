@@ -16,8 +16,6 @@ class DatabaseRecord {
 
 }
 
-
-
 async function queryDatabase (sqlQuery) {
 
     let ptConnection = new PtConnection();

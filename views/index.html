@@ -6,7 +6,8 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com; style-src 'unsafe-inline'">
     <!-- <script>window.$ = window.jQuery = require('./jquery-3.4.1.min.js');</script> -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="./renderer.js"></script>
+    <script src="./renderer/renderer.js"></script>
+    <script src="./renderer/tournamentPicker.js"></script>
     <title>Hello World!</title>
 
     <style>
@@ -37,7 +38,7 @@
 
     <div style="display:none;" id="tournamentList">
       <div><b id="tournamentListStatus"></b></div>
-      <select id="tournamentType"></select>
+      <div id="tournamentTypeWrapper"></div>
       <div id="tournamentOptions"></div>
       <div>
         <button id="collectTournamentsToInsert">Write Data</button>

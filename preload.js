@@ -14,12 +14,13 @@ window.addEventListener('DOMContentLoaded', () => {
 contextBridge.exposeInMainWorld('electronAPI', {
   counterValue: (value) => ipcRenderer.invoke('counter-value', value),
   
-  openFile: () => ipcRenderer.invoke('home:openFile'),
-  getRecentTournaments: () => ipcRenderer.invoke('home:getRecentTournaments'),
-  getTournamentTypes: () => ipcRenderer.invoke('home:getTournamentTypes'),
-  findTournamentExports: () => ipcRenderer.invoke('home:findTournamentExports'),
+  openFile: () => ipcRenderer.invoke('openFile'),
+  getRecentTournaments: () => ipcRenderer.invoke('getRecentTournaments'),
+  getTournamentTypes: () => ipcRenderer.invoke('getTournamentTypes'),
+  findTournamentExports: () => ipcRenderer.invoke('findTournamentExports'),
   
-  loadPtLeagueExporter: () => ipcRenderer.invoke('home:loadPtLeagueExporter'),
+  openPtLeagueExporter: () => ipcRenderer.invoke('openPtLeagueExporter'),
+  openTournamentStats: () => ipcRenderer.invoke('openTournamentStats'),
 
   getTournamentStats: (value) => ipcRenderer.invoke('getTournamentStats', value)
 

@@ -17,10 +17,10 @@ const createWindow = () => {
       } 
     })
   
-    win.loadFile('index.html')
+    win.loadFile('views/index.html')
 };
 
-const loadPtLeagueExporter = () => {
+const openPtLeagueExporter = () => {
   const win = new BrowserWindow({
     width: 400,
     height: 300,
@@ -29,14 +29,28 @@ const loadPtLeagueExporter = () => {
     } 
   })
 
-  win.loadFile('ptLeagueExporter.html')
+  win.loadFile(path.join('views','ptLeagueExporter.html'))
+}
+
+const openTournamentStats = () => {
+  const win = new BrowserWindow({
+    width: 400,
+    height: 300,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    } 
+  })
+
+  win.loadFile(path.join('views','tournamentStats.html'))
 }
 
 app.whenReady().then(() => {
   ipcMain.handle('counter-value', (_event, value) => {
     console.log(value)
+    
     let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
     return writeResults // will print value to Node console
+    
   })
 
   ipcMain.handle('getTournamentStats', (_event, value) => {
@@ -47,12 +61,13 @@ app.whenReady().then(() => {
 
   })
 
-  ipcMain.handle('home:openFile', lookupData)
-  ipcMain.handle('home:getRecentTournaments', getRecentTournaments)
-  ipcMain.handle('home:getTournamentTypes', getTournamentTypes)
-  ipcMain.handle('home:findTournamentExports', findTournamentExports)
+  ipcMain.handle('openFile', lookupData)
+  ipcMain.handle('getRecentTournaments', getRecentTournaments)
+  ipcMain.handle('getTournamentTypes', getTournamentTypes)
+  ipcMain.handle('findTournamentExports', findTournamentExports)
 
-  ipcMain.handle('home:loadPtLeagueExporter', loadPtLeagueExporter)
+  ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
+  ipcMain.handle('openTournamentStats', openTournamentStats)
 
   createWindow()
 });

@@ -1,7 +1,7 @@
 const model = {}
 
 $(document).ready(async function(e) {
-    loadTournamentTypes();
+    tournamentType('tournamentTypeWrapper');
     preparePage();
     $('#collectTournamentsToInsert').click(handleSubmit);
     $('#reloadPage').click(reloadPage);
@@ -106,21 +106,6 @@ async function getRecentTournaments () {
         let curDate = `${timestamp.getMonth()+1}/${timestamp.getDate()}/${timestamp.getFullYear()} ${timestamp.getHours()}:${timestamp.getMinutes()}`
         $('#recentTournaments').append(`<tr><td>${curDate}</td><td>${tourney['Description']}</td><td>${tourney['Name']}</td></tr>`)
     })
-}
-
-async function loadTournamentTypes () {
-    
-    let tournamentTypes = await electronAPI.getTournamentTypes()
-
-    let optionElements = [`<option id=defaultTournament value>Select an option</option>`]
-    let tournamentOptions = tournamentTypes.map((value) => {
-        return `<option value=${value['TournamentTypeID']}>${value['Name']}</option>`
-    })
-
-    optionElements = optionElements.concat(tournamentOptions)
-
-    $('#tournamentType').append(optionElements.join(''))
-
 }
 
 function uxTournamentRowStatus (key, status) {

@@ -1,7 +1,7 @@
 const model = {}
 
 $(document).ready(async function(e) {
-    tournamentType('tournamentTypeWrapper');
+    tournamentTypePicker('tournamentTypeWrapper');
     preparePage();
     $('#collectTournamentsToInsert').click(handleSubmit);
     $('#reloadPage').click(reloadPage);

@@ -1,4 +1,4 @@
-async function tournamentType (parentID) {
+async function tournamentTypePicker (parentID) {
     
     let tournamentTypes = await getTournamentOptions()
     $(`#${parentID}`).append(buildHtml(tournamentTypes))

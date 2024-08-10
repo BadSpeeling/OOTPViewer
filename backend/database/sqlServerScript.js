@@ -1,4 +1,5 @@
-const battingDataScript = `select [stats].CardID,
+const battingDataScript = `
+select [stats].CardID,
 [stats].TournamentTypeID,
 case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
 PA,
@@ -34,5 +35,49 @@ where 1=1
 order by 
 [stats].PA desc
 `
+const pitchingDataScript = `
+select [stats].CardID,
+[stats].TournamentTypeID,
+case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
+G,
+GS,
+(K / (OUTS / 3.0) ) * 9 as [K/9],
+((BB+IBB) / (OUTS / 3.0) ) * 9 as [BB/9],
+(HR / (OUTS / 3.0) ) * 9 as [HR/9],
+(ER / (OUTS / 3.0)) * 9 as [ERA]
+into #current_pitchers
+from
+(
+	select sb.LiveUpdateID,CardID,[sb].TournamentTypeID,sum(G) G, sum(GS) GS, sum(OUTS) OUTS, sum(BB) BB, sum(IBB) IBB, sum(K) K, sum(HR) HR, sum(ER) ER
+	from PitchingStats 
+	join StatsBatch sb on PitchingStats.StatsBatchID = sb.StatsBatchID
+	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
+	where 1=1
+	and OUTS > 0
+	and [type].[TournamentTypeID] = {{tournamentTypeID}}
+	group by sb.LiveUpdateID,CardID,sb.TournamentTypeID
+) [stats]
+join dbo.Card cards on [stats].CardID = cards.CardID
+where cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID
+
+order by ERA asc
+
+select
+CardTitle,[type].Name,CardValue, dbo.GetPositionStr(Position) [POS], case when Throws = 1 then 'R' else 'L' end [Throws],
+G,
+GS,
+case when CHARINDEX('.',CONVERT(VARCHAR,[K/9])) = 2 THEN SUBSTRING(CONVERT(VARCHAR, ROUND([K/9],3)),1,4) ELSE SUBSTRING(CONVERT(VARCHAR, ROUND([K/9],3)),1,5) END as [K/9], 
+SUBSTRING(CONVERT(VARCHAR, ROUND([BB/9],3)),1,4) as [BB/9],  
+SUBSTRING(CONVERT(VARCHAR, ROUND([HR/9],3)),1,4) as [HR/9],
+SUBSTRING(CONVERT(VARCHAR, ROUND([stats].[ERA],3)),1,4) as [ERA],
+cards.[Stuff],cards.[pHR],cards.[pBABIP],cards.[Control],cards.[Stamina]
+from #current_pitchers [stats]
+join dbo.Card cards on [stats].CardID = cards.CardID and isnull([stats].LiveUpdateID,0) = isnull(cards.LiveUpdateID,0)
+join TournamentType [type] on [stats].TournamentTypeID = [type].TournamentTypeID
+where 1=1
+order by 
+[stats].G desc
+`
 
 module.exports.battingDataScript = battingDataScript;
+module.exports.pitchingDataScript = pitchingDataScript;

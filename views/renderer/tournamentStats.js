@@ -3,21 +3,42 @@ const model = {}
 $(document).ready(() => {
 
     tournamentTypePicker('tournamentTypeWrapper');
+    $('#loadTournamentTable').click(initializeDataTable)
 
 })
 
-async function initialDataTable () {
-    const columns = battingColumns()
+async function initializeDataTable () {
+    
+    const tableWrapper = $('#tournamentData').empty();
+    
+    const statsTypeID = $('#statsType').val();
+    let columns;
 
-    $('#tournamentDataTable').append(buildTableHeader(columns));
-    $('#tournamentDataTable').append(await buildTableBody(columns));
+    if (statsTypeID === '0') {
+        columns = battingColumns();
+    }
+    else if (statsTypeID === '1') {
+        columns = pitchingColumns();
+    }
+    else {
+        throw Error(statsTypeID + ' is not a valid StatsType');
+    }
 
-    $('#tournamentDataTable').DataTable();
+    const table = $('<table></table>');
+    
+    table.append(buildTableHeader(columns));
+    table.append(await buildTableBody(columns, statsTypeID));
+
+    tableWrapper.append(table);
+    table.DataTable();
+
 }
 
-async function buildTableBody (columns) {
+async function buildTableBody (columns, statsTypeID) {
 
-    const data = await electronAPI.getTournamentStats({tournamentTypeID:1032});
+    const tournamentTypeID = $('#tournamentType').val()
+
+    const data = await electronAPI.getTournamentStats({tournamentTypeID,statsTypeID});
 
     const tableBody = data.map((dataRecord) => {
         const curRow = columns.map((column) => {
@@ -33,10 +54,8 @@ async function buildTableBody (columns) {
 
 }
 
-function buildTableHeader () {
+function buildTableHeader (columns) {
 
-    const columns = battingColumns();
-    
     tableHeaders = columns.map((column) => {
         return `<th>${column}</th>`
     }).join('');
@@ -46,5 +65,9 @@ function buildTableHeader () {
 }
 
 function battingColumns () {
-    return ['CardTitle','POS','Bats','PA','AVG','OBP','SLG','OPS'];
+    return ['CardTitle','CardValue','POS','Bats','PA','AVG','OBP','SLG','OPS'];
+}
+
+function pitchingColumns () {
+    return ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA','Stamina']
 }

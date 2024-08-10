@@ -49,15 +49,29 @@ app.whenReady().then(() => {
     console.log(value)
     
     let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
-    return writeResults // will print value to Node console
-    
+    return writeResults
+
   })
 
   ipcMain.handle('getTournamentStats', (_event, value) => {
     console.log(value)
 
-    let battingDataScript = sqlServerScript.battingDataScript.replace('{{tournamentTypeID}}',value.tournamentTypeID)
-    return queryDatabase(battingDataScript)
+    let dataScript;
+    const statsTypeID = value.statsTypeID;
+    const tournamentTypeID = value.tournamentTypeID.replace('-','');
+
+    if (statsTypeID === '0') {
+      dataScript = sqlServerScript.battingDataScript;
+    }
+    else if (statsTypeID === '1') {
+      dataScript = sqlServerScript.pitchingDataScript;
+    }
+    else {
+      throw Error(statsTypeID + ' is not a valid statsTypeID value');
+    }
+
+    dataScript = dataScript.replace('{{tournamentTypeID}}',tournamentTypeID);
+    return queryDatabase(dataScript);
 
   })
 

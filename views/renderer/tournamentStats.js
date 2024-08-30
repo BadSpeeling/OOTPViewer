@@ -3,9 +3,32 @@ const model = {}
 $(document).ready(() => {
 
     tournamentTypePicker('tournamentTypeWrapper');
-    $('#loadTournamentTable').click(initializeDataTable)
+    updateQualifierName();
+    $('#loadTournamentTable').click(initializeDataTable);
+    $('#statsType').change(updateQualifierName);
 
 })
+
+function updateQualifierName () {
+
+    const getQualifierName = () => {
+        if (statsTypeID === '0') {
+            return 'PA';
+        }
+        else if (statsTypeID === '1') {
+            return 'G';
+        }
+        else {
+            return '';
+        }
+    }
+
+    const statsTypeID = $('#statsType').val();
+    const qualifierName = getQualifierName();
+
+    $('#qualifierName').text(qualifierName);
+
+}
 
 async function initializeDataTable () {
     
@@ -37,8 +60,9 @@ async function initializeDataTable () {
 async function buildTableBody (columns, statsTypeID) {
 
     const tournamentTypeID = $('#tournamentType').val()
+    const qualifierValue = $('#qualifierValue').val()
 
-    const data = await electronAPI.getTournamentStats({tournamentTypeID,statsTypeID});
+    const data = await electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue});
 
     const tableBody = data.map((dataRecord) => {
         const curRow = columns.map((column) => {

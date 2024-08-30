@@ -2,13 +2,13 @@ const parse = require('node-html-parser').parse
 const fs = require('fs')
 const path = require('path')
 
-const PtConnection = require('../database/PtConnection').PtConnection
-const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('../database/uttColumns')
+const PtConnection = require('./database/PtConnection').PtConnection
+const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('./database/uttColumns')
 
 const Request = require('tedious').Request;  
 const TYPES = require('tedious').TYPES;  
 
-const loadSettings = require('../../settings').loadSettings
+const loadSettings = require('../settings').loadSettings
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 

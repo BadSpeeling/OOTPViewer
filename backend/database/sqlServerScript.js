@@ -1,4 +1,8 @@
 const battingDataScript = `
+declare @LiveUpdateID int;
+
+select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by EffectiveDate desc
+
 select [stats].CardID,
 [stats].TournamentTypeID,
 case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
@@ -13,12 +17,14 @@ from (
 	join StatsBatch sb on BattingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
+	and sb.LiveUpdateID = @LiveUpdateID
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
 	and G > 0 
 	group by sb.LiveUpdateID,CardID,sb.TournamentTypeID
 ) [stats]
 join dbo.Card cards on [stats].CardID = cards.CardID
-where cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID
+where (cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID)
+and PA > {{qualifierValue}}
 
 select CardTitle,[type].[Name],[stats].CardID,CardValue,dbo.GetPositionStr(Position) POS, case when cards.Bats = 1 then 'R' else 'L' end [Bats], [stats].PA,
 SUBSTRING(CONVERT(VARCHAR, ROUND([AVG],3)),2,4) as [AVG], 
@@ -36,6 +42,10 @@ order by
 [stats].PA desc
 `
 const pitchingDataScript = `
+declare @LiveUpdateID int;
+
+select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by EffectiveDate desc
+
 select [stats].CardID,
 [stats].TournamentTypeID,
 case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
@@ -53,12 +63,14 @@ from
 	join StatsBatch sb on PitchingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
+	and sb.LiveUpdateID = @LiveUpdateID
 	and OUTS > 0
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
 	group by sb.LiveUpdateID,CardID,sb.TournamentTypeID
 ) [stats]
 join dbo.Card cards on [stats].CardID = cards.CardID
-where cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID
+where (cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID)
+and G > {{qualifierValue}}
 
 order by ERA asc
 

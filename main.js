@@ -4,7 +4,7 @@ const path = require('node:path')
 const {queryDatabase} = require('./backend/database/DatabaseRecord')
 const sqlServerScript = require('./backend/database/sqlServerScript')
 
-const readHtmlStatsExport = require('./backend/statsreader/readHtmlStatsExport')
+const readHtmlStatsExport = require('./backend/readHtmlStatsExport')
 
 const loadSettings = require('./settings').loadSettings
 
@@ -59,6 +59,7 @@ app.whenReady().then(() => {
     let dataScript;
     const statsTypeID = value.statsTypeID;
     const tournamentTypeID = value.tournamentTypeID.replace('-','');
+    const qualifierValue = value.qualifierValue.replace('-','');
 
     if (statsTypeID === '0') {
       dataScript = sqlServerScript.battingDataScript;
@@ -71,6 +72,7 @@ app.whenReady().then(() => {
     }
 
     dataScript = dataScript.replace('{{tournamentTypeID}}',tournamentTypeID);
+    dataScript = dataScript.replace('{{qualifierValue}}',qualifierValue);
     return queryDatabase(dataScript);
 
   })

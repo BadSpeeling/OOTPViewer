@@ -111,7 +111,13 @@ const uttCards =
         {name:'era', type: TYPES.Int},
         {name:'tier', type: TYPES.Int},
         {name:'MissionValue', type: TYPES.Int},
-        {name:'date', type: TYPES.Date}
+        {name:'date', type: TYPES.Date},
+        {name:'BuyOrderHigh', type: TYPES.Int},
+        {name:'SellOrderLow', type: TYPES.Int},
+        {name:'Last10Price', type: TYPES.Int},
+        {name:'BuyOrderHigh(CC)', type: TYPES.Int},
+        {name:'SellOrderHigh(CC)', type: TYPES.Int},
+        {name:'Last10Price(CC)', type: TYPES.Int},
     ]
 
 

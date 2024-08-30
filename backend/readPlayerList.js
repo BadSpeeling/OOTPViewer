@@ -47,7 +47,8 @@ const removeTrailingComma = (line) => {
 
 async function readPlayerList() {
 
-    let file = 'C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\online_data\\pt_card_list.csv';
+    //let file = 'C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\online_data\\pt_card_list.csv';
+    let file = 'D:\\OOTP Perfect Team\\data\\card_store\\pt_card_list_test.csv';
 
     let csvResult = await readFile(file);
     let ptConnection = new PtConnection();

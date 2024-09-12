@@ -6,13 +6,13 @@
         "type": "node",
         "request": "launch",
         "cwd": "${workspaceFolder}",
-        "program": "${workspaceFolder}\\backend\\readPlayerList.js"
-        // "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-        // "windows": {
-        //   "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-        // },
-        // "args" : ["."],
-        // "outputCapture": "std"
+        //"program": "${workspaceFolder}\\backend\\readPlayerList.js",
+        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+        "windows": {
+          "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+        },
+        "args" : ["."],
+        "outputCapture": "std"
       }
     ]
   }

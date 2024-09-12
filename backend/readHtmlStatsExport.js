@@ -277,31 +277,41 @@ function locateHtmlFiles (ptFolders) {
 
             fs.readdir(htmlStatsFolder, (err, files) => {
                 
-                if (files.length === 1) {
+                if (err) {
                     resolve({
-                        isSuccess: true,
+                        isSuccess: false,
                         ptFolder,
                         path: htmlStatsFolder,
-                        fileName: files[0]
-                    })
-                }
-                else if (files.length > 1) {
-                    console.log(htmlStatsFolder + " has more than 1 output file ")
-                    clearPtFolderHtmlFiles(htmlStatsFolder)
-                    resolve({
-                        isSuccess: false,
-                        ptFolder,
-                        path: htmlStatsFolder
-                    })
-                }
+                        msg: ptFolder + " had an issue locating the output directory"
+                    })                }
                 else {
-                    resolve({
-                        isSuccess: false,
-                        ptFolder,
-                        path: htmlStatsFolder
-                    })
+                    if (files.length === 1) {
+                        resolve({
+                            isSuccess: true,
+                            ptFolder,
+                            path: htmlStatsFolder,
+                            fileName: files[0]
+                        })
+                    }
+                    else if (files.length > 1) {
+                        console.log(htmlStatsFolder + " has more than 1 output file")
+                        clearPtFolderHtmlFiles(htmlStatsFolder)
+                        resolve({
+                            isSuccess: false,
+                            ptFolder,
+                            path: htmlStatsFolder,
+                            msg: htmlStatsFolder + " has more than 1 output file"
+                        })
+                    }
+                    else {
+                        resolve({
+                            isSuccess: false,
+                            ptFolder,
+                            path: htmlStatsFolder,
+                            msg: htmlStatsFolder + " has no output files"
+                        })
+                    }
                 }
-
             })
         })
     }))

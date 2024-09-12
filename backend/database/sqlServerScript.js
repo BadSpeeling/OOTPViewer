@@ -5,26 +5,25 @@ select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by Effective
 
 select [stats].CardID,
 [stats].TournamentTypeID,
-case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
+LiveUpdateID,
 PA,
 case when AB != 0 then ([1b]+[2b]+[3b]+[hr])/convert(decimal,AB) else 0.000 end as [AVG], 
 case when PA != 0 then (([1b]+[2b]+[3b]+[hr])+BB+IBB+HP)/CONVERT(DECIMAL,PA) else 0.000 end OBP, 
 case when AB != 0 then ([1B]+2*[2B]+3*[3B]+4*HR)/CONVERT(DECIMAL,AB) else 0.000 end SLG
 into #Hitters
 from (
-	select sb.LiveUpdateID,sb.TournamentTypeID,CardID,SUM(G) G,SUM(GS) GS,SUM(PA) PA,SUM(AB) AB,SUM([1b]) [1B],SUM([2b]) [2B],SUM([3b]) [3B],SUM([hr]) [HR],SUM(RBI) RBI,SUM(R) R,SUM(BB) BB,SUM(IBB) IBB,SUM(HP) HP,SUM(SH) SH,SUM(SF) SF,SUM(SO) SO 
-	from BattingStats 
+	select case when cards.CardType = 1 then sb.LiveUpdateID else 0 end LiveUpdateID,sb.TournamentTypeID,cards.CardID,SUM(G) G,SUM(GS) GS,SUM(PA) PA,SUM(AB) AB,SUM([1b]) [1B],SUM([2b]) [2B],SUM([3b]) [3B],SUM([hr]) [HR],SUM(RBI) RBI,SUM(R) R,SUM(BB) BB,SUM(IBB) IBB,SUM(HP) HP,SUM(SH) SH,SUM(SF) SF,SUM(SO) SO 
+	from BattingStats
+	join Card cards on cards.CardID = BattingStats.CardID
 	join StatsBatch sb on BattingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
-	and sb.LiveUpdateID = @LiveUpdateID
+	and (cards.CardType != 1 or @LiveUpdateID = sb.LiveUpdateID)
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
 	and G > 0 
-	group by sb.LiveUpdateID,CardID,sb.TournamentTypeID
+	group by cards.CardType,sb.LiveUpdateID,cards.CardID,sb.TournamentTypeID
 ) [stats]
-join dbo.Card cards on [stats].CardID = cards.CardID
-where (cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID)
-and PA > {{qualifierValue}}
+where PA > {{qualifierValue}}
 
 select CardTitle,[type].[Name],[stats].CardID,CardValue,dbo.GetPositionStr(Position) POS, case when cards.Bats = 1 then 'R' else 'L' end [Bats], [stats].PA,
 SUBSTRING(CONVERT(VARCHAR, ROUND([AVG],3)),2,4) as [AVG], 
@@ -48,7 +47,7 @@ select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by Effective
 
 select [stats].CardID,
 [stats].TournamentTypeID,
-case when cards.CardType = 1 then [stats].LiveUpdateID else NULL end LiveUpdateID,
+LiveUpdateID,
 G,
 GS,
 (K / (OUTS / 3.0) ) * 9 as [K/9],
@@ -58,19 +57,18 @@ GS,
 into #current_pitchers
 from
 (
-	select sb.LiveUpdateID,CardID,[sb].TournamentTypeID,sum(G) G, sum(GS) GS, sum(OUTS) OUTS, sum(BB) BB, sum(IBB) IBB, sum(K) K, sum(HR) HR, sum(ER) ER
-	from PitchingStats 
+	select case when cards.CardType = 1 then sb.LiveUpdateID else 0 end LiveUpdateID,cards.CardID,sb.TournamentTypeID,sum(G) G, sum(GS) GS, sum(OUTS) OUTS, sum(BB) BB, sum(IBB) IBB, sum(K) K, sum(HR) HR, sum(ER) ER
+	from PitchingStats
+	join Card cards on cards.CardID = PitchingStats.CardID
 	join StatsBatch sb on PitchingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
-	and sb.LiveUpdateID = @LiveUpdateID
+	and (cards.CardType != 1 or @LiveUpdateID = sb.LiveUpdateID)
 	and OUTS > 0
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
-	group by sb.LiveUpdateID,CardID,sb.TournamentTypeID
+	group by cards.CardType,sb.LiveUpdateID,cards.CardID,sb.TournamentTypeID
 ) [stats]
-join dbo.Card cards on [stats].CardID = cards.CardID
-where (cards.CardType != 1 or cards.LiveUpdateID = [stats].LiveUpdateID)
-and G > {{qualifierValue}}
+where G > {{qualifierValue}}
 
 order by ERA asc
 

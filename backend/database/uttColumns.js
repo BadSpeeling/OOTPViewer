@@ -116,7 +116,7 @@ const uttCards =
         {name:'SellOrderLow', type: TYPES.Int},
         {name:'Last10Price', type: TYPES.Int},
         {name:'BuyOrderHigh(CC)', type: TYPES.Int},
-        {name:'SellOrderHigh(CC)', type: TYPES.Int},
+        {name:'SellOrderLow(CC)', type: TYPES.Int},
         {name:'Last10Price(CC)', type: TYPES.Int},
     ]
 

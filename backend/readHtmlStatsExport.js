@@ -201,7 +201,7 @@ function parseHtmlDataExport (htmlFile) {
                     statText = value.removeWhitespace().text !== '' ? value.text : '0'
                     statNumber = Number(statText)
 
-                    return isNaN(statNumber) ? statText : statNumber
+                    return parsedHeaders[curHeaderIndex].trim() === 'TM' || isNaN(statNumber) ? statText : statNumber
 
                 })
                 

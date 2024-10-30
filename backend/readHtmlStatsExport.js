@@ -196,16 +196,23 @@ function parseHtmlDataExport (htmlFile) {
             for (statsRow of statsRows) {
 
                 const curStats = statsRow.querySelectorAll('td')
-                const curStatsTxt = curStats.map((value)=> {
+            
+                if (curStats.length === parsedHeaders.length) {
+                    const curStatsTxt = curStats.map((value, parsedHeadersIndex)=> {
 
-                    statText = value.removeWhitespace().text !== '' ? value.text : '0'
-                    statNumber = Number(statText)
+                        statText = value.removeWhitespace().text !== '' ? value.text : '0'
+                        statNumber = Number(statText)
 
-                    return parsedHeaders[curHeaderIndex].trim() === 'TM' || isNaN(statNumber) ? statText : statNumber
+                        return parsedHeaders[parsedHeadersIndex].trim() === 'TM' || isNaN(statNumber) ? statText : statNumber
 
-                })
-                
-                parsedStats.push(curStatsTxt)
+                    })
+
+                    parsedStats.push(curStatsTxt)
+
+                }
+                else {
+                    reject({"err":"The amount of columns in the data row did not match the amount of columns in the header"})
+                }
 
             }
 

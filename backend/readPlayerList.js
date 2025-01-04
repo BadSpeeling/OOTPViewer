@@ -59,18 +59,28 @@ async function readPlayerList() {
     let headers = csvResult.headers;
 
     let uttColumns = uttCards
+    let uttCardIDIndex = uttColumns.indexOf({name:'CardID', type: TYPES.Int});
 
-    for (let cardIndex = 0; cardIndex < cards.length; cardIndex++) {
-        
-        let uttRow = [];
+    if (uttCardIDIndex !== -1) {
 
-        for (let headerIndex = 0; headerIndex < uttColumns.length; headerIndex++) {
-            let uttValue = cards[cardIndex].cardRatings[uttColumns[headerIndex].name]
-            uttRow.push(uttValue !== undefined ? uttValue : null);
+        for (let cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+            
+            let uttRow = [];
+
+            for (let headerIndex = 0; headerIndex < uttColumns.length; headerIndex++) {
+                let uttValue = cards[cardIndex].cardRatings[uttColumns[headerIndex].name]
+                uttRow.push(uttValue !== undefined ? uttValue : null);
+            }
+
+            if (!uttRows.find((val) => val[0] === uttRow[0])) {
+                uttRows.push(uttRow);
+            }
+
         }
 
-        uttRows.push(uttRow);
-
+    }
+    else {
+        throw Error("Could not find uttCard CardID value");
     }
 
     let table = {

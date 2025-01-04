@@ -36,52 +36,40 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DatabaseRecord = void 0;
-exports.queryDatabase = queryDatabase;
-var tedious_1 = require("tedious");
-var PtConnection_1 = require("./PtConnection");
-var DatabaseRecord = /** @class */ (function () {
-    function DatabaseRecord(record) {
-        for (var cardValueIndex = 0; cardValueIndex < record.length; cardValueIndex++) {
-            var curCol = record[cardValueIndex];
-            this[curCol.metadata.colName] = curCol.value;
-        }
-    }
-    return DatabaseRecord;
-}());
-exports.DatabaseRecord = DatabaseRecord;
-function queryDatabase(sqlQuery) {
+exports.tournamentTypePicker = tournamentTypePicker;
+function tournamentTypePicker(parentID) {
     return __awaiter(this, void 0, void 0, function () {
-        var ptConnection, connection;
+        var tournamentTypes;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    ptConnection = new PtConnection_1.PtConnection();
-                    return [4 /*yield*/, ptConnection.connect()];
+                case 0: return [4 /*yield*/, getTournamentOptions()];
                 case 1:
-                    connection = _a.sent();
-                    return [2 /*return*/, new Promise(function (resolve, reject) {
-                            var request = new tedious_1.Request(sqlQuery, function (err) {
-                                if (err) {
-                                    reject(err);
-                                }
-                            });
-                            var records = [];
-                            request.on('row', function (columns) {
-                                records.push(new DatabaseRecord(columns));
-                            });
-                            request.on('done', function (rowCount, more) {
-                                console.log(rowCount + ' rows returned');
-                            });
-                            // Close the connection after the final event emitted by the request, after the callback passes
-                            request.on("requestCompleted", function () {
-                                resolve(records);
-                                connection.close();
-                            });
-                            connection.execSql(request);
-                        })];
+                    tournamentTypes = _a.sent();
+                    $("#".concat(parentID)).append(buildHtml(tournamentTypes));
+                    return [2 /*return*/];
             }
         });
     });
 }
-//# sourceMappingURL=DatabaseRecord.js.map
+function getTournamentOptions() {
+    return __awaiter(this, void 0, void 0, function () {
+        var tournamentTypes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, window.electronAPI.getTournamentTypes()];
+                case 1:
+                    tournamentTypes = _a.sent();
+                    return [2 /*return*/, tournamentTypes];
+            }
+        });
+    });
+}
+function buildHtml(tournamentTypes) {
+    var optionElements = ["<option id=defaultTournament value>Select an option</option>"];
+    var tournamentOptions = tournamentTypes.map(function (value) {
+        return "<option value=".concat(value['TournamentTypeID'], ">").concat(value['Name'], "</option>");
+    });
+    optionElements = optionElements.concat(tournamentOptions);
+    return "\n        <select id=tournamentType>\n            ".concat(optionElements.join(''), "\n        </select>\n    ");
+}
+//# sourceMappingURL=tournamentTypePicker.js.map

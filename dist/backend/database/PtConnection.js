@@ -1,10 +1,10 @@
-const Connection = require('tedious').Connection;  
-
-class PtConnection {
-
-    constructor () {
-
-        var config = {  
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PtConnection = void 0;
+var tedious_1 = require("tedious");
+var PtConnection = /** @class */ (function () {
+    function PtConnection() {
+        var config = {
             server: 'localhost',
             //port: '51397',
             authentication: {
@@ -19,34 +19,26 @@ class PtConnection {
                 trustServerCertificate: true,
                 database: "ootp_data"
             }
-        };  
-
-        this.connection = new Connection(config); 
-
+        };
+        this.connection = new tedious_1.Connection(config);
     }
-
-    connect () {
-
-        return new Promise((resolve,reject) => {
-            
-            let connection = this.connection;
-
-            connection.on('connect', function(err) {
+    PtConnection.prototype.connect = function () {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            var connection = _this.connection;
+            connection.on('connect', function (err) {
                 if (err) {
-                    console.log("There was an issue connecting")
+                    console.log("There was an issue connecting");
                     reject(err);
                 }
                 else {
                     resolve(connection);
                 }
             });
-            
             connection.connect();
-
         });
-
-    }
-
-}
-
-module.exports.PtConnection = PtConnection;
+    };
+    return PtConnection;
+}());
+exports.PtConnection = PtConnection;
+//# sourceMappingURL=PtConnection.js.map

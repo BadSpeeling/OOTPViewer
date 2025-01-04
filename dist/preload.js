@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', function () {
     }
 });
 contextBridge.exposeInMainWorld('electronAPI', {
-    counterValue: function (value) { return ipcRenderer.invoke('counter-value', value); },
+    writeHtmlTournamentStats: function (value) { return ipcRenderer.invoke('writeHtmlTournamentStats', value); },
     openFile: function () { return ipcRenderer.invoke('openFile'); },
     getRecentTournaments: function () { return ipcRenderer.invoke('getRecentTournaments'); },
     getTournamentTypes: function () { return ipcRenderer.invoke('getTournamentTypes'); },

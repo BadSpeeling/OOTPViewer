@@ -13,7 +13,7 @@ declare global {
   interface Window {
     electronAPI: TournamentExporterAPI;
   }
-  
+
 
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
@@ -36,7 +36,7 @@ const createWindow = () => {
       } 
     })
   
-    win.loadFile('views/index.html')
+    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'))
 };
 
 const openPtLeagueExporter = () => {
@@ -48,7 +48,7 @@ const openPtLeagueExporter = () => {
     } 
   })
 
-  win.loadFile(path.join('views','ptLeagueExporter.html'))
+  win.loadFile(path.join(__dirname, '..', 'views', 'index.html'))
 }
 
 const openTournamentStats = () => {

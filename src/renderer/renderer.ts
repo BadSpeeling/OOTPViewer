@@ -1,14 +1,15 @@
-import { PtDataExportFile, PtDataStatsFile } from '../../types'
+import { PtDataExportFile, PtDataStatsFile } from '../types'
 import {tournamentTypePicker} from "./tournamentTypePicker"
 
 const model = {}
 
 $(document).ready(async function(e) {
+    
     tournamentTypePicker('tournamentTypeWrapper');
     preparePage();
     $('#collectTournamentsToInsert').click(handleSubmit);
     $('#reloadPage').click(reloadPage);
-    
+
 })
 
 async function preparePage () {

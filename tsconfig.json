@@ -8,8 +8,10 @@
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false,
+    "rootDir": "src",
     "outDir": "dist",
     "resolveJsonModule": true,
+    "lib": ["ES2021.Promise","ES2022.Error","DOM"]
   },
   "exclude": [ "node_modules" ] 
 }

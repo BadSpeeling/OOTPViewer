@@ -1,5 +1,6 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
+import { tournamentTypePicker } from "./tournamentTypePicker";
 
 const model = {}
 

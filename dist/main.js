@@ -1,3 +1,4 @@
+"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -45,12 +46,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 var _a = require('electron'), app = _a.app, BrowserWindow = _a.BrowserWindow, ipcMain = _a.ipcMain;
 var path = require('node:path');
-var queryDatabase = require('./backend/database/DatabaseRecord').queryDatabase;
+var DatabaseRecord_1 = require("./backend/database/DatabaseRecord");
 var sqlServerScript = require('./backend/database/sqlServerScript');
-var readHtmlStatsExport = require('./backend/readHtmlStatsExport');
-var loadSettings = require('./settings').loadSettings;
+var readHtmlStatsExport = require("./backend/readHtmlStatsExport");
+var data = require("../settings.json");
 var createWindow = function () {
     var win = new BrowserWindow({
         width: 800,
@@ -59,7 +61,7 @@ var createWindow = function () {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-    win.loadFile('views/index.html');
+    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'));
 };
 var openPtLeagueExporter = function () {
     var win = new BrowserWindow({
@@ -69,7 +71,7 @@ var openPtLeagueExporter = function () {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-    win.loadFile(path.join('views', 'ptLeagueExporter.html'));
+    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'));
 };
 var openTournamentStats = function () {
     var win = new BrowserWindow({
@@ -82,7 +84,7 @@ var openTournamentStats = function () {
     win.loadFile(path.join('views', 'tournamentStats.html'));
 };
 app.whenReady().then(function () {
-    ipcMain.handle('counter-value', function (_event, value) {
+    ipcMain.handle('writeHtmlTournamentStats', function (_event, value) {
         console.log(value);
         var writeResults = readHtmlStatsExport.writeHtmlOutput(value);
         return writeResults;
@@ -104,7 +106,7 @@ app.whenReady().then(function () {
         }
         dataScript = dataScript.replace('{{tournamentTypeID}}', tournamentTypeID);
         dataScript = dataScript.replace('{{qualifierValue}}', qualifierValue);
-        return queryDatabase(dataScript);
+        return (0, DatabaseRecord_1.queryDatabase)(dataScript);
     });
     ipcMain.handle('openFile', lookupData);
     ipcMain.handle('getRecentTournaments', getRecentTournaments);
@@ -122,7 +124,7 @@ function getTournamentTypes(e, args) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, queryDatabase("SELECT * FROM ootp_data.dbo.TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")];
+                case 0: return [4 /*yield*/, (0, DatabaseRecord_1.queryDatabase)("SELECT * FROM ootp_data.dbo.TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -133,7 +135,7 @@ function lookupData(e, args) {
         var arr;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, queryDatabase("SELECT TOP 5 * FROM ootp_data.dbo.pt_card_list_20240404")];
+                case 0: return [4 /*yield*/, (0, DatabaseRecord_1.queryDatabase)("SELECT TOP 5 * FROM ootp_data.dbo.pt_card_list_20240404")];
                 case 1:
                     arr = _a.sent();
                     return [2 /*return*/, arr];
@@ -151,7 +153,7 @@ function getRecentTournaments(e, args) {
                         + "from dbo.StatsBatch [batch] "
                         + "join dbo.TournamentType [t] on [batch].TournamentTypeID = t.TournamentTypeID "
                         + "order by [batch].[Timestamp] desc ";
-                    return [4 /*yield*/, queryDatabase(sql)];
+                    return [4 /*yield*/, (0, DatabaseRecord_1.queryDatabase)(sql)];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -159,20 +161,19 @@ function getRecentTournaments(e, args) {
 }
 function findTournamentExports() {
     return __awaiter(this, void 0, void 0, function () {
-        var settings, ptFolders, htmlFiles, htmlFilesToReturn, curKey, _i, htmlFiles_1;
+        var settings, ptFolders, htmlFiles, htmlFilesToReturn, curKey, _i, htmlFiles_1, htmlFile;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, loadSettings()];
-                case 1:
-                    settings = _a.sent();
+                case 0:
+                    settings = data;
                     return [4 /*yield*/, readHtmlStatsExport.getAllPtFolders(settings.ootpRoot)];
-                case 2:
+                case 1:
                     ptFolders = _a.sent();
                     return [4 /*yield*/, readHtmlStatsExport.locateHtmlFiles(ptFolders)];
-                case 3:
+                case 2:
                     htmlFiles = _a.sent();
                     htmlFilesToReturn = [];
-                    curKey = 10;
+                    curKey = 0;
                     for (_i = 0, htmlFiles_1 = htmlFiles; _i < htmlFiles_1.length; _i++) {
                         htmlFile = htmlFiles_1[_i];
                         if (htmlFile.isSuccess) {

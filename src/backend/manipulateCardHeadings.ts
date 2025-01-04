@@ -1,4 +1,4 @@
-headings=[
+const headings=[
     'CardTitle',
     'CardID',
     'CardValue',

@@ -1,4 +1,4 @@
-headings=[
+var headings = [
     'CardTitle',
     'CardID',
     'CardValue',
@@ -118,20 +118,14 @@ headings=[
     'SellOrderLow(CC)',
     'Last10Price(CC)',
     'date'
-]
-
-function uttColumns () {
-    let headingLines=[]
-
-    for(let headingIndex=0;headingIndex<headings.length;headingIndex++){
-        headingLines.push(`{name:'${headings[headingIndex]}'}`)
+];
+function uttColumns() {
+    var headingLines = [];
+    for (var headingIndex = 0; headingIndex < headings.length; headingIndex++) {
+        headingLines.push("{name:'".concat(headings[headingIndex], "'}"));
     }
-
-    console.log(`[${headingLines.join(',\n')}]`)
+    console.log("[".concat(headingLines.join(',\n'), "]"));
 }
-
-function uttColumnLoading () {
-
-
-
+function uttColumnLoading() {
 }
+//# sourceMappingURL=manipulateCardHeadings.js.map

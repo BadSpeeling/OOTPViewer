@@ -1,5 +1,6 @@
 import { Request } from "tedious"
 import { DatabaseRecord } from "./DatabaseRecord"
+import { PtConnection } from "./PtConnection";
 
 export async function queryDatabase (sqlQuery) {
 

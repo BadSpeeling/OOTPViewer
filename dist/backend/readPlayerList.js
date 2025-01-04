@@ -76,7 +76,7 @@ async function readPlayerList() {
     let table = {
         columns: uttColumns,
         rows: uttRows
-      };
+    };
     
     var request = new Request("spInsertCards", function(err) {
         if (!err) {

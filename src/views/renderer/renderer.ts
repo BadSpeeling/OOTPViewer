@@ -1,3 +1,6 @@
+import { PtDataExportFile, PtDataStatsFile } from '../../types'
+import {tournamentTypePicker} from "./tournamentTypePicker"
+
 const model = {}
 
 $(document).ready(async function(e) {
@@ -9,7 +12,7 @@ $(document).ready(async function(e) {
 })
 
 async function preparePage () {
-    model['htmlFiles'] = await electronAPI.findTournamentExports()
+    model['htmlFiles'] = await window.electronAPI.findTournamentExports()
         
     //build table rows with content
     let tableElement = model['htmlFiles'].map((htmlFile) => {
@@ -37,7 +40,7 @@ function reloadPage() {
 
 function handleSubmit () {
     
-    let htmlTournamentFilesToWrite = collectTournamentsToInsert()
+    let htmlTournamentFilesToWrite: PtDataExportFile[] = collectTournamentsToInsert()
     submitTournaments(htmlTournamentFilesToWrite)
 
 }
@@ -54,7 +57,7 @@ function collectTournamentsToInsert() {
         }
     }
 
-    let htmlTournamentFilesToWrite = []
+    let htmlTournamentFilesToWrite: PtDataExportFile[] = []
 
     for (let curTournamentKey of tournamentKeys) {
         let curTournamentFile = lookupModelValue(curTournamentKey)
@@ -79,8 +82,7 @@ async function submitTournaments (htmlTournamentFilesToWrite) {
     for (let curHtmlTournamentFile of htmlTournamentFilesToWrite) {
         
         uxTournamentRowStatus(curHtmlTournamentFile.key, 'Pending')
-
-        res = await window.electronAPI.counterValue(curHtmlTournamentFile)
+        const res = await window.electronAPI.writeHtmlTournamentStats(curHtmlTournamentFile)
 
         console.log(curHtmlTournamentFile.ptFolder + " : " + res.isSuccess)
         
@@ -99,7 +101,7 @@ async function submitTournaments (htmlTournamentFilesToWrite) {
 }
 
 async function getRecentTournaments () {
-    let recentTournaments = await electronAPI.getRecentTournaments()
+    let recentTournaments = await window.electronAPI.getRecentTournaments()
     
     $.each(recentTournaments, (_,tourney) => {
         let timestamp = tourney['Entry Date']

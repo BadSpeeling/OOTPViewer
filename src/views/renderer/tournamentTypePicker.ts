@@ -6,7 +6,7 @@ async function tournamentTypePicker (parentID) {
 }
 
 async function getTournamentOptions() {
-    let tournamentTypes = await electronAPI.getTournamentTypes()
+    let tournamentTypes = await window.electronAPI.getTournamentTypes()
     return tournamentTypes
 }
 

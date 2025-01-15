@@ -5,10 +5,13 @@ module.exports = {
 	target: 'electron-renderer',
 	mode: 'development',
 	devtool: 'inline-source-map',
-	entry: `./src/renderer/renderer.ts`,
+	entry: {
+		bulkImportLeagueStats: './src/renderer/renderer.ts',
+		loadTournamentStats: './src/renderer/tournamentStats.ts'
+	},
 	output: {
 		path: path.resolve(__dirname,'dist','renderer'),
-		filename: 'bundle.js'
+		filename: '[name].js'
 	},
 	resolve: {
 		// Add `.ts` and `.tsx` as a resolvable extension.

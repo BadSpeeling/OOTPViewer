@@ -2,8 +2,7 @@ import * as fs from 'fs';
 import { PtCard } from './PtCard';
 import { PtConnection } from './database/PtConnection';
 
-const Request = require('tedious').Request;  
-const TYPES = require('tedious').TYPES;  
+import {Request,TYPES} from 'tedious'
 
 const uttCards = require('./database/uttColumns').uttCards
 

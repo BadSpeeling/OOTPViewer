@@ -1,37 +1,21 @@
-const parse = require('node-html-parser').parse
-const fs = require('fs')
-const path = require('path')
+import { parse } from 'node-html-parser';
+import * as fs  from 'fs';
+import * as path from 'path';
 
-const PtConnection = require('./database/PtConnection').PtConnection
-const {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns} = require('./database/uttColumns')
+import { PtConnection } from './database/PtConnection';
+import {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns, TediousParams} from './database/uttColumns';
 
-const Request = require('tedious').Request;  
-const TYPES = require('tedious').TYPES;  
+import { Request } from 'tedious';
+import { TYPES } from 'tedious';
 
-const loadSettings = require('../settings').loadSettings
+import * as data from '../../settings.json';
+import { PtDataExportFile, PtPlayerStats, PtStats, PtDataStatsFile } from '../types';
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
 const headerTypes = ["generalValues","battingValues","pitchingValues","fieldingValues"];
 
-async function run () {
-
-    let settings = await loadSettings()    
-    let ptFolders = await getAllPtFolders(settings.ootpRoot)
-    
-    let htmlFiles = await locateHtmlFiles(ptFolders)
-    let htmlFilesToProcess = []
-
-    for (htmlFile of htmlFiles) {
-        if (htmlFile.isSuccess) htmlFilesToProcess.push(htmlFile)
-    }
-    
-    let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlFilesToProcess[0])
-    writeTournamentStats(tournamentOutput)
-
-}
-
-async function writeHtmlOutput (htmlOutput) {
+export async function writeHtmlOutput (htmlOutput: PtDataStatsFile) {
 
     let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
     //return await writeTournamentStats(tournamentOutput, htmlOutput)
@@ -51,16 +35,19 @@ async function writeHtmlOutput (htmlOutput) {
 
 class UttParameter {
 
+    uttColumns: TediousParams[]
+    uttRows: (string|number)[][]
+
     constructor (columns) {
         this.uttColumns = columns
         this.uttRows = []
     }
 
-    handleUttRow (generalValues,tournamentStatRow) {
+    handleUttRow (generalValues: (string|number)[],tournamentStatRow: (string|number)[]) {
 
         if (tournamentStatRow['G'] > 0) {
 
-            let curUttRow = [generalValues['CID'],generalValues['TM']]
+            let curUttRow: (string|number)[] = [generalValues['CID'],generalValues['TM']]
 
             for (let uttColumn of this.uttColumns) {
 
@@ -84,7 +71,7 @@ class UttParameter {
 
 }
 
-function writeTournamentStats (tournamentOutput, htmlOutput) {
+function writeTournamentStats (tournamentOutput: { stats: PtPlayerStats[]; headers: string[]; }, htmlOutput: PtDataStatsFile) : Promise<{isSuccess: boolean, msg: string}> {
 
     return new Promise (async (resolve,reject) => {
 
@@ -93,11 +80,11 @@ function writeTournamentStats (tournamentOutput, htmlOutput) {
 
         let tournamentStats = tournamentOutput.stats
 
-        battingParam = new UttParameter(uttBattingColumns)
-        pitchingParam = new UttParameter(uttPitchingColumns)
-        fieldingParam = new UttParameter(uttFieldingColumns)
+        const battingParam = new UttParameter(uttBattingColumns)
+        const pitchingParam = new UttParameter(uttPitchingColumns)
+        const fieldingParam = new UttParameter(uttFieldingColumns)
 
-        for (tournamentStatRow of tournamentStats) {
+        for (const tournamentStatRow of tournamentStats) {
 
             battingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['battingValues'])
             pitchingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['pitchingValues'])
@@ -128,12 +115,12 @@ function writeTournamentStats (tournamentOutput, htmlOutput) {
 
 }
 
-async function convertHtmlFileToTournamentOutput (htmlFile) {
+async function convertHtmlFileToTournamentOutput (htmlFile): Promise<{stats: PtPlayerStats[], headers: string[]}> {
 
     let res = await parseHtmlDataExport(htmlFile)
-    let tournamentStats = [] 
+    let tournamentStats: PtPlayerStats[] = [] 
 
-    for (stats of res.parsedStats) {
+    for (const stats of res.parsedStats) {
         tournamentStats.push(processStatsIntoCategories(res.parsedHeaders,stats))
     }
 
@@ -141,17 +128,24 @@ async function convertHtmlFileToTournamentOutput (htmlFile) {
 
 }
 
-function processStatsIntoCategories (headers,stats) {
+function processStatsIntoCategories (headers: string[],stats: (string | number)[]) : PtPlayerStats {
 
     if (headers.length !== stats.length) {
         throw new Error("Headers and Stats are not the same length!\n" + headers + "\n" + stats)
     }
 
-    let statsCategories = {}
+    let statsCategories : PtPlayerStats = {
+        generalStats: {},
+        battingStats: {},
+        pitchingStats: {},
+        fieldingStats: {},
+    };
     let curHeaderTypeIndex = 0
     const statsTypeSeperator = 'G'
 
-    let curStatsCategory = {}
+    let curStatsCategory: PtStats = {
+
+    }
 
     let setCurStatsCategory = () => {
         statsCategories[headerTypes[curHeaderTypeIndex]] = curStatsCategory
@@ -160,7 +154,7 @@ function processStatsIntoCategories (headers,stats) {
 
     for (let curStatIndex = 0; curStatIndex < stats.length; curStatIndex++) {
 
-        curHeader = headers[curStatIndex]
+        const curHeader = headers[curStatIndex]
 
         if (curHeader === statsTypeSeperator) {
 
@@ -179,7 +173,7 @@ function processStatsIntoCategories (headers,stats) {
 
 }
 
-function parseHtmlDataExport (htmlFile) {
+function parseHtmlDataExport (htmlFile: PtDataExportFile) : Promise<{parsedHeaders:string[],parsedStats:(string|number)[][]}> {
 
     return new Promise ((resolve,reject) => {
         fs.readFile(path.join(htmlFile.path, htmlFile.fileName), 'utf-8', (err,data) => {
@@ -191,17 +185,17 @@ function parseHtmlDataExport (htmlFile) {
             const statsRows = statsTable.querySelectorAll('tr:not(:first-child)')
 
             const parsedHeaders = headers.querySelectorAll('th').map((curHeader) => curHeader.text)
-            const parsedStats = []
+            const parsedStats:(string|number)[][] = []
 
-            for (statsRow of statsRows) {
+            for (const statsRow of statsRows) {
 
                 const curStats = statsRow.querySelectorAll('td')
             
                 if (curStats.length === parsedHeaders.length) {
                     const curStatsTxt = curStats.map((value, parsedHeadersIndex)=> {
 
-                        statText = value.removeWhitespace().text !== '' ? value.text : '0'
-                        statNumber = Number(statText)
+                        const statText = value.removeWhitespace().text !== '' ? value.text : '0'
+                        const statNumber = Number(statText)
 
                         return parsedHeaders[parsedHeadersIndex].trim() === 'TM' || isNaN(statNumber) ? statText : statNumber
 
@@ -225,9 +219,9 @@ function parseHtmlDataExport (htmlFile) {
 }
 
 //await these 
-async function clearPtFolderHtmlFiles (htmlStatsFolder) {
+async function clearPtFolderHtmlFiles (htmlStatsFolder: string) {
 
-    const files = await new Promise ((resolve,reject) => {
+    const files: string[] = await new Promise ((resolve,reject) => {
         fs.readdir(htmlStatsFolder, (err, files) => {
             if (!err) {
                 resolve(files)
@@ -251,7 +245,7 @@ async function clearPtFolderHtmlFiles (htmlStatsFolder) {
 
 }
 
-function getAllPtFolders (root) {
+export function getAllPtFolders (root: string) : Promise<string[]> {
 
     return new Promise ((resolve,reject) => {
 
@@ -276,9 +270,9 @@ function getAllPtFolders (root) {
 
 }
 
-function locateHtmlFiles (ptFolders) {
+export function locateHtmlFiles (ptFolders: string[]) : Promise<PtDataExportFile[]> {
 
-    return Promise.all(ptFolders.map((ptFolder) => {
+    return Promise.all<PtDataExportFile>(ptFolders.map((ptFolder,index) => {
         return new Promise ((resolve,reject) => {
             let htmlStatsFolder = path.join(ptFolder, 'news', 'html', 'temp')
 
@@ -289,15 +283,18 @@ function locateHtmlFiles (ptFolders) {
                         isSuccess: false,
                         ptFolder,
                         path: htmlStatsFolder,
-                        msg: ptFolder + " had an issue locating the output directory"
-                    })                }
+                        msg: ptFolder + " had an issue locating the output directory",
+                        key:index,
+                    })                
+                }
                 else {
                     if (files.length === 1) {
                         resolve({
                             isSuccess: true,
                             ptFolder,
                             path: htmlStatsFolder,
-                            fileName: files[0]
+                            fileName: files[0],
+                            key:index,
                         })
                     }
                     else if (files.length > 1) {
@@ -307,7 +304,8 @@ function locateHtmlFiles (ptFolders) {
                             isSuccess: false,
                             ptFolder,
                             path: htmlStatsFolder,
-                            msg: htmlStatsFolder + " has more than 1 output file"
+                            msg: htmlStatsFolder + " has more than 1 output file",
+                            key:index,
                         })
                     }
                     else {
@@ -315,7 +313,8 @@ function locateHtmlFiles (ptFolders) {
                             isSuccess: false,
                             ptFolder,
                             path: htmlStatsFolder,
-                            msg: htmlStatsFolder + " has no output files"
+                            msg: htmlStatsFolder + " has no output files",
+                            key:index,
                         })
                     }
                 }
@@ -324,8 +323,3 @@ function locateHtmlFiles (ptFolders) {
     }))
 
 }
-
-module.exports.getAllPtFolders = getAllPtFolders
-module.exports.locateHtmlFiles = locateHtmlFiles
-module.exports.convertHtmlFileToTournamentOutput = convertHtmlFileToTournamentOutput
-module.exports.writeHtmlOutput = writeHtmlOutput

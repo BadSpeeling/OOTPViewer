@@ -3,11 +3,10 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com; style-src 'unsafe-inline'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com 'unsafe-inline'; style-src 'unsafe-inline'">
     <!-- <script>window.$ = window.jQuery = require('./jquery-3.4.1.min.js');</script> -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="./renderer/renderer.js"></script>
-    <script src="./renderer/tournamentTypePicker.js"></script>
+    <script src="../dist/renderer/bulkImportLeagueStats.js"></script>
     <title>Hello World!</title>
 
     <style>

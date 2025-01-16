@@ -1,12 +1,31 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
 
-const {queryDatabase} = require('./backend/database/DatabaseRecord')
+import {DatabaseRecord, queryDatabase} from './backend/database/DatabaseRecord';
 const sqlServerScript = require('./backend/database/sqlServerScript')
 
-const readHtmlStatsExport = require('./backend/readHtmlStatsExport')
+import * as readHtmlStatsExport from './backend/readHtmlStatsExport'
 
-const loadSettings = require('./settings').loadSettings
+import * as data from '../settings.json';
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery } from './types'
+
+declare global {
+  interface Window {
+    electronAPI: TournamentExporterAPI;
+  }
+
+
+  interface TournamentExporterAPI {
+    findTournamentExports: () => Promise<PtDataExportFile[]>,
+    writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
+    getRecentTournaments: () => Promise<any>,
+    getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
+    getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
+    openPtLeagueExporter: () => void,
+    openTournamentStats: () => void,
+  }
+
+}
 
 const createWindow = () => {
     const win = new BrowserWindow({
@@ -17,7 +36,7 @@ const createWindow = () => {
       } 
     })
   
-    win.loadFile('views/index.html')
+    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'))
 };
 
 const openPtLeagueExporter = () => {
@@ -29,7 +48,7 @@ const openPtLeagueExporter = () => {
     } 
   })
 
-  win.loadFile(path.join('views','ptLeagueExporter.html'))
+  win.loadFile(path.join(__dirname, '..', 'views', 'index.html'))
 }
 
 const openTournamentStats = () => {
@@ -45,7 +64,7 @@ const openTournamentStats = () => {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('counter-value', (_event, value) => {
+  ipcMain.handle('writeHtmlTournamentStats', (_event, value) => {
     console.log(value)
     
     let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
@@ -53,7 +72,7 @@ app.whenReady().then(() => {
 
   })
 
-  ipcMain.handle('getTournamentStats', (_event, value) => {
+  ipcMain.handle('getTournamentStats', (_event, value: TournamentStatsQuery) => {
     console.log(value)
 
     let dataScript;
@@ -113,18 +132,17 @@ async function getRecentTournaments (e, args) {
 
 }
 
-async function findTournamentExports () {
+async function findTournamentExports () : Promise<PtDataExportFile[]> {
 
-  const settings = await loadSettings()
+  const settings = data
 
   let ptFolders = await readHtmlStatsExport.getAllPtFolders(settings.ootpRoot)
-    
   let htmlFiles = await readHtmlStatsExport.locateHtmlFiles(ptFolders)
 
-  let htmlFilesToReturn = []
-  let curKey = 10
+  let htmlFilesToReturn: PtDataExportFile[] = []
+  let curKey = 0
 
-  for (htmlFile of htmlFiles) {
+  for (const htmlFile of htmlFiles) {
     if (htmlFile.isSuccess) {
       htmlFilesToReturn.push({...htmlFile, key:curKey})
       curKey++

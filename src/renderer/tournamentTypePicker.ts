@@ -1,4 +1,4 @@
-async function tournamentTypePicker (parentID) {
+export async function tournamentTypePicker (parentID) {
     
     let tournamentTypes = await getTournamentOptions()
     $(`#${parentID}`).append(buildHtml(tournamentTypes))
@@ -6,7 +6,7 @@ async function tournamentTypePicker (parentID) {
 }
 
 async function getTournamentOptions() {
-    let tournamentTypes = await electronAPI.getTournamentTypes()
+    let tournamentTypes = await window.electronAPI.getTournamentTypes()
     return tournamentTypes
 }
 

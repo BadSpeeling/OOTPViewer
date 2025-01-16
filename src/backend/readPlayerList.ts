@@ -1,31 +1,29 @@
-const fs = require('fs');
-const PtCard = require('./PtCard').PtCard
-const PtConnection = require('./database/PtConnection').PtConnection;
+import * as fs from 'fs';
+import { PtCard } from './PtCard';
+import { PtConnection } from './database/PtConnection';
 
-const Request = require('tedious').Request;  
-const TYPES = require('tedious').TYPES;  
+import {Request,TYPES} from 'tedious'
 
 const uttCards = require('./database/uttColumns').uttCards
 
-function readFile (file) {
+function readFile (file) : Promise<{parsedData: PtCard[], headers: string[]}> {
     return new Promise ((resolve,reject) => {
         fs.readFile(file, 'utf-8', (err, data) => {
 
             if (!err) {
-                lines = data.split('\r\n');
+                let lines = data.split('\r\n');
 
-                headers = removeTrailingComma(lines[0]).replace('//','').replaceAll(' ','').split(',');
-                        
+                let headers: string[] = removeTrailingComma(lines[0]).replace('//','').replaceAll(' ','').split(',');
                 headers = headers.map((value) => value.trim());
                 
-                parsedData = [];
+                let parsedData = [];
 
                 for (let index = 1; index < lines.length; index++) {
 
                     //make sure the line isn't empty
                     if (lines[index] !== '') {
 
-                        curCardLine = removeTrailingComma(lines[index]).split(',');
+                        let curCardLine = removeTrailingComma(lines[index]).split(',');
                         let curPtCard = new PtCard("CSV",headers,curCardLine)
 
                         parsedData.push(curPtCard);

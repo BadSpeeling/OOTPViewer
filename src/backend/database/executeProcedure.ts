@@ -1,22 +1,8 @@
-const Request = require('tedious').Request;  
-const TYPES = require('tedious').TYPES;  
-const PtConnection = require('./PtConnection.js').PtConnection;
+import { Request } from "tedious"
+import { DatabaseRecord } from "./DatabaseRecord"
+import { PtConnection } from "./PtConnection";
 
-class DatabaseRecord {
-
-    constructor(record) {
-        
-        for (let cardValueIndex = 0; cardValueIndex < record.length; cardValueIndex++) {
-            
-            let curCol = record[cardValueIndex];
-            this[curCol.metadata.colName] = curCol.value;    
-
-        }
-    }
-
-}
-
-async function queryDatabase (sqlQuery) {
+export async function queryDatabase (sqlQuery) {
 
     let ptConnection = new PtConnection();
     let connection = await ptConnection.connect();
@@ -40,7 +26,7 @@ async function queryDatabase (sqlQuery) {
         });  
 
         // Close the connection after the final event emitted by the request, after the callback passes
-        request.on("requestCompleted", (rowCount,more) => {
+        request.on("requestCompleted", () => {
             resolve(records);
             connection.close();
         })
@@ -49,5 +35,3 @@ async function queryDatabase (sqlQuery) {
    
     });
 }
-
-module.exports.queryDatabase = queryDatabase;

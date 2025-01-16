@@ -2,18 +2,27 @@
   "name": "js-ootpviewer",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^30.0.2"
+    "@types/electron": "^1.6.12",
+    "@types/jquery": "^3.5.32",
+    "electron": "^30.0.2",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
+    "datatables.net": "^2.1.8",
+    "datatables.net-fixedheader": "^4.0.1",
     "node-html-parser": "^6.1.13",
-    "tedious": "^18.2.0"
+    "tedious": "^19.0.0",
+    "typescript": "^5.7.2"
   }
 }

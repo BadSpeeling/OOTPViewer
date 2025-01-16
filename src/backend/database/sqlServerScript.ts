@@ -1,4 +1,4 @@
-const battingDataScript = `
+export const battingDataScript = `
 declare @LiveUpdateID int;
 
 select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by EffectiveDate desc
@@ -40,7 +40,7 @@ where 1=1
 order by 
 [stats].PA desc
 `
-const pitchingDataScript = `
+export const pitchingDataScript = `
 declare @LiveUpdateID int;
 
 select top 1 @LiveUpdateID = LiveUpdateID from dbo.LiveUpdate order by EffectiveDate desc
@@ -88,6 +88,3 @@ where 1=1
 order by 
 [stats].G desc
 `
-
-module.exports.battingDataScript = battingDataScript;
-module.exports.pitchingDataScript = pitchingDataScript;

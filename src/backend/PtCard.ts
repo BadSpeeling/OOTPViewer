@@ -1,4 +1,10 @@
-class PtCard {
+type Ratings = {
+    [key:string]: string
+}
+
+export class PtCard {
+
+    cardRatings: Ratings;
 
     constructor (loadType, ...args) {
 
@@ -41,7 +47,6 @@ class PtCard {
     databaseRecordInit(record) {
         this.cardRatings = record;
     }
-
 
 }
 

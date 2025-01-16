@@ -1,3 +1,7 @@
+import "datatables.net";
+import "datatables.net-fixedheader";
+import { tournamentTypePicker } from "./tournamentTypePicker";
+
 const model = {}
 
 $(document).ready(() => {
@@ -35,7 +39,7 @@ async function initializeDataTable () {
     const tableWrapper = $('#tournamentData').empty();
     
     const statsTypeID = $('#statsType').val();
-    let columns;
+    let columns: string[];
 
     if (statsTypeID === '0') {
         columns = battingColumns();
@@ -59,10 +63,10 @@ async function initializeDataTable () {
 
 async function buildTableBody (columns, statsTypeID) {
 
-    const tournamentTypeID = $('#tournamentType').val()
-    const qualifierValue = $('#qualifierValue').val()
+    const tournamentTypeID = $('#tournamentType').val() as string
+    const qualifierValue = $('#qualifierValue').val() as string
 
-    const data = await electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue});
+    const data = await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue});
 
     const tableBody = data.map((dataRecord) => {
         const curRow = columns.map((column) => {
@@ -80,7 +84,7 @@ async function buildTableBody (columns, statsTypeID) {
 
 function buildTableHeader (columns) {
 
-    tableHeaders = columns.map((column) => {
+    const tableHeaders = columns.map((column) => {
         return `<th>${column}</th>`
     }).join('');
 

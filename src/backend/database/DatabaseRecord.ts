@@ -1,4 +1,23 @@
-async function queryDatabase (sqlQuery) {
+import { Request, TYPES } from 'tedious';  
+import { PtConnection } from './PtConnection';
+
+export class DatabaseRecord {
+
+    [key:string]: string
+
+    constructor(record) {
+        
+        for (let cardValueIndex = 0; cardValueIndex < record.length; cardValueIndex++) {
+            
+            let curCol = record[cardValueIndex];
+            this[curCol.metadata.colName] = curCol.value;    
+
+        }
+    }
+
+}
+
+export async function queryDatabase (sqlQuery): Promise<DatabaseRecord[]> {
 
     let ptConnection = new PtConnection();
     let connection = await ptConnection.connect();
@@ -11,7 +30,7 @@ async function queryDatabase (sqlQuery) {
             }  
         });  
 
-        let records = []
+        let records: DatabaseRecord[] = []
         
         request.on('row', function(columns) {  
             records.push(new DatabaseRecord(columns));
@@ -22,7 +41,7 @@ async function queryDatabase (sqlQuery) {
         });  
 
         // Close the connection after the final event emitted by the request, after the callback passes
-        request.on("requestCompleted", (rowCount,more) => {
+        request.on("requestCompleted", () => {
             resolve(records);
             connection.close();
         })

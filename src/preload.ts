@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
 })
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  counterValue: (value) => ipcRenderer.invoke('counter-value', value),
+  writeHtmlTournamentStats: (value) => ipcRenderer.invoke('writeHtmlTournamentStats', value),
   
   openFile: () => ipcRenderer.invoke('openFile'),
   getRecentTournaments: () => ipcRenderer.invoke('getRecentTournaments'),

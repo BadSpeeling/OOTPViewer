@@ -1,6 +1,13 @@
-const TYPES = require('tedious').TYPES;  
+import { TYPES } from 'tedious';  
+import { DataType } from 'tedious/lib/data-type'
 
-const uttCards = 
+export type TediousParams = {
+    name: string,
+    type: DataType,
+    length?: number,
+}
+
+export const uttCards: TediousParams[] = 
      [
         {name:'CardID', type: TYPES.Int},
         {name:'CardTitle', type: TYPES.VarChar, length: 200},
@@ -121,14 +128,14 @@ const uttCards =
     ]
 
 
-const uttGeneralColumns =
+export const uttGeneralColumns : TediousParams[] =
      [
         {name:'CID', type: TYPES.Int},
         {name:'TM', type: TYPES.VarChar, length: 200}
     ]
 
 
-const uttBattingColumns = 
+export const uttBattingColumns : TediousParams[] = 
      [
         {name:'G', type:  TYPES.Int},
         {name:'GS', type:  TYPES.Int},
@@ -178,7 +185,7 @@ const uttBattingColumns =
         {name:'BsR', type:  TYPES.Float}   
     ]
 
-const uttPitchingColumns = [
+export const uttPitchingColumns : TediousParams[]= [
 	{name:'G', type: TYPES.Int},
 	{name:'GS', type: TYPES.Int},
 	{name:'W', type: TYPES.Int},
@@ -258,7 +265,7 @@ const uttPitchingColumns = [
 	{name:'SIERA', type: TYPES.Float}
 ]
 
-const uttFieldingColumns = [
+export const uttFieldingColumns : TediousParams[] = [
 	{ name: 'G', type: TYPES.Int },
 	{ name: 'GS', type: TYPES.Int },
 	{ name: 'TC', type: TYPES.Int },
@@ -295,9 +302,3 @@ const uttFieldingColumns = [
 	{ name: 'BIZ-Zm', type: TYPES.Int },
 	{ name: 'BIZ-I', type: TYPES.Int }
 ]
-
-module.exports.uttCards = uttCards;
-module.exports.uttGeneralColumns = uttGeneralColumns;
-module.exports.uttBattingColumns = uttBattingColumns;
-module.exports.uttPitchingColumns = uttPitchingColumns;
-module.exports.uttFieldingColumns = uttFieldingColumns;

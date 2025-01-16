@@ -1,10 +1,12 @@
-const Connection = require('tedious').Connection;  
+import { Connection, ConnectionConfiguration } from 'tedious';  
 
-class PtConnection {
+export class PtConnection {
+
+    connection: Connection;
 
     constructor () {
 
-        var config = {  
+        var config : ConnectionConfiguration = {  
             server: 'localhost',
             //port: '51397',
             authentication: {
@@ -25,7 +27,7 @@ class PtConnection {
 
     }
 
-    connect () {
+    connect () : Promise<Connection> {
 
         return new Promise((resolve,reject) => {
             
@@ -48,5 +50,3 @@ class PtConnection {
     }
 
 }
-
-module.exports.PtConnection = PtConnection;

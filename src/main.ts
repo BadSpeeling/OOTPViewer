@@ -23,11 +23,25 @@ declare global {
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
+    openStatsImporter: () => void,
   }
 
 }
 
-const createWindow = () => {
+const openLanding = () => {
+
+  const win = new BrowserWindow({
+    width: 400,
+    height: 300,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    } 
+  })
+
+  win.loadFile(path.join(__dirname, '..', 'views', 'landing.html'))
+}
+
+const openStatsImporter = () => {
     const win = new BrowserWindow({
       width: 800,
       height: 600,
@@ -36,7 +50,7 @@ const createWindow = () => {
       } 
     })
   
-    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'))
+    win.loadFile(path.join(__dirname, '..', 'views', 'statsImporter.html'))
 };
 
 const openPtLeagueExporter = () => {
@@ -101,10 +115,11 @@ app.whenReady().then(() => {
   ipcMain.handle('getTournamentTypes', getTournamentTypes)
   ipcMain.handle('findTournamentExports', findTournamentExports)
 
+  ipcMain.handle('openStatsImporter', openStatsImporter)
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
   ipcMain.handle('openTournamentStats', openTournamentStats)
 
-  createWindow()
+  openLanding()
 });
 
 app.on('window-all-closed', () => {

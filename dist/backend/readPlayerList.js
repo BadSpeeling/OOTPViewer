@@ -39,8 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var PtCard_1 = require("./PtCard");
 var PtConnection_1 = require("./database/PtConnection");
-var Request = require('tedious').Request;
-var TYPES = require('tedious').TYPES;
+var tedious_1 = require("tedious");
 var uttCards = require('./database/uttColumns').uttCards;
 function readFile(file) {
     return new Promise(function (resolve, reject) {
@@ -68,7 +67,7 @@ var removeTrailingComma = function (line) {
 };
 function readPlayerList() {
     return __awaiter(this, void 0, void 0, function () {
-        var file, csvResult, ptConnection, connection, uttRows, cards, headers, uttColumns, cardIndex, uttRow, headerIndex, uttValue, table, request, result;
+        var file, csvResult, ptConnection, connection, uttRows, cards, headers, uttColumns, uttCardIDIndex, _loop_1, cardIndex, table, request, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -84,19 +83,30 @@ function readPlayerList() {
                     cards = csvResult.parsedData;
                     headers = csvResult.headers;
                     uttColumns = uttCards;
-                    for (cardIndex = 0; cardIndex < cards.length; cardIndex++) {
-                        uttRow = [];
-                        for (headerIndex = 0; headerIndex < uttColumns.length; headerIndex++) {
-                            uttValue = cards[cardIndex].cardRatings[uttColumns[headerIndex].name];
-                            uttRow.push(uttValue !== undefined ? uttValue : null);
+                    uttCardIDIndex = uttColumns.indexOf({ name: 'CardID', type: tedious_1.TYPES.Int });
+                    if (uttCardIDIndex !== -1) {
+                        _loop_1 = function (cardIndex) {
+                            var uttRow = [];
+                            for (var headerIndex = 0; headerIndex < uttColumns.length; headerIndex++) {
+                                var uttValue = cards[cardIndex].cardRatings[uttColumns[headerIndex].name];
+                                uttRow.push(uttValue !== undefined ? uttValue : null);
+                            }
+                            if (!uttRows.find(function (val) { return val[0] === uttRow[0]; })) {
+                                uttRows.push(uttRow);
+                            }
+                        };
+                        for (cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+                            _loop_1(cardIndex);
                         }
-                        uttRows.push(uttRow);
+                    }
+                    else {
+                        throw Error("Could not find uttCard CardID value");
                     }
                     table = {
                         columns: uttColumns,
                         rows: uttRows
                     };
-                    request = new Request("spInsertCards", function (err) {
+                    request = new tedious_1.Request("spInsertCards", function (err) {
                         if (!err) {
                             console.log('spInsertCards execute without error');
                         }
@@ -105,7 +115,7 @@ function readPlayerList() {
                         }
                     });
                     //console.log(uttRows);
-                    request.addParameter('playerCards', TYPES.TVP, table);
+                    request.addParameter('playerCards', tedious_1.TYPES.TVP, table);
                     result = connection.callProcedure(request);
                     return [2 /*return*/];
             }

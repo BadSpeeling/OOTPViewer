@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     findTournamentExports: function () { return ipcRenderer.invoke('findTournamentExports'); },
     openPtLeagueExporter: function () { return ipcRenderer.invoke('openPtLeagueExporter'); },
     openTournamentStats: function () { return ipcRenderer.invoke('openTournamentStats'); },
+    openStatsImporter: function () { return ipcRenderer.invoke('openStatsImporter'); },
     getTournamentStats: function (value) { return ipcRenderer.invoke('getTournamentStats', value); }
 });
 //# sourceMappingURL=preload.js.map

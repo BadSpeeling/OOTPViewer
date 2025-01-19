@@ -53,7 +53,17 @@ var DatabaseRecord_1 = require("./backend/database/DatabaseRecord");
 var sqlServerScript = require('./backend/database/sqlServerScript');
 var readHtmlStatsExport = require("./backend/readHtmlStatsExport");
 var data = require("../settings.json");
-var createWindow = function () {
+var openLanding = function () {
+    var win = new BrowserWindow({
+        width: 400,
+        height: 300,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js')
+        }
+    });
+    win.loadFile(path.join(__dirname, '..', 'views', 'landing.html'));
+};
+var openStatsImporter = function () {
     var win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -61,7 +71,7 @@ var createWindow = function () {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-    win.loadFile(path.join(__dirname, '..', 'views', 'index.html'));
+    win.loadFile(path.join(__dirname, '..', 'views', 'statsImporter.html'));
 };
 var openPtLeagueExporter = function () {
     var win = new BrowserWindow({
@@ -112,9 +122,10 @@ app.whenReady().then(function () {
     ipcMain.handle('getRecentTournaments', getRecentTournaments);
     ipcMain.handle('getTournamentTypes', getTournamentTypes);
     ipcMain.handle('findTournamentExports', findTournamentExports);
+    ipcMain.handle('openStatsImporter', openStatsImporter);
     ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter);
     ipcMain.handle('openTournamentStats', openTournamentStats);
-    createWindow();
+    openLanding();
 });
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin')

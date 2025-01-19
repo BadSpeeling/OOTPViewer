@@ -6,7 +6,8 @@ module.exports = {
 	mode: 'development',
 	devtool: 'inline-source-map',
 	entry: {
-		bulkImportLeagueStats: './src/renderer/renderer.ts',
+		landing: './src/renderer/landing.ts',
+		statsImporter: './src/renderer/statsImporter.ts',
 		loadTournamentStats: './src/renderer/tournamentStats.ts'
 	},
 	output: {

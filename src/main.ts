@@ -2,24 +2,24 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
 
 import {DatabaseRecord, queryDatabase} from './backend/database/DatabaseRecord';
-import {battingDataScript,pitchingDataScript,getRecentTournamentsScript} from './backend/database/sqlServerScript';
+import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats} from './backend/database/sqlServerScript';
 
 import * as readHtmlStatsExport from './backend/readHtmlStatsExport'
 
 import * as data from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery } from './types'
 
 declare global {
   interface Window {
     electronAPI: TournamentExporterAPI;
   }
 
-
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
     writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
     getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
+    getSeasonStats: (query: SeasonStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
@@ -77,6 +77,18 @@ const openTournamentStats = () => {
   win.loadFile(path.join('views','tournamentStats.html'))
 }
 
+const openSeasonStats = () => {
+  const win = new BrowserWindow({
+    width: 400,
+    height: 300,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    } 
+  })
+
+  win.loadFile(path.join('views','seasonStats.html'))
+}
+
 app.whenReady().then(() => {
   ipcMain.handle('writeHtmlTournamentStats', (_event, value) => {
     console.log(value)
@@ -114,10 +126,12 @@ app.whenReady().then(() => {
   ipcMain.handle('getRecentTournaments', getRecentTournaments)
   ipcMain.handle('getTournamentTypes', getTournamentTypes)
   ipcMain.handle('findTournamentExports', findTournamentExports)
+  ipcMain.handle('getSeasonStats', getSeasonStats);
 
   ipcMain.handle('openStatsImporter', openStatsImporter)
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
   ipcMain.handle('openTournamentStats', openTournamentStats)
+  ipcMain.handle('openSeasonStats', openSeasonStats)
 
   openLanding()
 });
@@ -137,7 +151,7 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  let dataScript = getRecentTournamentsScript
+  let dataScript = getRecentTournamentsScript;
   const recentTournaments: DatabaseRecord[] = await queryDatabase(dataScript)
 
   return recentTournaments.map((tournament: DatabaseRecord) => {
@@ -146,6 +160,28 @@ async function getRecentTournaments (e, args) {
       L: tournament['L'],
       TournamentName: tournament['Name'],
       StatsBatchID: tournament['StatsBatchID'],
+    }
+  })
+
+}
+
+async function getSeasonStats (e, args) {
+
+  let dataScript = getPtSeasonBattingStats;
+  const seasonStats: DatabaseRecord[] = await queryDatabase(dataScript)
+
+  return seasonStats.map((tournament: DatabaseRecord) => {
+    return {
+      "Perfect Team Season": tournament['Perfect Team Season'],
+      "Perfect Team Level": tournament['Perfect Team Level'],
+      "CardTitle": tournament['CardTitle'],
+      "POS": tournament['POS'],
+      "Bats": tournament['Bats'],
+      "PA": tournament['PA'],
+      "AVG": tournament['AVG'],
+      "OBP": tournament['OBP'],
+      "SLG": tournament['SLG'],
+      "OPS": tournament['OPS'],
     }
   })
 

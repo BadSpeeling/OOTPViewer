@@ -18,6 +18,10 @@ export type TournamentStatsQuery = {
     tournamentTypeID: string,statsTypeID: string,qualifierValue: string
 }
 
+export type SeasonStatsQuery = {
+    
+}
+
 export type PtStats = {
     [key:string]: string|number,
 }

@@ -8,7 +8,8 @@ module.exports = {
 	entry: {
 		landing: './src/renderer/landing.ts',
 		statsImporter: './src/renderer/statsImporter.ts',
-		loadTournamentStats: './src/renderer/tournamentStats.ts'
+		loadTournamentStats: './src/renderer/tournamentStats.ts',
+		seasonStats: './src/renderer/seasonStats.ts',
 	},
 	output: {
 		path: path.resolve(__dirname,'dist','renderer'),

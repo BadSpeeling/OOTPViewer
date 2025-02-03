@@ -2,12 +2,12 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
 
 import {DatabaseRecord, queryDatabase} from './backend/database/DatabaseRecord';
-const sqlServerScript = require('./backend/database/sqlServerScript')
+import {battingDataScript,pitchingDataScript,getRecentTournamentsScript} from './backend/database/sqlServerScript';
 
 import * as readHtmlStatsExport from './backend/readHtmlStatsExport'
 
 import * as data from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData } from './types'
 
 declare global {
   interface Window {
@@ -18,9 +18,9 @@ declare global {
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
     writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
-    getRecentTournaments: () => Promise<any>,
     getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
+    getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openStatsImporter: () => void,
@@ -95,10 +95,10 @@ app.whenReady().then(() => {
     const qualifierValue = value.qualifierValue.replace('-','');
 
     if (statsTypeID === '0') {
-      dataScript = sqlServerScript.battingDataScript;
+      dataScript = battingDataScript;
     }
     else if (statsTypeID === '1') {
-      dataScript = sqlServerScript.pitchingDataScript;
+      dataScript = pitchingDataScript;
     }
     else {
       throw Error(statsTypeID + ' is not a valid statsTypeID value');
@@ -137,13 +137,17 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  let sql = 
-   "select TOP 10 [batch].StatsBatchID,[batch].TournamentTypeID, [batch].[Timestamp] [Entry Date], [batch].[Description], t.[Name] "
-  +"from dbo.StatsBatch [batch] "
-  +"join dbo.TournamentType [t] on [batch].TournamentTypeID = t.TournamentTypeID "
-  +"order by [batch].[Timestamp] desc "
+  let dataScript = getRecentTournamentsScript
+  const recentTournaments: DatabaseRecord[] = await queryDatabase(dataScript)
 
-  return await queryDatabase(sql)
+  return recentTournaments.map((tournament: DatabaseRecord) => {
+    return {
+      W: tournament['W'],
+      L: tournament['L'],
+      TournamentName: tournament['Name'],
+      StatsBatchID: tournament['StatsBatchID'],
+    }
+  })
 
 }
 

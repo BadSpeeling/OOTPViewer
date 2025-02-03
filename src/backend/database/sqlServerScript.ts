@@ -88,3 +88,24 @@ where 1=1
 order by 
 [stats].G desc
 `
+
+export const getRecentTournamentsScript = `
+declare @RowCount int = 10
+declare @SearchTournamentTypeID int = null
+declare @TeamName varchar(200) = 'Lil Dicky'
+
+drop table if exists #SearchTournaments
+select TOP (@RowCount) StatsBatchID,TournamentTypeID
+into #SearchTournaments
+from dbo.StatsBatch [sb]
+where (@SearchTournamentTypeID is null or @SearchTournamentTypeID = [sb].TournamentTypeID)
+and (exists (select null from dbo.PitchingStats ps where ps.StatsBatchID = sb.StatsBatchID and TeamName = @TeamName))
+order by [sb].Timestamp desc
+
+select sum(W) W,sum(L) L,t.StatsBatchID,tt.Name
+from #SearchTournaments t
+join dbo.PitchingStats [ps] on t.StatsBatchID = [ps].StatsBatchID
+join dbo.TournamentType [tt] on [t].TournamentTypeID = [tt].TournamentTypeID
+where TeamName = @TeamName
+group by t.StatsBatchID,tt.Name
+`

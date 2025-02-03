@@ -15,14 +15,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   writeHtmlTournamentStats: (value) => ipcRenderer.invoke('writeHtmlTournamentStats', value),
   
   openFile: () => ipcRenderer.invoke('openFile'),
-  getRecentTournaments: () => ipcRenderer.invoke('getRecentTournaments'),
-  getTournamentTypes: () => ipcRenderer.invoke('getTournamentTypes'),
   findTournamentExports: () => ipcRenderer.invoke('findTournamentExports'),
   
   openPtLeagueExporter: () => ipcRenderer.invoke('openPtLeagueExporter'),
   openTournamentStats: () => ipcRenderer.invoke('openTournamentStats'),
   openStatsImporter: () => ipcRenderer.invoke('openStatsImporter'),
 
-  getTournamentStats: (value) => ipcRenderer.invoke('getTournamentStats', value)
+  getTournamentStats: (value) => ipcRenderer.invoke('getTournamentStats', value),
+  getRecentTournaments: () => ipcRenderer.invoke('getRecentTournaments'),
+  getTournamentTypes: () => ipcRenderer.invoke('getTournamentTypes'),
 
 })

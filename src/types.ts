@@ -19,7 +19,7 @@ export type TournamentStatsQuery = {
 }
 
 export type SeasonStatsQuery = {
-    
+
 }
 
 export type PtStats = {
@@ -37,4 +37,6 @@ export interface TournamentMetaData {
     L: number,
     TournamentName: string,
     StatsBatchID: number,
+    Description: string,
+    Timestamp: Date,
 }

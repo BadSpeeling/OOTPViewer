@@ -100,14 +100,22 @@ into #SearchTournaments
 from dbo.StatsBatch [sb]
 where (@SearchTournamentTypeID is null or @SearchTournamentTypeID = [sb].TournamentTypeID)
 and (exists (select null from dbo.PitchingStats ps where ps.StatsBatchID = sb.StatsBatchID and TeamName = @TeamName))
+and [sb].TournamentTypeID not in (1031,1032)
 order by [sb].Timestamp desc
 
-select sum(W) W,sum(L) L,t.StatsBatchID,tt.Name
+drop table if exists #TournamentPerformance
+select sum(W) W,sum(L) L,t.StatsBatchID
+into #TournamentPerformance
 from #SearchTournaments t
 join dbo.PitchingStats [ps] on t.StatsBatchID = [ps].StatsBatchID
-join dbo.TournamentType [tt] on [t].TournamentTypeID = [tt].TournamentTypeID
 where TeamName = @TeamName
-group by t.StatsBatchID,tt.Name
+group by t.StatsBatchID
+
+select tp.W,tp.L,tp.StatsBatchID,tt.Name,sb.Timestamp,sb.Description
+from #TournamentPerformance tp
+join dbo.StatsBatch [sb] on tp.StatsBatchID = [sb].StatsBatchID
+join dbo.TournamentType [tt] on [sb].TournamentTypeID = [tt].TournamentTypeID
+order by sb.Timestamp desc
 `
 
 export const getPtSeasonBattingStats = `

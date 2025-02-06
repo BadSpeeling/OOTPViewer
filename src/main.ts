@@ -160,6 +160,8 @@ async function getRecentTournaments (e, args) {
       L: tournament['L'],
       TournamentName: tournament['Name'],
       StatsBatchID: tournament['StatsBatchID'],
+      Description: tournament['Description'],
+      Timestamp: tournament['Timestamp']
     }
   })
 

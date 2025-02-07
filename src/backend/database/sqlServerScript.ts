@@ -18,9 +18,10 @@ from (
 	join StatsBatch sb on BattingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
-	and (cards.CardType != 1 or @LiveUpdateID = sb.LiveUpdateID)
+	and (cards.CardType != 1 or (@LiveUpdateID = cards.LiveUpdateID and @LiveUpdateID = sb.LiveUpdateID))
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
-	and G > 0 
+	and G > 0
+	{{positionQualifier}} 
 	group by cards.CardType,sb.LiveUpdateID,cards.CardID,sb.TournamentTypeID
 ) [stats]
 where PA > {{qualifierValue}}
@@ -63,7 +64,7 @@ from
 	join StatsBatch sb on PitchingStats.StatsBatchID = sb.StatsBatchID
 	join TournamentType [type] on sb.TournamentTypeID = [type].TournamentTypeID
 	where 1=1
-	and (cards.CardType != 1 or @LiveUpdateID = sb.LiveUpdateID)
+	and (cards.CardType != 1 or (@LiveUpdateID = cards.LiveUpdateID and @LiveUpdateID = sb.LiveUpdateID))
 	and OUTS > 0
 	and [type].[TournamentTypeID] = {{tournamentTypeID}}
 	group by cards.CardType,sb.LiveUpdateID,cards.CardID,sb.TournamentTypeID
@@ -147,7 +148,7 @@ from (
 	select sb.StatsBatchID,bs.CardID,SUM(G) G,SUM(GS) GS,SUM(PA) PA,SUM(AB) AB,SUM([1b]) [1B],SUM([2b]) [2B],SUM([3b]) [3B],SUM([hr]) [HR],SUM(RBI) RBI,SUM(R) R,SUM(BB) BB,SUM(IBB) IBB,SUM(HP) HP,SUM(SH) SH,SUM(SF) SF,SUM(SO) SO 
 	from BattingStats bs
 	join Card cards on cards.CardID = bs.CardID and (cards.LiveUpdateID = 0 or @LiveUpdateID = cards.LiveUpdateID)
-	join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID and (cards.LiveUpdateID = 0 or @LiveUpdateID = cards.LiveUpdateID)
+	join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID and (cards.LiveUpdateID = 0 or @LiveUpdateID = sb.LiveUpdateID)
 	where 1=1
 	and sb.TournamentTypeID = 1032
 	and G > 0 

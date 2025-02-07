@@ -1,8 +1,13 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
 import { tournamentTypePicker } from "./tournamentTypePicker";
+import { DatabaseRecord } from "../backend/database/DatabaseRecord";
 
-const model = {}
+type Model = {
+    playerStats?: DatabaseRecord[];
+}
+
+const model: Model = {}
 
 $(document).ready(() => {
 
@@ -10,6 +15,7 @@ $(document).ready(() => {
     updateQualifierName();
     $('#loadTournamentTable').click(initializeDataTable);
     $('#statsType').change(updateQualifierName);
+    $('#position').change()
 
 })
 
@@ -51,22 +57,42 @@ async function initializeDataTable () {
         throw Error(statsTypeID + ' is not a valid StatsType');
     }
 
-    const table = $('<table></table>');
-    
-    table.append(buildTableHeader(columns));
-    table.append(await buildTableBody(columns, statsTypeID));
+    model.playerStats = await getPlayerStats(statsTypeID);
 
-    tableWrapper.append(table);
-    table.DataTable();
+    if (model.playerStats) {
+        
+        const table = $('<table></table>');
+        table.append(buildTableHeader(columns));
+        table.append(buildTableBody(model.playerStats, columns));
+        table.append();
+
+        tableWrapper.append(table);
+        table.DataTable();
+
+    }
 
 }
 
-async function buildTableBody (columns, statsTypeID) {
+async function getPlayerStats (statsTypeID) {
 
     const tournamentTypeID = $('#tournamentType').val() as string
     const qualifierValue = $('#qualifierValue').val() as string
 
-    const data = await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue});
+    const selectedPositions = $('#position').val();
+    let positions: string[] = [];
+
+    if (Array.isArray(selectedPositions)) {
+        positions = selectedPositions;
+    }
+    else if (typeof selectedPositions === 'string') {
+        positions = [selectedPositions];
+    }
+
+    return await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue, positions});
+
+}
+
+function buildTableBody (data: DatabaseRecord[], columns) {
 
     const tableBody = data.map((dataRecord) => {
         const curRow = columns.map((column) => {

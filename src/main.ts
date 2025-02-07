@@ -108,6 +108,8 @@ app.whenReady().then(() => {
 
     if (statsTypeID === '0') {
       dataScript = battingDataScript;
+      const positionQualifierString = value.positions.length > 0 ? `and [Position] in (${value.positions.join(',')})` : ""
+      dataScript = dataScript.replace('{{positionQualifier}}', positionQualifierString)
     }
     else if (statsTypeID === '1') {
       dataScript = pitchingDataScript;

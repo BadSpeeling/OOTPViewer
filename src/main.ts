@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
 
 import {DatabaseRecord, queryDatabase} from './backend/database/DatabaseRecord';
-import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats} from './backend/database/sqlServerScript';
+import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats, getPtSeasonPitchingStats} from './backend/database/sqlServerScript';
 
 import * as readHtmlStatsExport from './backend/readHtmlStatsExport'
 
@@ -169,23 +169,39 @@ async function getRecentTournaments (e, args) {
 
 }
 
-async function getSeasonStats (e, args) {
+async function getSeasonStats (e, args: SeasonStatsQuery) {
 
-  let dataScript = getPtSeasonBattingStats;
+  let dataScript = args.statsTypeID === 0 ? getPtSeasonBattingStats : getPtSeasonPitchingStats;
   const seasonStats: DatabaseRecord[] = await queryDatabase(dataScript)
 
   return seasonStats.map((tournament: DatabaseRecord) => {
-    return {
-      "Perfect Team Season": tournament['Perfect Team Season'],
-      "Perfect Team Level": tournament['Perfect Team Level'],
-      "CardTitle": tournament['CardTitle'],
-      "POS": tournament['POS'],
-      "Bats": tournament['Bats'],
-      "PA": tournament['PA'],
-      "AVG": tournament['AVG'],
-      "OBP": tournament['OBP'],
-      "SLG": tournament['SLG'],
-      "OPS": tournament['OPS'],
+    if (args.statsTypeID === 0) {
+      return {
+        "Perfect Team Season": tournament['Perfect Team Season'],
+        "Perfect Team Level": tournament['Perfect Team Level'],
+        "CardTitle": tournament['CardTitle'],
+        "POS": tournament['POS'],
+        "Bats": tournament['Bats'],
+        "PA": tournament['PA'],
+        "AVG": tournament['AVG'],
+        "OBP": tournament['OBP'],
+        "SLG": tournament['SLG'],
+        "OPS": tournament['OPS'],
+      }
+    }
+    else {
+      return {
+        "Perfect Team Season": tournament['Perfect Team Season'],
+        "Perfect Team Level": tournament['Perfect Team Level'],
+        "CardTitle": tournament['CardTitle'],
+        "G": tournament['G'],
+        "GS": tournament['GS'],
+        "K/9": tournament['K/9'],
+        "BB/9": tournament['BB/9'],
+        "HR/9": tournament['HR/9'],
+        "ERA": tournament['ERA'],
+        "Stamina": tournament['Stamina'],
+      }
     }
   })
 

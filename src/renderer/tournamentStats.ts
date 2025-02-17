@@ -64,7 +64,6 @@ async function initializeDataTable () {
         const table = $('<table></table>');
         table.append(buildTableHeader(columns));
         table.append(buildTableBody(model.playerStats, columns));
-        table.append();
 
         tableWrapper.append(table);
         table.DataTable();

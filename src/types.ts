@@ -19,7 +19,7 @@ export type TournamentStatsQuery = {
 }
 
 export type SeasonStatsQuery = {
-
+    statsTypeID: number
 }
 
 export type PtStats = {

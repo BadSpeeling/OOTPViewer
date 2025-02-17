@@ -5,6 +5,11 @@ import {DatabaseRecord} from "../backend/database/DatabaseRecord"
 
 $(document).ready(async () => {
 
+    $('#loadBtn').click(loadTable)
+
+})
+
+async function loadTable () {
     const statsTypeID = $('#statsType').val();
     let columns: string[];
 
@@ -18,7 +23,7 @@ $(document).ready(async () => {
         throw Error(statsTypeID + ' is not a valid StatsType');
     }
 
-    const seasonStats: DatabaseRecord[] = await window.electronAPI.getSeasonStats({} as SeasonStatsQuery)
+    const seasonStats: DatabaseRecord[] = await window.electronAPI.getSeasonStats({statsTypeID:parseInt(statsTypeID)} as SeasonStatsQuery)
 
     const tableHeader = buildTableHeader(columns);
     const tableBody = buildTableBody(seasonStats, columns);
@@ -30,8 +35,7 @@ $(document).ready(async () => {
 
     $('#tournamentData').append(table);
     table.DataTable();
-
-})
+}
 
 function buildTableBody (rows, columns) {
 

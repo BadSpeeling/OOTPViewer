@@ -1,0 +1,11 @@
+{
+  "name": "sqlite",
+  "version": "1.0.0",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

@@ -34,3 +34,24 @@ export function positionNumberToString (num: number) {
             return 'RF';
     }
 }
+
+export const parseCsvDataColumnToDatatype = (type: string) => {
+    switch (type) {
+        case "DATETIME":
+            return "INTEGER";
+        default:
+            return type;
+    }
+}
+
+export const databaseObjectEqual = (databaseObject: any, testingObject: any) => {
+
+    for (const curKey of Object.keys(databaseObject)) {
+        if (databaseObject[curKey] !== testingObject[curKey]) {
+            return false;
+        }
+    }
+
+    return true;
+
+}

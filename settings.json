@@ -1,3 +1,5 @@
 {
-    "ootpRoot": "C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\"
+    "ootpRoot": ["C:","Users","ericf","OneDrive","Documents","Out of the Park Developments","OOTP Baseball 25"],
+    "ptCardFile": ["online_data","pt_card_list.csv"],
+    "databasePath": [".","test","test.db"]
 }

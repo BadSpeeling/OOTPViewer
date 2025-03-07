@@ -26,8 +26,10 @@ export class Database {
 
     async createTables () {
 
-        const tableNames = [{tableName:"Card",primaryKey:"PtCardID"},{tableName:"LiveUpdate",primaryKey:"LiveUpdateID"},{tableName:"CardMarketValue",primaryKey:"CardMarketValueID"}];
-        const tables = tableNames.map((table) => new Datatable(table.tableName,tableColumns[table.tableName],table.primaryKey));
+        const isTemporaryFlag = false;
+
+        const tableNames = [{tableName:"PtCard",primaryKey:"PtCardID"},{tableName:"LiveUpdate",primaryKey:"LiveUpdateID"},{tableName:"CardMarketValue",primaryKey:"CardMarketValueID"}];
+        const tables = tableNames.map((table) => new Datatable(table.tableName,isTemporaryFlag,tableColumns[table.tableName]));
 
         await this.execute(tables.map((table) => table.createTableString()).join(""));
         

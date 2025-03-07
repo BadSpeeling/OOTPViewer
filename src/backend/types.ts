@@ -11,3 +11,20 @@ export interface CsvDataColumn {
     databaseColumnName: string,
     type: string,
 }
+
+export interface DatatableColumn {
+    name: string,
+    type: string,
+    isNullable: boolean,
+}
+
+export interface Constraint {
+    name: string,
+    fields: string[],
+}
+
+export interface DatatableModel {
+    columns: DatatableColumn[],
+    primaryKey?: string,
+    constraints?: Constraint[],
+}

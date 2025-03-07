@@ -425,8 +425,8 @@ test('Populate PtCards table with record', async () => {
     const database = new Database(".\\test\\test.db");
 
     await database.execute(script);
-    const liveCardRecord = await database.get(`select CardID,CardTitle,CardValue from Card where CardID = 64889`)
-    const historicalCardRecord = await database.get(`select CardID,CardTitle,CardValue from Card where CardID = 65911`)
+    const liveCardRecord = await database.get(`select CardID,CardTitle,CardValue from PtCard where CardID = 64889`)
+    const historicalCardRecord = await database.get(`select CardID,CardTitle,CardValue from PtCard where CardID = 65911`)
     
     expect(databaseObjectEqual(liveCardRecord,expectedLiveCard)).toBeTruthy();
     expect(databaseObjectEqual(historicalCardRecord,historicalLiveCard)).toBeTruthy();

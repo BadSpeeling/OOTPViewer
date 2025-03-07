@@ -1,18 +1,23 @@
-import { CsvDataColumn,CsvRecord } from "../types"
+import { CsvDataColumn,CsvRecord,Constraint } from "../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
+import {CsvDataToTempTable} from "./Datatable"
 
 export const ptCardListLoadScript = (records: CsvRecord[], columns: CsvDataColumn[]) => {
+
+    const primaryKey = 'CardID';
+    const constraints = undefined;
+
     return `
-${ptCardListRawDataLoadPart(records, columns)}
+${rawDataLoadPart('Cards', records, columns, primaryKey, constraints)}
 ${ptCardListInsertCardsPart()}
 `
 }
 
-const ptCardListRawDataLoadPart = (records: CsvRecord[], columns: CsvDataColumn[]) => {
+const rawDataLoadPart = (tableName: string, records: CsvRecord[], columns: CsvDataColumn[], primaryKey: string, constraints?: Constraint[]) => {
 
-    const createHeadersPart = columns.map((column) => `[${column.databaseColumnName}] ${parseCsvDataColumnToDatatype(column.type)}`).join(', ');
+    const datatable = CsvDataToTempTable(tableName, columns, primaryKey, constraints);
+
     const insertHeadersPart = columns.map((column) => `[${column.databaseColumnName}]`).join(', ');
-
     const recordsPart = records.map((record) => {
         return "(" + columns.map((column) => {
             
@@ -29,12 +34,10 @@ const ptCardListRawDataLoadPart = (records: CsvRecord[], columns: CsvDataColumn[
     }).join(',\n');
 
     return `
-DROP TABLE IF EXISTS temp.Cards;
-CREATE TABLE temp.Cards (${createHeadersPart});
+DROP TABLE IF EXISTS temp.${tableName};
+${datatable.createTableString()}
 
-CREATE INDEX temp.pkPtCards ON Cards (CardID);
-
-INSERT INTO temp.Cards (${insertHeadersPart})
+INSERT INTO temp.${tableName} (${insertHeadersPart})
 VALUES 
 ${recordsPart};
     `;
@@ -56,19 +59,32 @@ CREATE TABLE temp.CardInserts AS
 SELECT tc.*, lu.LiveUpdateID
 FROM temp.Cards tc
 JOIN temp.CurrentLiveUpdate lu on 1=1
-LEFT JOIN Card c ON c.CardID = tc.CardID
+LEFT JOIN PtCard c ON c.CardID = tc.CardID
 LEFT JOIN temp.CurrentLiveUpdate u ON c.LiveUpdateID = u.LiveUpdateID
 WHERE u.LiveUpdateID IS NULL AND tc.CardType = 1;
 
 INSERT INTO temp.CardInserts 
 SELECT tc.*, 0 as LiveUpdateID
 FROM temp.Cards tc 
-LEFT JOIN Card c on tc.CardID = c.CardID
+LEFT JOIN PtCard c on tc.CardID = c.CardID
 WHERE c.CardID IS NULL and tc.CardType != 1;
 
-INSERT INTO Card ("CardID","CardTitle","CardValue","CardType","CardSubType","Year","Peak","Team","FirstName","LastName","NickName","UniformNumber","DayOB","MonthOB","YearOB","Bats","Throws","Position","PitcherRole","Contact","Gap","Power","Eye","AvoidKs","BABIP","ContactvL","GapvL","PowervL","EyevL","AvoidKvL","BABIPvL","ContactvR","GapvR","PowervR","EyevR","AvoidKvR","BABIPvR","GBHitterType","FBHitterType","BattedBallType","Speed","StealRate","Stealing","Baserunning","Sacbunt","Buntforhit","Stuff","Movement","Control","pHR","pBABIP","StuffvL","MovementvL","ControlvL","pHRvL","pBABIPvL","StuffvR","MovementvR","ControlvR","pHRvR","pBABIPvR","Fastball","Slider","Curveball","Changeup","Cutter","Sinker","Splitter","Forkball","Screwball","Circlechange","Knucklecurve","Knuckleball","Stamina","Hold","GB","Velocity","ArmSlot","Height","InfieldRange","InfieldError","InfieldArm","DP","CatcherAbil","CatcherFrame","CatcherArm","OFRange","OFError","OFArm","PosRatingP","PosRatingC","PosRating1B","PosRating2B","PosRating3B","PosRatingSS","PosRatingLF","PosRatingCF","PosRatingRF","LearnC","Learn1B","Learn2B","Learn3B","LearnSS","LearnLF","LearnCF","LearnRF","era","MissionValue","limit","owned","brefid","date","LiveUpdateID")
+INSERT INTO PtCard ("CardID","CardTitle","CardValue","CardType","CardSubType","Year","Peak","Team","FirstName","LastName","NickName","UniformNumber","DayOB","MonthOB","YearOB","Bats","Throws","Position","PitcherRole","Contact","Gap","Power","Eye","AvoidKs","BABIP","ContactvL","GapvL","PowervL","EyevL","AvoidKvL","BABIPvL","ContactvR","GapvR","PowervR","EyevR","AvoidKvR","BABIPvR","GBHitterType","FBHitterType","BattedBallType","Speed","StealRate","Stealing","Baserunning","Sacbunt","Buntforhit","Stuff","Movement","Control","pHR","pBABIP","StuffvL","MovementvL","ControlvL","pHRvL","pBABIPvL","StuffvR","MovementvR","ControlvR","pHRvR","pBABIPvR","Fastball","Slider","Curveball","Changeup","Cutter","Sinker","Splitter","Forkball","Screwball","Circlechange","Knucklecurve","Knuckleball","Stamina","Hold","GB","Velocity","ArmSlot","Height","InfieldRange","InfieldError","InfieldArm","DP","CatcherAbil","CatcherFrame","CatcherArm","OFRange","OFError","OFArm","PosRatingP","PosRatingC","PosRating1B","PosRating2B","PosRating3B","PosRatingSS","PosRatingLF","PosRatingCF","PosRatingRF","LearnC","Learn1B","Learn2B","Learn3B","LearnSS","LearnLF","LearnCF","LearnRF","era","MissionValue","limit","owned","brefid","date","LiveUpdateID")
 SELECT "CardID","CardTitle","CardValue","CardType","CardSubType","Year","Peak","Team","FirstName","LastName","NickName","UniformNumber","DayOB","MonthOB","YearOB","Bats","Throws","Position","PitcherRole","Contact","Gap","Power","Eye","AvoidKs","BABIP","ContactvL","GapvL","PowervL","EyevL","AvoidKvL","BABIPvL","ContactvR","GapvR","PowervR","EyevR","AvoidKvR","BABIPvR","GBHitterType","FBHitterType","BattedBallType","Speed","StealRate","Stealing","Baserunning","Sacbunt","Buntforhit","Stuff","Movement","Control","pHR","pBABIP","StuffvL","MovementvL","ControlvL","pHRvL","pBABIPvL","StuffvR","MovementvR","ControlvR","pHRvR","pBABIPvR","Fastball","Slider","Curveball","Changeup","Cutter","Sinker","Splitter","Forkball","Screwball","Circlechange","Knucklecurve","Knuckleball","Stamina","Hold","GB","Velocity","ArmSlot","Height","InfieldRange","InfieldError","InfieldArm","DP","CatcherAbil","CatcherFrame","CatcherArm","OFRange","OFError","OFArm","PosRatingP","PosRatingC","PosRating1B","PosRating2B","PosRating3B","PosRatingSS","PosRatingLF","PosRatingCF","PosRatingRF","LearnC","Learn1B","Learn2B","Learn3B","LearnSS","LearnLF","LearnCF","LearnRF","era","MissionValue","limit","owned","brefid","date","LiveUpdateID"
 FROM temp.CardInserts;
     `
 
 }
+
+export const tournamentStatsWriteScript = (records: CsvRecord[], columns: CsvDataColumn[]) => {
+
+    const primaryKey = undefined;
+    const constraint: Constraint = {
+        fields: ["CardID","LiveUpdateID"],
+        name: "ucCardLiveUpdate",
+    };
+
+    const tournamentRawData = rawDataLoadPart('Stats', records, columns, primaryKey, [constraint]);
+
+}
+

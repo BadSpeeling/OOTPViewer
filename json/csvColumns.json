@@ -122,8 +122,9 @@
     ],
     "statsExport": {
         "general": [
-            {"nameInSource":"Team","databaseColumnName":"Team","type":"TEXT"},
-            {"nameInSource":"PT Card ID","databaseColumnName":"CardID","type":"INTEGER"}
+            {"nameInSource":"TM","databaseColumnName":"PtTeam","type":"TEXT"},
+            {"nameInSource":"CID","databaseColumnName":"CardID","type":"INTEGER"},
+            {"nameInSource":"LiveUpdateID","databaseColumnName":"LiveUpdateID","type":"INTEGER"}
         ],
         "batting": [
             {"nameInSource":"G", "databaseColumnName":"G", "type":  "INTEGER"},
@@ -182,6 +183,8 @@
             {"nameInSource":"SVO", "databaseColumnName":"SVO", "type": "INTEGER"},
             {"nameInSource":"SV", "databaseColumnName":"SV", "type": "INTEGER"},
             {"nameInSource":"SV%", "databaseColumnName":"SV%", "type": "REAL"},
+            {"nameInSource":"BS", "databaseColumnName":"BS", "type": "INTEGER"},
+            {"nameInSource":"BS%", "databaseColumnName":"BS%", "type": "REAL"},
             {"nameInSource":"HLD", "databaseColumnName":"HLD", "type": "INTEGER"},
             {"nameInSource":"SD", "databaseColumnName":"SD", "type": "INTEGER"},
             {"nameInSource":"MD", "databaseColumnName":"MD", "type": "INTEGER"},
@@ -207,7 +210,7 @@
             {"nameInSource":"OPS", "databaseColumnName":"OPS", "type": "REAL"},
             {"nameInSource":"BABIP", "databaseColumnName":"BABIP", "type": "REAL"},
             {"nameInSource":"WHIP", "databaseColumnName":"WHIP", "type": "REAL"},
-            {"nameInSource":"RA/9", "databaseColumnName":"RA/9", "type": "REAL"},
+            {"nameInSource":"BRA/9", "databaseColumnName":"BRA/9", "type": "REAL"},
             {"nameInSource":"HR/9", "databaseColumnName":"HR/9", "type": "REAL"},
             {"nameInSource":"H/9", "databaseColumnName":"H/9", "type": "REAL"},
             {"nameInSource":"BB/9", "databaseColumnName":"BB/9", "type": "REAL"},
@@ -287,7 +290,9 @@
             {"nameInSource":"BIZ-Z%", "databaseColumnName":"BIZ-Z%", "type": "REAL"},
             {"nameInSource":"BIZ-Z", "databaseColumnName":"BIZ-Z", "type": "INTEGER"},
             {"nameInSource":"BIZ-Zm", "databaseColumnName":"BIZ-Zm", "type": "INTEGER"},
-            {"nameInSource":"BIZ-I", "databaseColumnName":"BIZ-I", "type": "INTEGER"}
+            {"nameInSource":"BIZ-I", "databaseColumnName":"BIZ-I", "type": "INTEGER"},
+            {"nameInSource":"FRM", "databaseColumnName":"FRM", "type": "REAL"},
+            {"nameInSource":"ARM", "databaseColumnName":"ARM", "type": "REAL"}
         ]
     }
 }

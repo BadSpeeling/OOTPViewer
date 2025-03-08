@@ -3,17 +3,19 @@ import * as fs  from 'fs';
 import * as path from 'path';
 
 import { PtConnection } from './database/PtConnection';
+import { statsExport } from "../../json/csvColumns.json"
 import {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns, TediousParams} from './database/uttColumns';
 
 import { Request } from 'tedious';
 import { TYPES } from 'tedious';
 
 import * as data from '../../settings.json';
-import { PtDataExportFile, PtPlayerStats, PtStats, PtDataStatsFile } from '../types';
+import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
+import { } from "./types"
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
-const headerTypes = ["generalValues","battingValues","pitchingValues","fieldingValues"];
+const headerTypes = ["generalStats","battingStats","pitchingStats","fieldingStats"];
 
 export async function writeHtmlOutput (htmlOutput: PtDataStatsFile) {
 
@@ -73,49 +75,49 @@ class UttParameter {
 
 function writeTournamentStats (tournamentOutput: { stats: PtPlayerStats[]; headers: string[]; }, htmlOutput: PtDataStatsFile) : Promise<{isSuccess: boolean, msg: string}> {
 
-    return new Promise (async (resolve,reject) => {
+     return new Promise (async (resolve,reject) => {
 
-        let ptConnection = new PtConnection();
-        let connection = await ptConnection.connect();
+    //     let ptConnection = new PtConnection();
+    //     let connection = await ptConnection.connect();
 
-        let tournamentStats = tournamentOutput.stats
+    //     let tournamentStats = tournamentOutput.stats
 
-        const battingParam = new UttParameter(uttBattingColumns)
-        const pitchingParam = new UttParameter(uttPitchingColumns)
-        const fieldingParam = new UttParameter(uttFieldingColumns)
+    //     const battingParam = new UttParameter(uttBattingColumns)
+    //     const pitchingParam = new UttParameter(uttPitchingColumns)
+    //     const fieldingParam = new UttParameter(uttFieldingColumns)
 
-        for (const tournamentStatRow of tournamentStats) {
+    //     for (const tournamentStatRow of tournamentStats) {
 
-            battingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['battingValues'])
-            pitchingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['pitchingValues'])
-            fieldingParam.handleUttRow(tournamentStatRow['generalValues'],tournamentStatRow['fieldingValues'])
+    //         battingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['battingStats'])
+    //         pitchingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['pitchingStats'])
+    //         fieldingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['fieldingStats'])
 
-        }
+    //     }
 
-        var request = new Request("spInsertStats", function(err) {
-            if (!err) {
-                resolve({isSuccess: true,msg:'spInsertStats execute without error'});
-            }
-            else {
-                reject({isSuccess: false,msg:err});
-            }
-        });
+    //     var request = new Request("spInsertStats", function(err) {
+    //         if (!err) {
+    //             resolve({isSuccess: true,msg:'spInsertStats execute without error'});
+    //         }
+    //         else {
+    //             reject({isSuccess: false,msg:err});
+    //         }
+    //     });
     
-        //console.log(uttRows);
-        request.addParameter('pBattingStats', TYPES.TVP, battingParam.getSpParameter());
-        request.addParameter('pPitchingStats', TYPES.TVP, pitchingParam.getSpParameter());
-        request.addParameter('pFieldingStats', TYPES.TVP, fieldingParam.getSpParameter());
-        request.addParameter('pDescription', TYPES.VarChar, htmlOutput.description);
-        request.addParameter('pTournamentTypeID', TYPES.Int, htmlOutput.tournamentTypeID)
-        request.addParameter('pIsCumulativeFlag', TYPES.Bit, htmlOutput.isCumulativeFlag)
+    //     //console.log(uttRows);
+    //     request.addParameter('pBattingStats', TYPES.TVP, battingParam.getSpParameter());
+    //     request.addParameter('pPitchingStats', TYPES.TVP, pitchingParam.getSpParameter());
+    //     request.addParameter('pFieldingStats', TYPES.TVP, fieldingParam.getSpParameter());
+    //     request.addParameter('pDescription', TYPES.VarChar, htmlOutput.description);
+    //     request.addParameter('pTournamentTypeID', TYPES.Int, htmlOutput.tournamentTypeID)
+    //     request.addParameter('pIsCumulativeFlag', TYPES.Bit, htmlOutput.isCumulativeFlag)
 
-        let result = connection.callProcedure(request);
+    //     let result = connection.callProcedure(request);
 
-    })
+     })
 
 }
 
-async function convertHtmlFileToTournamentOutput (htmlFile): Promise<{stats: PtPlayerStats[], headers: string[]}> {
+export async function convertHtmlFileToTournamentOutput (htmlFile): Promise<{stats: PtPlayerStats[], headers: string[]}> {
 
     let res = await parseHtmlDataExport(htmlFile)
     let tournamentStats: PtPlayerStats[] = [] 

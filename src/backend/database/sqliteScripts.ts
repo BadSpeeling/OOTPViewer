@@ -1,6 +1,9 @@
 import { CsvDataColumn,CsvRecord,Constraint } from "../types"
+import {PtPlayerStats} from "../../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 import {CsvDataToTempTable} from "./Datatable"
+
+import { statsExport } from "../../../json/csvColumns.json"
 
 export const ptCardListLoadScript = (records: CsvRecord[], columns: CsvDataColumn[]) => {
 
@@ -76,7 +79,7 @@ FROM temp.CardInserts;
 
 }
 
-export const tournamentStatsWriteScript = (records: CsvRecord[], columns: CsvDataColumn[]) => {
+export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], liveUpdateID: number) => {
 
     const primaryKey = undefined;
     const constraint: Constraint = {
@@ -84,7 +87,20 @@ export const tournamentStatsWriteScript = (records: CsvRecord[], columns: CsvDat
         name: "ucCardLiveUpdate",
     };
 
-    const tournamentRawData = rawDataLoadPart('Stats', records, columns, primaryKey, [constraint]);
+    const battingRecords = records.map((record) => {
+        return {
+            ...record.generalStats,
+            ...record.battingStats,
+            LiveUpdateID: liveUpdateID,
+        }
+    })
+    const columns = [...statsExport.general,...statsExport.batting];
+
+    const battingRawData = rawDataLoadPart('BattingStats', battingRecords, columns, primaryKey, [constraint]);
+
+    return `
+${battingRawData}
+    `
 
 }
 

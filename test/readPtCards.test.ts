@@ -11,14 +11,7 @@ import { ptCardListLoadScript } from "../src/backend/database/sqliteScripts"
 import { processPtCardList } from "../src/backend/ptCardOperations"
 
 beforeAll(async () => {
-    
-    const path = ".\\test\\test.db";
-    fs.closeSync(fs.openSync(path, 'w'));
-    
-    const db = new Database(path);
-    await db.createTables();
-    await db.execute("INSERT INTO LiveUpdate VALUES (1,1711411200);");
-
+    fs.copyFileSync('.\\sqlite\\test.db','.\\test\\test.db');
 });
   
 afterAll(() => {

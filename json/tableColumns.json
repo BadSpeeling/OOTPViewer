@@ -119,6 +119,7 @@
         "primaryKey": "PtCardID",
         "constraints": [
             {
+                "type": "UNIQUE",
                 "name": "ucCardIDLiveUpdateID",
                 "fields": ["CardID","LiveUpdateID"]
             }
@@ -144,5 +145,58 @@
             {"name":"Timestamp","type":"INTEGER","isNullable":false}
         ],
         "primaryKey": "CardMarketValueID"
+    },
+    "BattingStats": {
+        "columns": [
+            {"name":"BattingStatsID", "type": "INTEGER"},
+            {"name":"PtCardID", "type": "INTEGER"},
+            {"name":"TournamentStatsID", "type": "INTEGER"},
+            {"name":"G", "type":  "INTEGER"},
+            {"name":"GS", "type":  "INTEGER"},
+            {"name":"PA", "type":  "INTEGER"},
+            {"name":"AB", "type":  "INTEGER"},
+            {"name":"H", "type":  "INTEGER"},
+            {"name":"1B", "type":  "INTEGER"},
+            {"name":"2B", "type":  "INTEGER"},
+            {"name":"3B", "type":  "INTEGER"},
+            {"name":"HR", "type":  "INTEGER"},
+            {"name":"RBI", "type":  "INTEGER"},
+            {"name":"R", "type":  "INTEGER"},
+            {"name":"BB", "type":  "INTEGER"},
+            {"name":"BB%", "type":  "REAL"},
+            {"name":"IBB", "type":  "INTEGER"},
+            {"name":"HP", "type":  "INTEGER"},
+            {"name":"SH", "type":  "INTEGER"},
+            {"name":"SF", "type":  "INTEGER"},
+            {"name":"CI", "type":  "INTEGER"},
+            {"name":"SO", "type":  "INTEGER"},
+            {"name":"SO%", "type":  "REAL"},
+            {"name":"GIDP", "type":  "INTEGER"},
+            {"name":"EBH", "type":  "INTEGER"},
+            {"name":"TB", "type":  "INTEGER"},
+            {"name":"AVG", "type":  "REAL"},
+            {"name":"OBP", "type":  "REAL"},
+            {"name":"SLG", "type":  "REAL"},
+            {"name":"RC", "type":  "REAL"},
+            {"name":"RC/27", "type":  "REAL"},
+            {"name":"ISO", "type":  "REAL"},
+            {"name":"wOBA", "type":  "REAL"},
+            {"name":"OPS", "type":  "REAL"},
+            {"name":"OPS+", "type":  "INTEGER"},
+            {"name":"BABIP", "type":  "REAL"},
+            {"name":"WPA", "type":  "REAL"},
+            {"name":"wRC", "type":  "INTEGER"},
+            {"name":"wRC+", "type":  "INTEGER"},
+            {"name":"wRAA", "type":  "REAL"},
+            {"name":"WAR", "type":  "REAL"},
+            {"name":"PI/PA", "type":  "REAL"},
+            {"name":"SB", "type":  "INTEGER"},
+            {"name":"CS", "type":  "INTEGER"},
+            {"name":"SB%", "type":  "REAL"},
+            {"name":"BatR", "type":  "REAL"},
+            {"name":"wSB", "type":  "REAL"},
+            {"name":"UBR", "type":  "REAL"},
+            {"name":"BsR", "type":  "REAL"}   
+        ]
     }
 }

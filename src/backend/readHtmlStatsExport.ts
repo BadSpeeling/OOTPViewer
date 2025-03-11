@@ -2,14 +2,12 @@ import { parse } from 'node-html-parser';
 import * as fs  from 'fs';
 import * as path from 'path';
 
-import { PtConnection } from './database/PtConnection';
 import { statsExport } from "../../json/csvColumns.json"
+import { tournamentBattingStatsWriteScript } from "./database/sqliteScripts"
 import {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns, TediousParams} from './database/uttColumns';
+import { Database } from "./database/Database"
 
-import { Request } from 'tedious';
-import { TYPES } from 'tedious';
-
-import * as data from '../../settings.json';
+import * as settings from '../../settings.json';
 import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
 import { } from "./types"
 
@@ -73,47 +71,14 @@ class UttParameter {
 
 }
 
-function writeTournamentStats (tournamentOutput: { stats: PtPlayerStats[]; headers: string[]; }, htmlOutput: PtDataStatsFile) : Promise<{isSuccess: boolean, msg: string}> {
+//export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], liveUpdateID: number) => {
 
-     return new Promise (async (resolve,reject) => {
+export async function writeTournamentStats (stats: PtPlayerStats[], liveUpdateID: number) {
 
-    //     let ptConnection = new PtConnection();
-    //     let connection = await ptConnection.connect();
+    const database = new Database(path.join(...settings.databasePath));
+    const battingScript = tournamentBattingStatsWriteScript(stats, liveUpdateID);
 
-    //     let tournamentStats = tournamentOutput.stats
-
-    //     const battingParam = new UttParameter(uttBattingColumns)
-    //     const pitchingParam = new UttParameter(uttPitchingColumns)
-    //     const fieldingParam = new UttParameter(uttFieldingColumns)
-
-    //     for (const tournamentStatRow of tournamentStats) {
-
-    //         battingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['battingStats'])
-    //         pitchingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['pitchingStats'])
-    //         fieldingParam.handleUttRow(tournamentStatRow['generalStats'],tournamentStatRow['fieldingStats'])
-
-    //     }
-
-    //     var request = new Request("spInsertStats", function(err) {
-    //         if (!err) {
-    //             resolve({isSuccess: true,msg:'spInsertStats execute without error'});
-    //         }
-    //         else {
-    //             reject({isSuccess: false,msg:err});
-    //         }
-    //     });
-    
-    //     //console.log(uttRows);
-    //     request.addParameter('pBattingStats', TYPES.TVP, battingParam.getSpParameter());
-    //     request.addParameter('pPitchingStats', TYPES.TVP, pitchingParam.getSpParameter());
-    //     request.addParameter('pFieldingStats', TYPES.TVP, fieldingParam.getSpParameter());
-    //     request.addParameter('pDescription', TYPES.VarChar, htmlOutput.description);
-    //     request.addParameter('pTournamentTypeID', TYPES.Int, htmlOutput.tournamentTypeID)
-    //     request.addParameter('pIsCumulativeFlag', TYPES.Bit, htmlOutput.isCumulativeFlag)
-
-    //     let result = connection.callProcedure(request);
-
-     })
+    await database.execute(battingScript);
 
 }
 

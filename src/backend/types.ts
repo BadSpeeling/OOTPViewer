@@ -19,6 +19,7 @@ export interface DatatableColumn {
 }
 
 export interface Constraint {
+    type: "UNIQUE"|"INDEX"
     name: string,
     fields: string[],
 }

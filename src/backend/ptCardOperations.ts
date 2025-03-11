@@ -1,11 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'node:path'
 
-import { PtCard } from './PtCard';
-import { PtConnection } from './database/PtConnection';
-
-import {Request,TYPES} from 'tedious'
-
 import { Database } from "./database/Database"
 import { ptCardListLoadScript } from './database/sqliteScripts'
 

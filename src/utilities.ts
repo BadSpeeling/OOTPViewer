@@ -46,7 +46,7 @@ export const parseCsvDataColumnToDatatype = (type: string) => {
 
 export const databaseObjectEqual = (databaseObject: any, testingObject: any) => {
 
-    for (const curKey of Object.keys(databaseObject)) {
+    for (const curKey of Object.keys(testingObject)) {
         if (databaseObject[curKey] !== testingObject[curKey]) {
             return false;
         }

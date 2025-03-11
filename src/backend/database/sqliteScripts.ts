@@ -83,6 +83,7 @@ export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], live
 
     const primaryKey = undefined;
     const constraint: Constraint = {
+        type: "UNIQUE",
         fields: ["CardID","LiveUpdateID"],
         name: "ucCardLiveUpdate",
     };
@@ -100,7 +101,7 @@ export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], live
 
     return `
 ${battingRawData}
-    `
+`
 
 }
 

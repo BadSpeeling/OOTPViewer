@@ -27,14 +27,13 @@ export class Datatable {
         let constraintsPart: string = ""; 
 
         if (this.constraints) {
-            constraintsPart = this.constraints.map((constraint) => {
-                return `CREATE INDEX ${this.isTemporaryFlag ? "temp." : ""}${constraint.name} ON ${this.tableName} (${constraint.fields.join(',')});`
+            constraintsPart = "\n" + this.constraints.map((constraint) => {
+                return `,${constraint.type} (${constraint.fields.join(',')})`
             }).join('\n');
         }
 
         return `
-CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart});
-${constraintsPart}
+CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${constraintsPart});
 `
 
     }

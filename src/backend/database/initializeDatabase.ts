@@ -5,7 +5,7 @@ import * as sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 
 const isTemporaryFlag = false;
-const tableNames = ["Card","LiveUpdate","CardMarketValue"];
+const tableNames = ["PtCard","LiveUpdate","CardMarketValue","BattingStats"];
 const tables = tableNames.map((tableName) => new Datatable(tableName, isTemporaryFlag, tableColumns[tableName]));
   
 // this is a top-level await 

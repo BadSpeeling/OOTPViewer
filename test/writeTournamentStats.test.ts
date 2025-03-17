@@ -5,15 +5,15 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 
 import { tournamentBattingStatsWriteScript } from "../src/backend/database/sqliteScripts"
-import { convertHtmlFileToTournamentOutput } from "../src/backend/readHtmlStatsExport"
+import { writeTournamentStats,convertHtmlFileToTournamentOutput } from "../src/backend/readHtmlStatsExport"
 import { statsExport } from '../json/csvColumns.json'
 
 beforeAll(async () => {
-    fs.copyFileSync('.\\sqlite\\test.db','.\\test\\test.db');
+    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
 });
   
 afterAll(() => {
-    fs.unlink('.\\test\\test.db', () => {});
+    fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
 });
 
 test('tests that jest with typescript works', () => {
@@ -24,13 +24,14 @@ test('Populate PtCards table with record', async () => {
 
     const data = await convertHtmlFileToTournamentOutput({
         path: "D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
-        fileName: "tournament_data_1_rows.html",
+        fileName: "tournament_data_2_rows.html",
     })
+
+    const script = tournamentBattingStatsWriteScript(data.stats, 1, 1)
 
     const desiredData = [
         {
-          "TM": "Florida",
-          "CID": 62647,
+          "PtCardID": 1,
           "G": 5,
           "GS": 5,
           "PA": 19,
@@ -46,8 +47,8 @@ test('Populate PtCards table with record', async () => {
           "HP": 0,
           "SH": 0,
           "SF": 0,
-          "SO": 0,
-          "GIDP": 1,
+          "SO": 1,
+          "GIDP": 0,
           "RC": 4.1,
           "wOBA": 0.410,
           "OPS+": 151,
@@ -63,8 +64,7 @@ test('Populate PtCards table with record', async () => {
           "UBR": -0.2
         },
         {
-          "TM": "Abydos",
-          "CID": 61741,
+          "PtCardID": 2319,
           "G": 7,
           "GS": 7,
           "PA": 29,
@@ -79,9 +79,9 @@ test('Populate PtCards table with record', async () => {
           "IBB": 0,
           "HP": 0,
           "SH": 0,
-          "SF": 4,
-          "SO": 2,
-          "GIDP": 3,
+          "SF": 0,
+          "SO": 4,
+          "GIDP": 2,
           "RC": 3.2,
           "wOBA": 0.342,
           "OPS+": 107,
@@ -97,17 +97,14 @@ test('Populate PtCards table with record', async () => {
           "UBR": -0.6
         }
       ]
-      
+        
+    const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+    await db.execute(script);
 
-    const script = await tournamentBattingStatsWriteScript(data.stats,1);
-    const db = new Database(".\\test\\test.db");
-
-    const battingRecord1 = await db.get(`select * from BattingStats where PtCardID = ${1000}`)
-    const battingRecord2 = await db.get(`select * from BattingStats where PtCardID = ${1000}`)
+    const battingRecord1 = await db.get(`select * from main.BattingStats where PtCardID = 1`)
+    const battingRecord2 = await db.get(`select * from main.BattingStats where PtCardID = 2319`)
 
     expect(databaseObjectEqual(battingRecord1,desiredData[0])).toBeTruthy();
     expect(databaseObjectEqual(battingRecord2,desiredData[1])).toBeTruthy();
-
-    console.log(script);
 
 })

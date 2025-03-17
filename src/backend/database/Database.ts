@@ -1,9 +1,12 @@
 import * as sqlite3 from 'sqlite3'
 import * as sqlite from 'sqlite'
+import * as path from 'node:path'
 
 import * as tableColumns from "../../../json/tableColumns.json";
 import { Datatable } from "./Datatable";
 import { DatabaseRecord } from '../types'
+
+import * as settings from "../../../settings.json"
 
 export class Database {
 
@@ -66,4 +69,8 @@ export class Database {
 
     }
 
+}
+
+export const getDatabase = () => {
+    return new Database(path.join(...settings.databasePath));
 }

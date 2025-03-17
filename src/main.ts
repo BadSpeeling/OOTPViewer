@@ -1,12 +1,17 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('node:path')
+import { app, BrowserWindow, ipcMain } from 'electron';
+import * as path from 'node:path';
 
-import {DatabaseRecord, queryDatabase} from './backend/database/DatabaseRecord';
 import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats, getPtSeasonPitchingStats} from './backend/database/sqlServerScript';
 
-import * as readHtmlStatsExport from './backend/readHtmlStatsExport'
+import * as readHtmlStatsExport from './backend/readHtmlStatsExport';
+import {readPtCardList} from "./backend/ptCardOperations";
 
-import * as data from '../settings.json';
+import { getDatabase } from "./backend/database/Database";
+import { DatabaseRecord } from "./backend/types"
+
+import * as csvColumns from '../json/csvColumns.json';
+
+import * as settings from '../settings.json';
 import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery } from './types'
 
 declare global {
@@ -24,6 +29,7 @@ declare global {
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openStatsImporter: () => void,
+    loadPtCards: () => void,
   }
 
 }
@@ -90,11 +96,18 @@ const openSeasonStats = () => {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('writeHtmlTournamentStats', (_event, value) => {
+  ipcMain.handle('writeHtmlTournamentStats', async (_event, value) => {
     console.log(value)
     
-    let writeResults = readHtmlStatsExport.writeHtmlOutput(value)
-    return writeResults
+    const liveUpdate = await getDatabase().get("SELECT LiveUpdateID FROM LiveUpdate ORDER BY Timestamp desc LIMIT 1")
+
+    if (typeof liveUpdate.LiveUpdateID === 'number') {
+      let writeResults = readHtmlStatsExport.writeHtmlOutput(value, liveUpdate.LiveUpdateID);
+      return writeResults;
+    }
+    else {
+      throw new Error("Could not load latest LiveUpdateID");
+    }
 
   })
 
@@ -120,7 +133,7 @@ app.whenReady().then(() => {
 
     dataScript = dataScript.replace('{{tournamentTypeID}}',tournamentTypeID);
     dataScript = dataScript.replace('{{qualifierValue}}',qualifierValue);
-    return queryDatabase(dataScript);
+    return getDatabase().getAll(dataScript);
 
   })
 
@@ -129,6 +142,7 @@ app.whenReady().then(() => {
   ipcMain.handle('getTournamentTypes', getTournamentTypes)
   ipcMain.handle('findTournamentExports', findTournamentExports)
   ipcMain.handle('getSeasonStats', getSeasonStats);
+  ipcMain.handle('writePtCards', writePtCards);
 
   ipcMain.handle('openStatsImporter', openStatsImporter)
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
@@ -142,19 +156,31 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 });
 
+async function writePtCards (e, args) {
+
+  try {
+    const filePath = path.join(...settings.ootpRoot.concat(settings.ptCardFile));
+    //const ptCards = await readPtCardList();
+  }
+  catch (e) {
+    console.log(e.reason);
+  }
+
+}
+
 async function getTournamentTypes (e, args) {
-  return await queryDatabase("SELECT * FROM ootp_data.dbo.TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  return await getDatabase().getAll("SELECT * FROM ootp_data.dbo.TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
 }
 
 async function lookupData (e, args) {
-  let arr = await queryDatabase("SELECT TOP 5 * FROM ootp_data.dbo.pt_card_list_20240404");
+  let arr = await getDatabase().getAll("SELECT TOP 5 * FROM ootp_data.dbo.pt_card_list_20240404");
   return arr;
 }
 
 async function getRecentTournaments (e, args) {
 
   let dataScript = getRecentTournamentsScript;
-  const recentTournaments: DatabaseRecord[] = await queryDatabase(dataScript)
+  const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
 
   return recentTournaments.map((tournament: DatabaseRecord) => {
     return {
@@ -172,7 +198,7 @@ async function getRecentTournaments (e, args) {
 async function getSeasonStats (e, args: SeasonStatsQuery) {
 
   let dataScript = args.statsTypeID === 0 ? getPtSeasonBattingStats : getPtSeasonPitchingStats;
-  const seasonStats: DatabaseRecord[] = await queryDatabase(dataScript)
+  const seasonStats: DatabaseRecord[] = await getDatabase().getAll(dataScript)
 
   return seasonStats.map((tournament: DatabaseRecord) => {
     if (args.statsTypeID === 0) {
@@ -209,9 +235,7 @@ async function getSeasonStats (e, args: SeasonStatsQuery) {
 
 async function findTournamentExports () : Promise<PtDataExportFile[]> {
 
-  const settings = data
-
-  let ptFolders = await readHtmlStatsExport.getAllPtFolders(settings.ootpRoot)
+  let ptFolders = await readHtmlStatsExport.getAllPtFolders(path.join(...settings.ootpRoot))
   let htmlFiles = await readHtmlStatsExport.locateHtmlFiles(ptFolders)
 
   let htmlFilesToReturn: PtDataExportFile[] = []

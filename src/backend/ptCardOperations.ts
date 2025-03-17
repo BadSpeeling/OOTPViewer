@@ -19,10 +19,22 @@ import * as settings from "../../settings.json"
 
 export async function processPtCardList () {
 
-    const ptCardListPath = path.join(...settings.ootpRoot, ...settings.ptCardFile);
-    const cards = await readPtCardList(ptCardListPath, ptCardList)
+    const ptCardFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
+    const cards = await getCards(path.join(...ptCardFilePath));
+    writeCards(path.join(...settings.databasePath), cards);
 
-    const db = new Database(path.join(...settings.databasePath));
+}
+
+export async function getCards (path: string) {
+
+    const cards = await readPtCardList(path, ptCardList)
+    return cards;
+
+}
+
+export async function writeCards (path: string, cards: CsvRecord[]) {
+
+    const db = new Database(path);
     const script = ptCardListLoadScript(cards, ptCardList);
 
     await db.execute(script);
@@ -52,9 +64,9 @@ export function readPtCardList (file, columns: CsvDataColumn[]) : Promise<CsvRec
                     const parseCardDataValue = (curColumn: CsvDataColumn, value: string) => {
                         switch (curColumn.type) {
                             case "INTEGER":
-                                return parseInt(value);
+                                return parseInt(value ? value : "0");
                             case "DECIMAL":
-                                return parseFloat(value);
+                                return parseFloat(value? value : "0");
                             case "DATETIME":
                                 return value;
                             default:

@@ -5,9 +5,12 @@
         {"nameInSource":"Card Value","databaseColumnName":"CardValue","type":"INTEGER"},
         {"nameInSource":"Card Type","databaseColumnName":"CardType","type":"INTEGER"},
         {"nameInSource":"Card Sub Type","databaseColumnName":"CardSubType","type":"INTEGER"},
+        {"nameInSource":"Card Badge","databaseColumnName":"CardBadge","type":"TEXT"},
+        {"nameInSource":"Card Series","databaseColumnName":"CardSeries","type":"TEXT"},
         {"nameInSource":"Year","databaseColumnName":"Year","type":"INTEGER"},
         {"nameInSource":"Peak","databaseColumnName":"Peak","type":"TEXT"},
         {"nameInSource":"Team","databaseColumnName":"Team","type":"TEXT"},
+        {"nameInSource":"Franchise","databaseColumnName":"Franchise","type":"TEXT"},
         {"nameInSource":"LastName","databaseColumnName":"FirstName","type":"TEXT"},
         {"nameInSource":"FirstName","databaseColumnName":"LastName","type":"TEXT"},
         {"nameInSource":"NickName","databaseColumnName":"NickName","type":"TEXT"},
@@ -115,9 +118,7 @@
         {"nameInSource":"Buy Order High","databaseColumnName":"BuyOrderHigh","type":"INTEGER"},
         {"nameInSource":"Sell Order Low","databaseColumnName":"SellOrderLow","type":"INTEGER"},
         {"nameInSource":"Last 10 Price","databaseColumnName":"Last10Price","type":"INTEGER"},
-        {"nameInSource":"Buy Order High(CC)","databaseColumnName":"BuyOrderHigh(CC)","type":"INTEGER"},
-        {"nameInSource":"Sell Order Low(CC)","databaseColumnName":"SellOrderLow(CC)","type":"INTEGER"},
-        {"nameInSource":"Last 10 Price(CC)","databaseColumnName":"Last10Price(CC)","type":"INTEGER"},
+        {"nameInSource":"Last 10 Price(VAR)","databaseColumnName":"Last 10 Price(VAR)","type":"INTEGER"},
         {"nameInSource":"date","databaseColumnName":"date","type":"DATETIME"}
     ],
     "statsExport": {

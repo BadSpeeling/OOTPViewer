@@ -5,7 +5,7 @@ import * as path from 'path';
 import { statsExport } from "../../json/csvColumns.json"
 import { tournamentBattingStatsWriteScript } from "./database/sqliteScripts"
 import {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns, TediousParams} from './database/uttColumns';
-import { Database } from "./database/Database"
+import { getDatabase } from "./database/Database"
 
 import * as settings from '../../settings.json';
 import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
@@ -15,21 +15,14 @@ import { } from "./types"
 
 const headerTypes = ["generalStats","battingStats","pitchingStats","fieldingStats"];
 
-export async function writeHtmlOutput (htmlOutput: PtDataStatsFile) {
+export async function writeHtmlOutput (htmlOutput: PtDataStatsFile, liveUpdateID: number) {
 
     let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
-    //return await writeTournamentStats(tournamentOutput, htmlOutput)
 
-    let writeResults = await writeTournamentStats(tournamentOutput, htmlOutput)
+    await writeTournamentStats(tournamentOutput.stats, liveUpdateID, htmlOutput.tournamentTypeID)
 
-    if (writeResults.isSuccess) {
-        let fileDeleteResults = await clearPtFolderHtmlFiles(htmlOutput.path)
-        return fileDeleteResults[0]
-    }
-    else {
-        return writeResults
-    }
-
+    let fileDeleteResults = await clearPtFolderHtmlFiles(htmlOutput.path)
+    return fileDeleteResults[0]
 
 }
 
@@ -71,12 +64,10 @@ class UttParameter {
 
 }
 
-//export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], liveUpdateID: number) => {
+export async function writeTournamentStats (stats: PtPlayerStats[], liveUpdateID: number, tournamentTypeID: number) {
 
-export async function writeTournamentStats (stats: PtPlayerStats[], liveUpdateID: number) {
-
-    const database = new Database(path.join(...settings.databasePath));
-    const battingScript = tournamentBattingStatsWriteScript(stats, liveUpdateID);
+    const database = getDatabase();
+    const battingScript = tournamentBattingStatsWriteScript(stats, liveUpdateID, tournamentTypeID);
 
     await database.execute(battingScript);
 

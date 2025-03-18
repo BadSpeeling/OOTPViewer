@@ -4,7 +4,7 @@ import { databaseObjectEqual } from "../src/utilities"
 import * as path from "node:path"
 import * as fs from "node:fs"
 
-import { tournamentBattingStatsWriteScript } from "../src/backend/database/sqliteScripts"
+import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript } from "../src/backend/database/sqliteScripts"
 import { writeTournamentStats,convertHtmlFileToTournamentOutput } from "../src/backend/readHtmlStatsExport"
 import { statsExport } from '../json/csvColumns.json'
 
@@ -106,5 +106,193 @@ test('Populate PtCards table with record', async () => {
 
     expect(databaseObjectEqual(battingRecord1,desiredData[0])).toBeTruthy();
     expect(databaseObjectEqual(battingRecord2,desiredData[1])).toBeTruthy();
+
+})
+
+test('Populate PtCards table with pitching records', async () => {
+
+  const data = await convertHtmlFileToTournamentOutput({
+      path: "D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
+      fileName: "tournament_pitching_data_2_rows.html",
+  })
+
+  const script = tournamentPitchingStatsWriteScript(data.stats, 1, 1)
+
+  const desiredData = [
+    {
+      "PtCardID": 483,
+      "G": 1,
+      "GS": 1,
+      "W": 1,
+      "L": 0,
+      "WIN%": 1.000,
+      "SVO": 0,
+      "SV": 0,
+      "SV%": .000,
+      "BS": 0,
+      "BS%": .000,
+      "HLD": 0,
+      "SD": 0,
+      "MD": 0,
+      "IP": 7.0,
+      "BF": 26,
+      "AB": 26,
+      "HA": 4,
+      "1B": 2,
+      "2B": 1,
+      "3B": 1,
+      "HR": 0,
+      "TB": 7,
+      "R": 2,
+      "ER": 1,
+      "BB": 0,
+      "IBB": 0,
+      "K": 6,
+      "HP": 0,
+      "ERA": 1.29,
+      "AVG": .154,
+      "OBP": .154,
+      "SLG": .269,
+      "OPS": .423,
+      "BABIP": .200,
+      "WHIP": 0.57,
+      "BRA/9": 5.1,
+      "HR/9": 0.0,
+      "H/9": 5.1,
+      "BB/9": 0.0,
+      "K/9": 7.7,
+      "K/BB": 0.0,
+      "K%": 23.1,
+      "BB%": 0.0,
+      "K%-BB%": 23.1,
+      "SH": 0,
+      "SF": 0,
+      "WP": 0,
+      "BK": 0,
+      "CI": 0,
+      "DP": 0,
+      "RA": 0,
+      "GF": 0,
+      "IR": 0,
+      "IRS": 0,
+      "IRS%": 0.0,
+      "LOB%": 50.0,
+      "pLi": 0.88,
+      "GF%": 0.0,
+      "QS": 1,
+      "QS%": 1.000,
+      "CG": 0,
+      "CG%": 0.0,
+      "SHO": 0,
+      "PPG": 100,
+      "RS": 4,
+      "RSG": 4.0,
+      "PI": 100,
+      "GB": 7,
+      "FB": 8,
+      "GO%": 0.47,
+      "SB": 0,
+      "CS": 0,
+      "ERA+": 323,
+      "FIP": 1.61,
+      "FIP-": 38,
+      "WPA": 0.1,
+      "WAR": 0.4,
+      "rWAR": 0.3,
+      "SIERA": 2.60
+    },
+    {
+      "PtCardID": 327,
+      "G": 4,
+      "GS": 0,
+      "W": 0,
+      "L": 0,
+      "WIN%": 0.000,
+      "SVO": 0,
+      "SV": 0,
+      "SV%": .000,
+      "BS": 0,
+      "BS%": .000,
+      "HLD": 1,
+      "SD": 0,
+      "MD": 1,
+      "IP": 5.1,
+      "BF": 25,
+      "AB": 21,
+      "HA": 5,
+      "1B": 4,
+      "2B": 0,
+      "3B": 0,
+      "HR": 1,
+      "TB": 8,
+      "R": 3,
+      "ER": 3,
+      "BB": 3,
+      "IBB": 0,
+      "K": 6,
+      "HP": 1,
+      "ERA": 5.06,
+      "AVG": .238,
+      "OBP": .360,
+      "SLG": .381,
+      "OPS": .741,
+      "BABIP": .286,
+      "WHIP": 1.50,
+      "BRA/9": 15.2,
+      "HR/9": 1.7,
+      "H/9": 8.4,
+      "BB/9": 5.1,
+      "K/9": 10.1,
+      "K/BB": 2.0,
+      "K%": 24.0,
+      "BB%": 12.0,
+      "K%-BB%": 12.0,
+      "SH": 0,
+      "SF": 0,
+      "WP": 0,
+      "BK": 0,
+      "CI": 0,
+      "DP": 0,
+      "RA": 4,
+      "GF": 0,
+      "IR": 4,
+      "IRS": 0,
+      "IRS%": 0.0,
+      "LOB%": 78.9,
+      "pLi": 1.08,
+      "GF%": .000,
+      "QS": 0,
+      "QS%": 0.0,
+      "CG": 0,
+      "CG%": 0.0,
+      "SHO": 0,
+      "PPG": 23,
+      "RS": 0.0,
+      "RSG": 0.0,
+      "PI": 95,
+      "GB": 4,
+      "FB": 6,
+      "GO%": 0.4,
+      "SB": 0,
+      "CS": 0,
+      "ERA+": 82,
+      "FIP": 5.76,
+      "FIP-": 138,
+      "WPA": 0.0,
+      "WAR": -0.1,
+      "rWAR": 0.0,
+      "SIERA": 3.84
+    }
+  ]
+  
+      
+  const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+  await db.execute(script);
+
+  const pitchingRecord1 = await db.get(`select * from main.PitchingStats where PtCardID = 483`)
+  const pitchingRecord2 = await db.get(`select * from main.PitchingStats where PtCardID = 327`)
+
+  expect(databaseObjectEqual(pitchingRecord1,desiredData[0])).toBeTruthy();
+  expect(databaseObjectEqual(pitchingRecord2,desiredData[1])).toBeTruthy();
 
 })

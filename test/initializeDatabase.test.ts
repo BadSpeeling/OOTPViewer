@@ -9,10 +9,21 @@ import { open } from 'sqlite';
 import * as fs from 'node:fs'
 
 const isTemporaryFlag = false;
-const tableNames = ["PtCard","LiveUpdate","CardMarketValue","BattingStats"];
+const tableNames = ["PtCard","LiveUpdate","CardMarketValue","BattingStats","PitchingStats"];
 const tables = tableNames.map((tableName) => new Datatable(tableName, isTemporaryFlag, tableColumns[tableName]));
 
 const currTime = Date.now();
+
+// test('sandbox', async () => {
+
+//   const db = await open({
+//     filename: `E:\\ootp_data\\sqlite\\pt.db`,
+//     driver: sqlite3.Database
+//   });
+
+//   await db.exec(tables[4].createTableString())
+
+// })
 
 // test('tests that jest with typescript works', async () => {
         

@@ -196,3 +196,14 @@ FROM temp.PitchingStats bs
 JOIN temp.Cards c ON bs.CardID = c.CardID AND bs.LiveUpdateID = c.LiveUpdateID
     `
 }
+
+const getTournamentBattingStatsScript = (tournamentTypeID: number) => {
+    return `
+select c.CardTitle,bs.PtCardID,SUM([G]) [G], SUM([GS]) [GS], SUM([PA]) [PA], SUM([AB]) [AB], SUM([H]) [H], SUM([1B]) [1B], SUM([2B]) [2B], SUM([3B]) [3B], SUM([HR]) [HR], SUM([RBI]) [RBI], SUM([R]) [R], SUM([BB]) [BB], SUM([BB%]) [BB%], SUM([IBB]) [IBB], SUM([HP]) [HP], SUM([SH]) [SH], SUM([SF]) [SF], SUM([CI]) [CI], SUM([SO]) [SO], SUM([SO%]) [SO%], SUM([GIDP]) [GIDP], SUM([EBH]) [EBH], SUM([TB]) [TB], SUM([AVG]) [AVG], SUM([OBP]) [OBP], SUM([SLG]) [SLG], SUM([RC]) [RC], SUM([RC/27]) [RC/27], SUM([ISO]) [ISO], SUM([wOBA]) [wOBA], SUM([OPS]) [OPS], SUM([OPS+]) [OPS+], SUM(bs.[BABIP]) [BABIP], SUM([WPA]) [WPA], SUM([wRC]) [wRC], SUM([wRC+]) [wRC+], SUM([wRAA]) [wRAA], SUM([WAR]) [WAR], SUM([PI/PA]) [PI/PA], SUM([SB]) [SB], SUM([CS]) [CS], SUM([SB%]) [SB%], SUM([BatR]) [BatR], SUM([wSB]) [wSB], SUM([UBR]) [UBR], SUM([BsR]) [BsR]
+from BattingStats bs
+join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID
+join PtCard c on bs.PtCardID = c.PtCardID
+where TournamentTypeID = ${tournamentTypeID}
+group by bs.PtCardID;
+`
+}

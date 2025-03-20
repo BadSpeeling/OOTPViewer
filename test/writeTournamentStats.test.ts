@@ -16,10 +16,6 @@ afterAll(() => {
     fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
 });
 
-test('tests that jest with typescript works', () => {
-    expect([1,2,3].reduce((acc, curr) => acc + curr, 0)).toBe(6);
-})
-
 test('Populate PtCards table with record', async () => {
 
     const data = await convertHtmlFileToTournamentOutput({

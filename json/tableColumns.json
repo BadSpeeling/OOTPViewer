@@ -147,11 +147,33 @@
         ],
         "primaryKey": "CardMarketValueID"
     },
+    "StatsBatch": {
+        "columns": [
+            {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
+            {"name": "Timestamp", "type": "INTEGER", "isNullable": false},
+            {"name": "Description", "type": "TEXT", "isNullable": false},
+            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false}
+        ],
+        "primaryKey": "StatsBatchID"
+    },
+    "TournamentType": {
+        "columns": [
+            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false},
+            {"name": "Name", "type": "TEXT", "isNullable": false},
+            {"name": "CardRestriction", "type": "TEXT", "isNullable": false},
+            {"name": "MaxOverall", "type": "INTEGER", "isNullable": false},
+            {"name": "IsQuick", "type": "INTEGER", "isNullable": false},
+            {"name": "IsCap", "type": "INTEGER", "isNullable": false},
+            {"name": "IsLive", "type": "INTEGER", "isNullable": false},
+            {"name": "CapAmount", "type": "INTEGER", "isNullable": false}
+        ],
+        "primaryKey": "TournamentTypeID"
+    },
     "BattingStats": {
         "columns": [
             {"name": "BattingStatsID", "type": "INTEGER", "isNullable": false},
             {"name": "PtCardID", "type": "INTEGER", "isNullable": false},
-            {"name": "TournamentStatsID", "type": "INTEGER", "isNullable": false},
+            {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "G", "type": "INTEGER", "isNullable": false},
             {"name": "GS", "type": "INTEGER", "isNullable": true},
             {"name": "PA", "type": "INTEGER", "isNullable": true},
@@ -205,7 +227,7 @@
         "columns": [
             {"name": "PitchingStatsID", "type": "INTEGER", "isNullable": false},
             {"name": "PtCardID", "type": "INTEGER", "isNullable": false},
-            {"name": "TournamentStatsID", "type": "INTEGER", "isNullable": false},
+            {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "G", "type": "INTEGER", "isNullable": false},
             {"name": "GS", "type": "INTEGER", "isNullable": true},
             {"name": "W", "type": "INTEGER", "isNullable": true},

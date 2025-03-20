@@ -9,7 +9,7 @@ import { open } from 'sqlite';
 import * as fs from 'node:fs'
 
 const isTemporaryFlag = false;
-const tableNames = ["PtCard","LiveUpdate","CardMarketValue","BattingStats","PitchingStats"];
+const tableNames = ["PtCard","LiveUpdate","CardMarketValue","StatsBatch","TournamentType","BattingStats","PitchingStats"];
 const tables = tableNames.map((tableName) => new Datatable(tableName, isTemporaryFlag, tableColumns[tableName]));
 
 const currTime = Date.now();

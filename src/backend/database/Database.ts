@@ -69,6 +69,17 @@ export class Database {
 
     }
 
+    async getAllMapped <T> (sql: string): Promise<T[]> {
+
+        const db = await this.#getConnection();
+
+        const result = await db.all(this.sanitize(sql))
+        await db.close();
+
+        return result.map((row) => row as T)
+
+    }
+
 }
 
 export const getDatabase = () => {

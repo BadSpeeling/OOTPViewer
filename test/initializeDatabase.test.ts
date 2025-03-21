@@ -27,10 +27,10 @@ const currTime = Date.now();
 
 // test('tests that jest with typescript works', async () => {
         
-//     fs.closeSync(fs.openSync(`E:\\ootp_data\\sqlite\\${currTime}.db`, 'w'));
+//     fs.closeSync(fs.openSync(`C:\\Users\\efrye\\Documents\\data\\${currTime}.db`, 'w'));
 
 //     const db = await open({
-//         filename: `E:\\ootp_data\\sqlite\\${currTime}.db`,
+//         filename: `C:\\Users\\efrye\\Documents\\data\\${currTime}.db`,
 //         driver: sqlite3.Database
 //       });
   
@@ -39,25 +39,25 @@ const currTime = Date.now();
 
 // })
 
-test('Run table load', async () => {
+// test('Run table load', async () => {
   
-  //const currTime = 1742076082472;
+//   //const currTime = 1742076082472;
 
-  const cards = await getCards("C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 26\\online_data\\pt_card_list.csv")
-  await writeCards(`E:\\ootp_data\\sqlite\\pt.db`,cards)
+//   const cards = await getCards("C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 26\\online_data\\pt_card_list.csv")
+//   await writeCards(`C:\\Users\\efrye\\Documents\\data\\${currTime}.db`,cards)
 
-  const db = await open({
-      filename: `E:\\ootp_data\\sqlite\\pt.db`,
-      driver: sqlite3.Database
-    });
+//   const db = await open({
+//       filename: `C:\\Users\\efrye\\Documents\\data\\${currTime}.db`,
+//       driver: sqlite3.Database
+//     });
 
-  const result = await db.get("SELECT COUNT(*) cnt FROM PtCard");
+//   const result = await db.get("SELECT COUNT(*) cnt FROM PtCard");
 
-  expect(result["cnt"] === cards.length).toBeTruthy();
+//   expect(result["cnt"] === cards.length).toBeTruthy();
 
-  //console.log(result);
+//   //console.log(result);
 
-})
+// })
 
 // test('Run table load', async () => {
 //     await processPtCardList();

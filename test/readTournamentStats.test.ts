@@ -6,16 +6,18 @@ import * as fs from "node:fs"
 
 import { getTournamentBattingStats, getTournamentPitchingStats } from "../src/backend/readTournamentStats"
 
-beforeAll(async () => {
-    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
+const dir = "C:\\Users\\efrye\\Documents\\data\\"
 
-    const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+beforeAll(async () => {
+    fs.copyFileSync(dir +'pt.db',dir + 'test.db');
+
+    const db = new Database(dir + "test.db");
     await db.execute('insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),"",1);');
 
 });
   
 afterAll(() => {
-    fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
+    fs.unlink(dir + 'test.db', () => {});
 });
 
 test("Load Batting stats for a tournament", async () => {
@@ -53,7 +55,7 @@ values
 (2,1,12,25,2,3,11,6,0.7),
 (2,1,17,38,11,2,18,2,-0.2);`
 
-    const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+    const db = new Database(dir + "test.db");
     await db.execute(loadSampleData);
 
     const battingsStatsScript = getTournamentBattingStats(1);
@@ -86,7 +88,7 @@ test("Load Pitching stats for a tournament", async () => {
             "IP": 61.1,
             "K": 21,
             "BB": 7,
-            "WAR": 0.5
+            "WAR": 2.7
         }
     ]
 
@@ -96,14 +98,13 @@ values
 (1,1,5,5,10.2,10,2,0.5),
 (1,1,11,10,30.1,3,2,1.4),
 (1,1,20,0,17,15,6,-0.2),
-(2,1,5,0,4.2,3,2,2.7),
+(2,1,5,0,4.2,3,2,2.9),
 (2,1,17,17,56.2,18,5,-0.2);`
 
-    const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+    const db = new Database(dir + "test.db");
     await db.execute(loadSampleData);
 
-    const pitchingStatsScript = getTournamentPitchingStats(1);
-    const pitchingStats = await db.prep(pitchingStatsScript);
+    const pitchingStats = await getTournamentPitchingStats(dir + "test.db",1);
 
     const card1Stats = pitchingStats.find((stats) => stats.PtCardID === 1);
     const card2Stats = pitchingStats.find((stats) => stats.PtCardID === 2);

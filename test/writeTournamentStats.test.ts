@@ -5,7 +5,7 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 
 import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript } from "../src/backend/database/sqliteScripts"
-import { writeTournamentStats,convertHtmlFileToTournamentOutput } from "../src/backend/readHtmlStatsExport"
+import { writeTournamentStats,convertHtmlFileToTournamentOutput,createStatsBatch } from "../src/backend/readHtmlStatsExport"
 import { statsExport } from '../json/csvColumns.json'
 
 beforeAll(async () => {
@@ -290,5 +290,20 @@ test('Populate PtCards table with pitching records', async () => {
 
   expect(databaseObjectEqual(pitchingRecord1,desiredData[0])).toBeTruthy();
   expect(databaseObjectEqual(pitchingRecord2,desiredData[1])).toBeTruthy();
+
+})
+
+test('Create a StatsBatch record', async () => {
+  const statsBatchID = await createStatsBatch({
+    description:"Test description",
+    tournamentTypeID:1,
+    isCumulativeFlag: false,
+    key:0,
+    isSuccess:true,
+    ptFolder:"",
+    path:"",
+  })
+
+  expect(statsBatchID > 0).toBeTruthy();
 
 })

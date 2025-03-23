@@ -15,52 +15,18 @@ import { } from "./types"
 
 const headerTypes = ["generalStats","battingStats","pitchingStats","fieldingStats"];
 
-export async function writeHtmlOutput (htmlOutput: PtDataStatsFile, liveUpdateID: number) {
+export async function handleTournamentStatsWrite (htmlOutput: PtDataStatsFile, liveUpdateID: number | null) {
 
     let tournamentOutput = await convertHtmlFileToTournamentOutput(htmlOutput)
+
+    if (!liveUpdateID) {
+        liveUpdateID = await getRecentLiveUpdate()
+    }
 
     await writeTournamentStats(tournamentOutput.stats, liveUpdateID, htmlOutput.tournamentTypeID)
 
     let fileDeleteResults = await clearPtFolderHtmlFiles(htmlOutput.path)
     return fileDeleteResults[0]
-
-}
-
-class UttParameter {
-
-    uttColumns: TediousParams[]
-    uttRows: (string|number)[][]
-
-    constructor (columns) {
-        this.uttColumns = columns
-        this.uttRows = []
-    }
-
-    handleUttRow (generalValues: (string|number)[],tournamentStatRow: (string|number)[]) {
-
-        if (tournamentStatRow['G'] > 0) {
-
-            let curUttRow: (string|number)[] = [generalValues['CID'],generalValues['TM']]
-
-            for (let uttColumn of this.uttColumns) {
-
-                let curValue = tournamentStatRow[uttColumn.name]
-                curUttRow.push(curValue ? curValue : 0)
-
-            }
-        
-            this.uttRows.push(curUttRow)
-
-        }
-
-    }
-
-    getSpParameter () {
-        return {
-            columns: uttGeneralColumns.concat(this.uttColumns),
-            rows: this.uttRows
-        };
-    }
 
 }
 
@@ -176,7 +142,6 @@ function parseHtmlDataExport (htmlFile: PtDataExportFile) : Promise<{parsedHeade
 
 }
 
-//await these 
 async function clearPtFolderHtmlFiles (htmlStatsFolder: string) {
 
     const files: string[] = await new Promise ((resolve,reject) => {
@@ -279,5 +244,23 @@ export function locateHtmlFiles (ptFolders: string[]) : Promise<PtDataExportFile
             })
         })
     }))
+
+}
+
+export async function createStatsBatch (htmlOutput: PtDataStatsFile) : Promise<number> {
+
+    const db = getDatabase();
+    const statsBatchID = await db.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${htmlOutput.description}',${htmlOutput.tournamentTypeID})`);
+
+    return statsBatchID;
+
+} 
+
+export async function getRecentLiveUpdate () {
+
+    const db = getDatabase();
+    const result = await db.getMapped<{LiveUpdateID: number}>("SELECT LiveUpdateID FROM LiveUpdate ORDER BY EffectiveDate DESC LIMIT 1")
+    
+    return result.LiveUpdateID;
 
 }

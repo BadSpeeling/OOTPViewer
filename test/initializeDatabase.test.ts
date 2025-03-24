@@ -59,16 +59,16 @@ const currTime = Date.now();
 
 // })
 
-// test('Run table load', async () => {
-//     await processPtCardList();
+test('Run table load', async () => {
+    await processPtCardList();
 
-//     const db = await open({
-//         filename: `E:\\ootp_data\\sqlite\\pt.db`,
-//         driver: sqlite3.Database
-//       });
+    const db = await open({
+        filename: `E:\\ootp_data\\sqlite\\pt.db`,
+        driver: sqlite3.Database
+      });
 
-//     const result = await db.get("SELECT COUNT(*) FROM Card");
+    const result = await db.get("SELECT COUNT(*) FROM PtCard");
 
-//     console.log(result);
+    console.log(result);
 
-// })
+})

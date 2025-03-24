@@ -93,7 +93,7 @@ ORDER BY CardID ASC;
 
 }
 
-export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], liveUpdateID: number, tournamentID: number) => {
+export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], liveUpdateID: number, statsBatchID: number) => {
 
     const primaryKey = undefined;
 
@@ -110,7 +110,7 @@ export const tournamentBattingStatsWriteScript = (records: PtPlayerStats[], live
 
     return `
 ${battingRawData}
-${tournamentBattingStatsWriteLogicPart(tournamentID)}
+${tournamentBattingStatsWriteLogicPart(statsBatchID)}
 `
 
 }
@@ -127,13 +127,13 @@ FROM PtCard pt
 WHERE temp.BattingStats.CardID = pt.CardID AND pt.CardType != 1;
 
 INSERT INTO temp.Cards ("CardID", "LiveUpdateID", "PtCardID")
-SELECT pt.CardID,pt.LiveUpdateID,pt.PtCardID
+SELECT DISTINCT pt.CardID,pt.LiveUpdateID,pt.PtCardID
 FROM temp.BattingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND t.LiveUpdateID = pt.LiveUpdateID
 WHERE pt.CardType = 1;
 
 INSERT INTO temp.Cards ("CardID", "LiveUpdateID", "PtCardID")
-SELECT pt.CardID,pt.LiveUpdateID,pt.PtCardID
+SELECT DISTINCT pt.CardID,pt.LiveUpdateID,pt.PtCardID
 FROM temp.BattingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND pt.LiveUpdateID = 0
 WHERE pt.CardType != 1;
@@ -179,13 +179,13 @@ FROM PtCard pt
 WHERE temp.PitchingStats.CardID = pt.CardID AND pt.CardType != 1;
 
 INSERT INTO temp.Cards ("CardID", "LiveUpdateID", "PtCardID")
-SELECT pt.CardID,pt.LiveUpdateID,pt.PtCardID
+SELECT DISTINCT pt.CardID,pt.LiveUpdateID,pt.PtCardID
 FROM temp.PitchingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND t.LiveUpdateID = pt.LiveUpdateID
 WHERE pt.CardType = 1;
 
 INSERT INTO temp.Cards ("CardID", "LiveUpdateID", "PtCardID")
-SELECT pt.CardID,pt.LiveUpdateID,pt.PtCardID
+SELECT DISTINCT pt.CardID,pt.LiveUpdateID,pt.PtCardID
 FROM temp.PitchingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND pt.LiveUpdateID = 0
 WHERE pt.CardType != 1;

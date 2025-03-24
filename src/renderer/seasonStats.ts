@@ -1,7 +1,6 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
 import { SeasonStatsQuery, } from "../types";
-import {DatabaseRecord} from "../backend/database/DatabaseRecord"
 
 $(document).ready(async () => {
 
@@ -23,7 +22,7 @@ async function loadTable () {
         throw Error(statsTypeID + ' is not a valid StatsType');
     }
 
-    const seasonStats: DatabaseRecord[] = await window.electronAPI.getSeasonStats({statsTypeID:parseInt(statsTypeID)} as SeasonStatsQuery)
+    const seasonStats = await window.electronAPI.getSeasonStats({statsTypeID:parseInt(statsTypeID)} as SeasonStatsQuery)
 
     const tableHeader = buildTableHeader(columns);
     const tableBody = buildTableBody(seasonStats, columns);

@@ -13,6 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 contextBridge.exposeInMainWorld('electronAPI', {
   writeHtmlTournamentStats: (value) => ipcRenderer.invoke('writeHtmlTournamentStats', value),
+  writePtCards: () => ipcRenderer.invoke('writePtCards'),
   
   openFile: () => ipcRenderer.invoke('openFile'),
   findTournamentExports: () => ipcRenderer.invoke('findTournamentExports'),

@@ -73,7 +73,7 @@ export class Database {
 
         const db = await this.#getConnection();
 
-        const result = await db.all(this.sanitize(sql))
+        const result = await db.get(this.sanitize(sql))
         await db.close();
 
         return result as T;

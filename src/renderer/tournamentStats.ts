@@ -1,13 +1,8 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
 import { tournamentTypePicker } from "./tournamentTypePicker";
-import { DatabaseRecord } from "../backend/database/DatabaseRecord";
 
-type Model = {
-    playerStats?: DatabaseRecord[];
-}
-
-const model: Model = {}
+const model: {playerStats?: any} = {}
 
 $(document).ready(() => {
 
@@ -91,7 +86,7 @@ async function getPlayerStats (statsTypeID) {
 
 }
 
-function buildTableBody (data: DatabaseRecord[], columns) {
+function buildTableBody (data: any, columns) {
 
     const tableBody = data.map((dataRecord) => {
         const curRow = columns.map((column) => {

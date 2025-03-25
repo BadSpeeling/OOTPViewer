@@ -123,7 +123,7 @@
     ],
     "statsExport": {
         "general": [
-            {"nameInSource":"TM","databaseColumnName":"PtTeam","type":"TEXT"},
+            {"nameInSource":"TM","databaseColumnName":"TeamName","type":"TEXT"},
             {"nameInSource":"CID","databaseColumnName":"CardID","type":"INTEGER"},
             {"nameInSource":"LiveUpdateID","databaseColumnName":"LiveUpdateID","type":"INTEGER"}
         ],

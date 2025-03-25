@@ -172,6 +172,7 @@
     "BattingStats": {
         "columns": [
             {"name": "BattingStatsID", "type": "INTEGER", "isNullable": false},
+            {"name": "TeamName", "type": "TEXT", "isNullable": false},
             {"name": "PtCardID", "type": "INTEGER", "isNullable": false},
             {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "G", "type": "INTEGER", "isNullable": false},
@@ -226,6 +227,7 @@
     "PitchingStats": {
         "columns": [
             {"name": "PitchingStatsID", "type": "INTEGER", "isNullable": false},
+            {"name": "TeamName", "type": "TEXT", "isNullable": false},
             {"name": "PtCardID", "type": "INTEGER", "isNullable": false},
             {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "G", "type": "INTEGER", "isNullable": false},

@@ -138,8 +138,8 @@ FROM temp.BattingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND pt.LiveUpdateID = 0
 WHERE pt.CardType != 1;
 
-INSERT INTO main.BattingStats (PtCardID, StatsBatchID, [G], [GS], [PA], [AB], [H], [1B], [2B], [3B], [HR], [RBI], [R], [BB], [BB%], [IBB], [HP], [SH], [SF], [CI], [SO], [SO%], [GIDP], [EBH], [TB], [AVG], [OBP], [SLG], [RC], [RC/27], [ISO], [wOBA], [OPS], [OPS+], [BABIP], [WPA], [wRC], [wRC+], [wRAA], [WAR], [PI/PA], [SB], [CS], [SB%], [BatR], [wSB], [UBR], [BsR])
-SELECT c.PtCardID, ${statsBatchID}, [G], [GS], [PA], [AB], [H], [1B], [2B], [3B], [HR], [RBI], [R], [BB], [BB%], [IBB], [HP], [SH], [SF], [CI], [SO], [SO%], [GIDP], [EBH], [TB], [AVG], [OBP], [SLG], [RC], [RC/27], [ISO], [wOBA], [OPS], [OPS+], [BABIP], [WPA], [wRC], [wRC+], [wRAA], [WAR], [PI/PA], [SB], [CS], [SB%], [BatR], [wSB], [UBR], [BsR]
+INSERT INTO main.BattingStats (PtCardID, TeamName, StatsBatchID, [G], [GS], [PA], [AB], [H], [1B], [2B], [3B], [HR], [RBI], [R], [BB], [BB%], [IBB], [HP], [SH], [SF], [CI], [SO], [SO%], [GIDP], [EBH], [TB], [AVG], [OBP], [SLG], [RC], [RC/27], [ISO], [wOBA], [OPS], [OPS+], [BABIP], [WPA], [wRC], [wRC+], [wRAA], [WAR], [PI/PA], [SB], [CS], [SB%], [BatR], [wSB], [UBR], [BsR])
+SELECT c.PtCardID, bs.TeamName, ${statsBatchID}, [G], [GS], [PA], [AB], [H], [1B], [2B], [3B], [HR], [RBI], [R], [BB], [BB%], [IBB], [HP], [SH], [SF], [CI], [SO], [SO%], [GIDP], [EBH], [TB], [AVG], [OBP], [SLG], [RC], [RC/27], [ISO], [wOBA], [OPS], [OPS+], [BABIP], [WPA], [wRC], [wRC+], [wRAA], [WAR], [PI/PA], [SB], [CS], [SB%], [BatR], [wSB], [UBR], [BsR]
 FROM temp.BattingStats bs
 JOIN temp.Cards c ON bs.CardID = c.CardID AND bs.LiveUpdateID = c.LiveUpdateID
     `
@@ -190,8 +190,8 @@ FROM temp.PitchingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND pt.LiveUpdateID = 0
 WHERE pt.CardType != 1;
 
-INSERT INTO main.PitchingStats (PtCardID, StatsBatchID, [G],[GS],[W],[L],[WIN%],[SVO],[SV],[SV%],[BS],[BS%],[HLD],[SD],[MD],[IP],[BF],[AB],[HA],[1B],[2B],[3B],[HR],[TB],[R],[ER],[BB],[IBB],[K],[HP],[ERA],[AVG],[OBP],[SLG],[OPS],[BABIP],[WHIP],[BRA/9],[HR/9],[H/9],[BB/9],[K/9],[K/BB],[K%],[BB%],[K%-BB%],[SH],[SF],[WP],[BK],[CI],[DP],[RA],[GF],[IR],[IRS],[IRS%],[LOB%],[pLi],[GF%],[QS],[QS%],[CG],[CG%],[SHO],[PPG],[RS],[RSG],[PI],[GB],[FB],[GO%],[SB],[CS],[ERA+],[FIP],[FIP-],[WPA],[WAR],[rWAR],[SIERA])
-SELECT c.PtCardID, ${statsBatchID}, [G],[GS],[W],[L],[WIN%],[SVO],[SV],[SV%],[BS],[BS%],[HLD],[SD],[MD],[IP],[BF],[AB],[HA],[1B],[2B],[3B],[HR],[TB],[R],[ER],[BB],[IBB],[K],[HP],[ERA],[AVG],[OBP],[SLG],[OPS],[BABIP],[WHIP],[BRA/9],[HR/9],[H/9],[BB/9],[K/9],[K/BB],[K%],[BB%],[K%-BB%],[SH],[SF],[WP],[BK],[CI],[DP],[RA],[GF],[IR],[IRS],[IRS%],[LOB%],[pLi],[GF%],[QS],[QS%],[CG],[CG%],[SHO],[PPG],[RS],[RSG],[PI],[GB],[FB],[GO%],[SB],[CS],[ERA+],[FIP],[FIP-],[WPA],[WAR],[rWAR],[SIERA]
+INSERT INTO main.PitchingStats (PtCardID, TeamName, StatsBatchID, [G],[GS],[W],[L],[WIN%],[SVO],[SV],[SV%],[BS],[BS%],[HLD],[SD],[MD],[IP],[BF],[AB],[HA],[1B],[2B],[3B],[HR],[TB],[R],[ER],[BB],[IBB],[K],[HP],[ERA],[AVG],[OBP],[SLG],[OPS],[BABIP],[WHIP],[BRA/9],[HR/9],[H/9],[BB/9],[K/9],[K/BB],[K%],[BB%],[K%-BB%],[SH],[SF],[WP],[BK],[CI],[DP],[RA],[GF],[IR],[IRS],[IRS%],[LOB%],[pLi],[GF%],[QS],[QS%],[CG],[CG%],[SHO],[PPG],[RS],[RSG],[PI],[GB],[FB],[GO%],[SB],[CS],[ERA+],[FIP],[FIP-],[WPA],[WAR],[rWAR],[SIERA])
+SELECT c.PtCardID, bs.TeamName, ${statsBatchID}, [G],[GS],[W],[L],[WIN%],[SVO],[SV],[SV%],[BS],[BS%],[HLD],[SD],[MD],[IP],[BF],[AB],[HA],[1B],[2B],[3B],[HR],[TB],[R],[ER],[BB],[IBB],[K],[HP],[ERA],[AVG],[OBP],[SLG],[OPS],[BABIP],[WHIP],[BRA/9],[HR/9],[H/9],[BB/9],[K/9],[K/BB],[K%],[BB%],[K%-BB%],[SH],[SF],[WP],[BK],[CI],[DP],[RA],[GF],[IR],[IRS],[IRS%],[LOB%],[pLi],[GF%],[QS],[QS%],[CG],[CG%],[SHO],[PPG],[RS],[RSG],[PI],[GB],[FB],[GO%],[SB],[CS],[ERA+],[FIP],[FIP-],[WPA],[WAR],[rWAR],[SIERA]
 FROM temp.PitchingStats bs
 JOIN temp.Cards c ON bs.CardID = c.CardID AND bs.LiveUpdateID = c.LiveUpdateID
     `

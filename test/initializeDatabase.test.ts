@@ -25,19 +25,21 @@ const currTime = Date.now();
 
 // })
 
-// test('tests that jest with typescript works', async () => {
+const dir = 'E:\\ootp_data\\sqlite\\'
+
+test('tests that jest with typescript works', async () => {
         
-//     fs.closeSync(fs.openSync(`C:\\Users\\efrye\\Documents\\data\\${currTime}.db`, 'w'));
+    fs.closeSync(fs.openSync(dir + `${currTime}.db`, 'a+'));
 
-//     const db = await open({
-//         filename: `C:\\Users\\efrye\\Documents\\data\\${currTime}.db`,
-//         driver: sqlite3.Database
-//       });
+    const db = await open({
+        filename: dir + `${currTime}.db`,
+        driver: sqlite3.Database
+      });
   
-//       await db.exec(tables.map((table) => table.createTableString()).join(""));
-//       await db.close();
+      await db.exec(tables.map((table) => table.createTableString()).join(""));
+      await db.close();
 
-// })
+})
 
 // test('Run table load', async () => {
   
@@ -59,16 +61,16 @@ const currTime = Date.now();
 
 // })
 
-// test('Run table load', async () => {
-//     await processPtCardList();
+test('Run table load', async () => {
+    await processPtCardList();
 
-//     const db = await open({
-//         filename: `E:\\ootp_data\\sqlite\\pt.db`,
-//         driver: sqlite3.Database
-//       });
+    const db = await open({
+        filename: `E:\\ootp_data\\sqlite\\pt.db`,
+        driver: sqlite3.Database
+      });
 
-//     const result = await db.get("SELECT COUNT(*) FROM Card");
+    const result = await db.get("SELECT COUNT(*) FROM PtCard");
 
-//     console.log(result);
+    console.log(result);
 
-// })
+})

@@ -5,14 +5,11 @@
         "name": "Debug Main Process",
         "type": "node",
         "request": "launch",
-        "cwd": "${workspaceFolder}",
-        //"program": "${workspaceFolder}\\dist\\backend\\database\\initializeDatabase.js",
         "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-        "windows": {
-          "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-        },
-        "args" : ["."],
-        "outputCapture": "std"
+        "args": ["."],
+        "console": "integratedTerminal",
+        "sourceMaps": true,
+        "outFiles": ["${workspaceFolder}/dist/**/*.js"]
       },
       {
         "type": "node",

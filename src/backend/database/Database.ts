@@ -47,6 +47,17 @@ export class Database {
         
     }
 
+    async insertOne (sql: string): Promise<number> {
+
+        const db = await this.#getConnection();
+
+        const result = await db.run(this.sanitize(sql));
+        await db.close();
+
+        return result.lastID;
+
+    }
+
     async get (sql: string): Promise<DatabaseRecord> {
 
         const db = await this.#getConnection();
@@ -55,6 +66,17 @@ export class Database {
         await db.close();
 
         return result;
+
+    }
+
+    async getMapped <T> (sql: string): Promise<T> {
+
+        const db = await this.#getConnection();
+
+        const result = await db.get(this.sanitize(sql))
+        await db.close();
+
+        return result as T;
 
     }
 

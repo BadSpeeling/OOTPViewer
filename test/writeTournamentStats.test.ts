@@ -5,8 +5,10 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 
 import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript } from "../src/backend/database/sqliteScripts"
-import { writeTournamentStats,convertHtmlFileToTournamentOutput } from "../src/backend/readHtmlStatsExport"
+import { HtmlStatsTool } from "../src/backend/readHtmlStatsExport"
 import { statsExport } from '../json/csvColumns.json'
+
+import {PtDataStatsFile} from "../src/types"
 
 beforeAll(async () => {
     fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
@@ -16,18 +18,24 @@ afterAll(() => {
     fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
 });
 
-test('Populate PtCards table with record', async () => {
+test('Populate BattingStats table with record', async () => {
 
-    const data = await convertHtmlFileToTournamentOutput({
-        path: "D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
-        fileName: "tournament_data_2_rows.html",
-    })
-
-    const script = tournamentBattingStatsWriteScript(data.stats, 1, 1)
+    const tool =new HtmlStatsTool(["E:","ootp_data","sqlite","test.db"]);
+    await tool.handleTournamentStatsWrite({
+      key:0,
+      isSuccess:false,
+      ptFolder:"",
+      path:"D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
+      fileName:"tournament_data_2_rows.html",
+      description: "This is a test!",
+      tournamentTypeID: 1,
+      isCumulativeFlag: false,
+    }, null)
 
     const desiredData = [
         {
           "PtCardID": 1,
+          "TeamName": "Florida",
           "G": 5,
           "GS": 5,
           "PA": 19,
@@ -61,6 +69,7 @@ test('Populate PtCards table with record', async () => {
         },
         {
           "PtCardID": 2319,
+          "TeamName": "Abydos",
           "G": 7,
           "GS": 7,
           "PA": 29,
@@ -92,27 +101,34 @@ test('Populate PtCards table with record', async () => {
           "wSB": 0.0,
           "UBR": -0.6
         }
-      ]
+    ]
         
     const db = new Database("E:\\ootp_data\\sqlite\\test.db");
-    await db.execute(script);
 
     const battingRecord1 = await db.get(`select * from main.BattingStats where PtCardID = 1`)
     const battingRecord2 = await db.get(`select * from main.BattingStats where PtCardID = 2319`)
+
+    expect(battingRecord1).toBeTruthy();
+    expect(battingRecord2).toBeTruthy();
 
     expect(databaseObjectEqual(battingRecord1,desiredData[0])).toBeTruthy();
     expect(databaseObjectEqual(battingRecord2,desiredData[1])).toBeTruthy();
 
 })
 
-test('Populate PtCards table with pitching records', async () => {
+test('Populate PitchingStats table with pitching records', async () => {
 
-  const data = await convertHtmlFileToTournamentOutput({
-      path: "D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
-      fileName: "tournament_pitching_data_2_rows.html",
-  })
-
-  const script = tournamentPitchingStatsWriteScript(data.stats, 1, 1)
+  const tool =new HtmlStatsTool(["E:","ootp_data","sqlite","test.db"]);
+  await tool.handleTournamentStatsWrite({
+    key:0,
+    isSuccess:false,
+    ptFolder:"",
+    path:"D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
+    fileName:"tournament_pitching_data_2_rows.html",
+    description: "This is a test!",
+    tournamentTypeID: 1,
+    isCumulativeFlag: false,
+  }, null)
 
   const desiredData = [
     {
@@ -280,10 +296,8 @@ test('Populate PtCards table with pitching records', async () => {
       "SIERA": 3.84
     }
   ]
-  
-      
+       
   const db = new Database("E:\\ootp_data\\sqlite\\test.db");
-  await db.execute(script);
 
   const pitchingRecord1 = await db.get(`select * from main.PitchingStats where PtCardID = 483`)
   const pitchingRecord2 = await db.get(`select * from main.PitchingStats where PtCardID = 327`)
@@ -292,3 +306,18 @@ test('Populate PtCards table with pitching records', async () => {
   expect(databaseObjectEqual(pitchingRecord2,desiredData[1])).toBeTruthy();
 
 })
+
+// test('Create a StatsBatch record', async () => {
+//     const statsBatchID = await createStatsBatch({
+//       description:"Test description",
+//       tournamentTypeID:1,
+//       isCumulativeFlag: false,
+//       key:0,
+//       isSuccess:true,
+//       ptFolder:"",
+//       path:"",
+//     })
+
+//     expect(statsBatchID > 0).toBeTruthy();
+
+// })

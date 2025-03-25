@@ -83,16 +83,16 @@ async function submitTournaments (htmlTournamentFilesToWrite) {
     for (let curHtmlTournamentFile of htmlTournamentFilesToWrite) {
         
         uxTournamentRowStatus(curHtmlTournamentFile.key, 'Pending')
-        const res = await window.electronAPI.writeHtmlTournamentStats(curHtmlTournamentFile)
+        const isSuccess = await window.electronAPI.writeHtmlTournamentStats(curHtmlTournamentFile)
 
-        console.log(curHtmlTournamentFile.ptFolder + " : " + res.isSuccess)
+        console.log(curHtmlTournamentFile.ptFolder + " : " + isSuccess)
         
-        if (res.isSuccess) {
+        if (isSuccess) {
             uxTournamentRowStatus(curHtmlTournamentFile.key, 'Success')
         }
         else {
             uxTournamentRowStatus(curHtmlTournamentFile.key, 'Failure')
-            console.log(res.msg)
+            console.log(isSuccess.msg)
         }
         
     }

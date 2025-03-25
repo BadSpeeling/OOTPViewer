@@ -1,9 +1,11 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats, getPtSeasonPitchingStats} from './backend/database/sqlServerScript';
 
-import * as readHtmlStatsExport from './backend/readHtmlStatsExport';
+import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
 import { getDatabase } from "./backend/database/Database";
@@ -99,15 +101,16 @@ app.whenReady().then(() => {
   ipcMain.handle('writeHtmlTournamentStats', async (_event, value) => {
     console.log(value)
     
-    const liveUpdate = await getDatabase().get("SELECT LiveUpdateID FROM LiveUpdate ORDER BY Timestamp desc LIMIT 1")
+    const writer = new HtmlStatsTool(settings.databasePath);
+    const liveUpdateID = null;
 
-    if (typeof liveUpdate.LiveUpdateID === 'number') {
-      let writeResults = readHtmlStatsExport.writeHtmlOutput(value, liveUpdate.LiveUpdateID);
-      return writeResults;
+    const writeResults = await writer.handleTournamentStatsWrite(value, liveUpdateID);
+
+    if (writeResults) {
+      await clearPtFolderHtmlFiles(value.path)
     }
-    else {
-      throw new Error("Could not load latest LiveUpdateID");
-    }
+
+    return writeResults;
 
   })
 
@@ -168,8 +171,34 @@ async function writePtCards (e, args) {
 
 }
 
+async function clearPtFolderHtmlFiles (htmlStatsFolder: string) {
+
+    const files: string[] = await new Promise ((resolve,reject) => {
+        fs.readdir(htmlStatsFolder, (err, files) => {
+            if (!err) {
+                resolve(files)
+            }
+            else {
+                reject(err)
+            }
+        })
+    })
+    
+    const deletedFilesStatus = await Promise.all<{isSuccess: boolean}>(files.map((file) => {
+        return new Promise((resolve,reject) => {
+            fs.unlink(path.join(htmlStatsFolder, file), (err) => {
+                if (err) reject({isSuccess: false, err});
+                resolve({isSuccess: true})
+            });
+        })
+    }))
+
+    return deletedFilesStatus
+
+}
+
 async function getTournamentTypes (e, args) {
-  return await getDatabase().getAll("SELECT * FROM ootp_data.dbo.TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  return await getDatabase().getAll("SELECT * FROM TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
 }
 
 async function lookupData (e, args) {
@@ -235,8 +264,9 @@ async function getSeasonStats (e, args: SeasonStatsQuery) {
 
 async function findTournamentExports () : Promise<PtDataExportFile[]> {
 
-  let ptFolders = await readHtmlStatsExport.getAllPtFolders(path.join(...settings.ootpRoot))
-  let htmlFiles = await readHtmlStatsExport.locateHtmlFiles(ptFolders)
+  const folderSearch = new PtFolderSearcher(settings.ootpRoot);
+  let ptFolders = await folderSearch.getAllPtFolders();
+  let htmlFiles = await folderSearch.locateHtmlFiles(ptFolders)
 
   let htmlFilesToReturn: PtDataExportFile[] = []
   let curKey = 0

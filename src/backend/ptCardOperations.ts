@@ -5,7 +5,7 @@ import { Database } from "./database/Database"
 import { ptCardListLoadScript } from './database/sqliteScripts'
 
 import { ptCardList } from '../../json/csvColumns.json'
-import { CsvDataColumn,CsvRecord } from "./types"
+import { CsvDataColumn,CsvRecord,PtCard } from "./types"
 
 import * as settings from "../../settings.json"
 
@@ -113,63 +113,16 @@ const removeTrailingComma = (line: string) => {
     return line.substring(0,line.length-1)
 }
 
-// async function readPlayerList() {
+const getPtCards = (db: Database, columns: string[], whereClause: string | null) => {
 
-//     let file = 'C:\\Users\\ericf\\OneDrive\\Documents\\Out of the Park Developments\\OOTP Baseball 25\\online_data\\pt_card_list.csv';
+    const getCardsScript = 
+`
+SELECT ${columns.join(',')}
+FROM PtCard
+${whereClause ?? ""}
+ORDER BY PtCardID asc
+`;
 
-//     let csvResult = await readFile(file);
-//     let ptConnection = new PtConnection();
-//     let connection = await ptConnection.connect();
+    return db.getMapped<PtCard>(getCardsScript);
 
-//     let uttRows = [];
-
-//     let cards = csvResult.parsedData;
-//     let headers = csvResult.headers;
-
-//     let uttColumns = uttCards
-//     let uttCardIDIndex = uttColumns.indexOf({name:'CardID', type: TYPES.Int});
-
-//     if (uttCardIDIndex !== -1) {
-
-//         for (let cardIndex = 0; cardIndex < cards.length; cardIndex++) {
-            
-//             let uttRow = [];
-
-//             for (let headerIndex = 0; headerIndex < uttColumns.length; headerIndex++) {
-//                 let uttValue = cards[cardIndex].cardRatings[uttColumns[headerIndex].name]
-//                 uttRow.push(uttValue !== undefined ? uttValue : null);
-//             }
-
-//             if (!uttRows.find((val) => val[0] === uttRow[0])) {
-//                 uttRows.push(uttRow);
-//             }
-
-//         }
-
-//     }
-//     else {
-//         throw Error("Could not find uttCard CardID value");
-//     }
-
-//     let table = {
-//         columns: uttColumns,
-//         rows: uttRows
-//       };
-    
-//     var request = new Request("spInsertCards", function(err) {
-//         if (!err) {
-//             console.log('spInsertCards execute without error');
-//         }
-//         else {
-//             console.log(err);
-//         }
-//     });
-
-//     //console.log(uttRows);
-//     request.addParameter('playerCards', TYPES.TVP, table);
-    
-//     let result = connection.callProcedure(request);
-    
-// }
-
-// readPlayerList()
+}

@@ -1,12 +1,18 @@
 import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
-import { PitchingStats } from "./types"
+import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position } from "./types"
 
 import * as path from "node:path"
 import * as setttings from "../../settings.json"
 
-export const getTournamentBattingStats = (tournamentTypeID: number) => {
-    return getTournamentBattingStatsScript(tournamentTypeID);
+export const getTournamentBattingStats = async (databasePath: string, tournamentTypeID: number) => {
+    
+    const db = new Database(databasePath);
+
+    const battingStatsScript = getTournamentBattingStatsScript(tournamentTypeID);
+    const summedBattingStats = await db.getAllMapped<BattingStats>(battingStatsScript);
+
+    return summedBattingStats;
 }
 
 export const getTournamentPitchingStats = async (databasePath: string, tournamentTypeID: number) => {
@@ -28,4 +34,39 @@ export const getTournamentPitchingStats = async (databasePath: string, tournamen
     })
 
     return summedAndComputedStats;
+}
+
+const joinPtCardValues = (stats: BattingStats[] | PitchingStats[], cards: PtCard[]) => {
+
+    let statsIndex = 0;
+    let cardsIndex = 0;
+
+    const joinedStats = [];
+
+    while (cardsIndex < cards.length) {
+
+        while (stats[statsIndex].PtCardID === cards[cardsIndex].PtCardID) {
+            
+            const curCard = cards[cardsIndex];
+            
+            joinedStats.push({
+                ...stats[statsIndex],
+                CardTitle: curCard.CardTitle,
+                Bats: Bats[curCard.Bats],
+                Throws: Throws[curCard.Throws],
+                Position: Position[curCard.Position],
+            })
+
+            statsIndex += 1;
+
+        }
+
+        cardsIndex += 1;
+
+    }
+
+    return stats.map((stats) => {
+        const card = cards.find((card) => card.PtCardID === stats.PtCardID)
+    })
+
 }

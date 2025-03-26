@@ -203,6 +203,7 @@ select bs.PtCardID,SUM([G]) [G], SUM([GS]) [GS], SUM([PA]) [PA], SUM([AB]) [AB],
 from BattingStats bs
 join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID
 where TournamentTypeID = ${tournamentTypeID}
+order by bs.PtCardID ASC
 group by bs.PtCardID;
 `
 }
@@ -214,6 +215,7 @@ select ps.PtCardID,SUM([G]) [G], SUM([GS]) [GS], SUM([W]) [W], SUM([L]) [L], SUM
 from PitchingStats ps
 join StatsBatch sb on ps.StatsBatchID = sb.StatsBatchID
 where TournamentTypeID = ${tournamentTypeID}
+order by ps.PtCardID ASC
 group by ps.PtCardID;
 `
 }

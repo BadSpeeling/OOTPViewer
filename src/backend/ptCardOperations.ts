@@ -113,7 +113,7 @@ const removeTrailingComma = (line: string) => {
     return line.substring(0,line.length-1)
 }
 
-const getPtCards = (db: Database, columns: string[], whereClause: string | null) => {
+export const getPtCards = async (db: Database, columns: string[], whereClause: string | null) => {
 
     const getCardsScript = 
 `
@@ -123,6 +123,6 @@ ${whereClause ?? ""}
 ORDER BY PtCardID asc
 `;
 
-    return db.getMapped<PtCard>(getCardsScript);
+    return await db.getAllMapped<PtCard>(getCardsScript);
 
 }

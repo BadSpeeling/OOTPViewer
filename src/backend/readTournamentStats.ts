@@ -1,6 +1,8 @@
 import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
-import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position } from "./types"
+import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position,BattingStatsExpanded,PitchingStatsExpanded } from "./types"
+
+import { getPtCards } from './ptCardOperations'
 
 import * as path from "node:path"
 import * as setttings from "../../settings.json"
@@ -12,7 +14,14 @@ export const getTournamentBattingStats = async (databasePath: string, tournament
     const battingStatsScript = getTournamentBattingStatsScript(tournamentTypeID);
     const summedBattingStats = await db.getAllMapped<BattingStats>(battingStatsScript);
 
-    return summedBattingStats;
+    const ptCardIds = getPtCardIDs(summedBattingStats);
+    const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
+    const cards = await getPtCards(db, ["PtCardID","CardTitle","Bats","Throws","Position"], whereClause);
+
+    const statsAndRatings = joinBattingPtCardValues(summedBattingStats, cards);
+
+    return statsAndRatings;
+
 }
 
 export const getTournamentPitchingStats = async (databasePath: string, tournamentTypeID: number) => {
@@ -22,7 +31,13 @@ export const getTournamentPitchingStats = async (databasePath: string, tournamen
     const pitchingStatsScript = getTournamentPitchingStatsScript(tournamentTypeID)
     const summedPitchingStats = await db.getAllMapped<PitchingStats>(pitchingStatsScript)
     
-    const summedAndComputedStats = summedPitchingStats.map((summedStats) => {
+    const ptCardIds = getPtCardIDs(summedPitchingStats);
+    const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
+    const cards = await getPtCards(db, ["PtCardID","CardTitle","Bats","Throws","Position"], whereClause);
+
+    const statsAndRatings = joinPitchingPtCardValues(summedPitchingStats, cards);
+
+    const summedAndComputedStats = statsAndRatings.map((summedStats) => {
         return {
             ...summedStats,
             "K/9": (summedStats.K / (summedStats.Outs / 3)) * 9,
@@ -36,37 +51,68 @@ export const getTournamentPitchingStats = async (databasePath: string, tournamen
     return summedAndComputedStats;
 }
 
-const joinPtCardValues = (stats: BattingStats[] | PitchingStats[], cards: PtCard[]) => {
+const getPtCardIDs = (stats: BattingStats[] | PitchingStats[]) => {
+    return stats.map((stat: BattingStats | PitchingStats) => stat.PtCardID)
+}
+
+const joinBattingPtCardValues = (stats: BattingStats[], cards: PtCard[]) => {
 
     let statsIndex = 0;
     let cardsIndex = 0;
 
-    const joinedStats = [];
+    const joinedStats = [] as BattingStatsExpanded[]
 
     while (cardsIndex < cards.length) {
 
-        while (stats[statsIndex].PtCardID === cards[cardsIndex].PtCardID) {
+        while (statsIndex < stats.length && stats[statsIndex].PtCardID === cards[cardsIndex].PtCardID) {
             
             const curCard = cards[cardsIndex];
-            
+            const battingStats = stats[statsIndex]
+
             joinedStats.push({
-                ...stats[statsIndex],
+                ...battingStats,
                 CardTitle: curCard.CardTitle,
-                Bats: Bats[curCard.Bats],
-                Throws: Throws[curCard.Throws],
-                Position: Position[curCard.Position],
+                Bats: curCard.Bats,
+                Throws: curCard.Throws,
+                Position: curCard.Position,
             })
 
             statsIndex += 1;
-
         }
 
         cardsIndex += 1;
-
     }
 
-    return stats.map((stats) => {
-        const card = cards.find((card) => card.PtCardID === stats.PtCardID)
-    })
+    return joinedStats;
+
+}
+
+const joinPitchingPtCardValues = (stats: PitchingStats[], cards: PtCard[]) => {
+
+    let statsIndex = 0;
+    let cardsIndex = 0;
+
+    const joinedStats = [] as PitchingStatsExpanded[]
+
+    while (cardsIndex < cards.length) {
+
+        while (statsIndex < stats.length && stats[statsIndex].PtCardID === cards[cardsIndex].PtCardID) {
+            
+            const curCard = cards[cardsIndex];            
+            joinedStats.push({
+                ...stats[statsIndex],
+                CardTitle: curCard.CardTitle,
+                Bats: curCard.Bats,
+                Throws: curCard.Throws,
+                Position: curCard.Position,
+            })
+
+            statsIndex += 1;
+        }
+
+        cardsIndex += 1;
+    }
+
+    return joinedStats;
 
 }

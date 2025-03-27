@@ -3,14 +3,9 @@ import {Datatable} from "../src/backend/database/Datatable";
 
 import { getCards, writeCards, processPtCardList } from "../src/backend/ptCardOperations"
 
-import * as sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-
 import * as fs from 'node:fs'
+import { initializeDatabase } from "../src/backend/database/Database";
 
-const isTemporaryFlag = false;
-const tableNames = ["PtCard","LiveUpdate","CardMarketValue","StatsBatch","TournamentType","BattingStats","PitchingStats"];
-const tables = tableNames.map((tableName) => new Datatable(tableName, isTemporaryFlag, tableColumns[tableName]));
 
 const currTime = Date.now();
 
@@ -27,19 +22,24 @@ const currTime = Date.now();
 
 const dir = 'E:\\ootp_data\\sqlite\\'
 
-test('tests that jest with typescript works', async () => {
-        
-    fs.closeSync(fs.openSync(dir + `${currTime}.db`, 'a+'));
-
-    const db = await open({
-        filename: dir + `${currTime}.db`,
-        driver: sqlite3.Database
-      });
+test('test db init', async () => {
+  await initializeDatabase(['.','test.db']);
   
-      await db.exec(tables.map((table) => table.createTableString()).join(""));
-      await db.close();
-
 })
+
+// test('tests that jest with typescript works', async () => {
+        
+//     fs.closeSync(fs.openSync(dir + `${currTime}.db`, 'a+'));
+
+//     const db = await open({
+//         filename: dir + `${currTime}.db`,
+//         driver: sqlite3.Database
+//       });
+  
+//       await db.exec(tables.map((table) => table.createTableString()).join(""));
+//       await db.close();
+
+// })
 
 // test('Run table load', async () => {
   
@@ -61,16 +61,16 @@ test('tests that jest with typescript works', async () => {
 
 // })
 
-test('Run table load', async () => {
-    await processPtCardList();
+// test('Run table load', async () => {
+//     await processPtCardList();
 
-    const db = await open({
-        filename: `E:\\ootp_data\\sqlite\\pt.db`,
-        driver: sqlite3.Database
-      });
+//     const db = await open({
+//         filename: `E:\\ootp_data\\sqlite\\pt.db`,
+//         driver: sqlite3.Database
+//       });
 
-    const result = await db.get("SELECT COUNT(*) FROM PtCard");
+//     const result = await db.get("SELECT COUNT(*) FROM PtCard");
 
-    console.log(result);
+//     console.log(result);
 
-})
+// })

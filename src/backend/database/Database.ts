@@ -1,6 +1,8 @@
 import * as sqlite3 from 'sqlite3'
 import * as sqlite from 'sqlite'
+
 import * as path from 'node:path'
+import * as fs from 'node:fs'
 
 import * as tableColumns from "../../../json/tableColumns.json";
 import { Datatable } from "./Datatable";
@@ -106,4 +108,29 @@ export class Database {
 
 export const getDatabase = () => {
     return new Database(path.join(...settings.databasePath));
+}
+
+export const initializeDatabase = async (databasePath: string[]) => {
+
+    if (!databasePath.at(-1).includes('.db')) {
+        throw new Error(path.join(...databasePath) + " is not a SQLite db file")
+    }
+
+    if (!fs.existsSync(path.join(...databasePath.slice(0, -1)))) {
+        throw new Error(path.join(...databasePath.slice(0, -1)) + " is not a folder that exists")
+    }
+
+    if (fs.existsSync(path.join(...databasePath))) {
+        throw new Error(path.join(...databasePath) + " is already an existing SQLite db file")
+    }
+
+    const databasePathString = path.join(...databasePath)
+
+    fs.closeSync(fs.openSync(databasePathString, 'w'));
+
+    const tables = Object.keys(tableColumns).map((tableName) => new Datatable(tableName,false,tableColumns[tableName]));
+    const db = new Database(path.join(...databasePath));
+    
+    await db.execute(tables.map((table) => table.createTableString()).join(""));
+
 }

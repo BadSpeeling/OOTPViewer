@@ -16,11 +16,26 @@ export const getTournamentBattingStats = async (databasePath: string, tournament
 
     const ptCardIds = getPtCardIDs(summedBattingStats);
     const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
-    const cards = await getPtCards(db, ["PtCardID","CardTitle","Bats","Throws","Position"], whereClause);
+    const cards = await getPtCards(db, ["PtCardID","CardValue","CardTitle","Bats","Throws","Position"], whereClause);
 
     const statsAndRatings = joinBattingPtCardValues(summedBattingStats, cards);
 
-    return statsAndRatings;
+    const summedAndComputedStats = statsAndRatings.map((summedStats) => {
+        let computedStats = {
+            ...summedStats,
+            "AVG": parseFloat(((summedStats.H) / (summedStats.AB)).toFixed(3)),
+            "OBP": parseFloat(((summedStats.H + summedStats.BB + summedStats.IBB + summedStats.HP) / (summedStats.AB + summedStats.BB + summedStats.IBB + summedStats.HP + summedStats.SF)).toFixed(3)),
+            "SLG": parseFloat(((summedStats.TB) / (summedStats.AB)).toFixed(3)),
+        }
+
+        return {
+            ...computedStats,
+            "ISO": parseFloat((computedStats.SLG - computedStats.AVG).toFixed(3)),
+            "OPS": parseFloat((computedStats.SLG + computedStats.OBP).toFixed(3)), 
+        }
+    })
+
+    return summedAndComputedStats;
 
 }
 
@@ -33,7 +48,7 @@ export const getTournamentPitchingStats = async (databasePath: string, tournamen
     
     const ptCardIds = getPtCardIDs(summedPitchingStats);
     const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
-    const cards = await getPtCards(db, ["PtCardID","CardTitle","Bats","Throws","Position"], whereClause);
+    const cards = await getPtCards(db, ["PtCardID","CardTitle","CardValue","Bats","Throws","Position"], whereClause);
 
     const statsAndRatings = joinPitchingPtCardValues(summedPitchingStats, cards);
 
@@ -44,6 +59,7 @@ export const getTournamentPitchingStats = async (databasePath: string, tournamen
             "BB/9": (summedStats.BB / (summedStats.Outs / 3)) * 9,
             "HR/9": (summedStats.HR / (summedStats.Outs / 3)) * 9,
             "H/9": (summedStats.HA / (summedStats.Outs / 3)) * 9,
+            "ERA": (summedStats.ER / (summedStats.Outs / 3)) * 9, 
             "IP": parseFloat(Math.floor(summedStats.Outs / 3) + '.' + summedStats.Outs % 3)
         }
     })
@@ -72,6 +88,7 @@ const joinBattingPtCardValues = (stats: BattingStats[], cards: PtCard[]) => {
             joinedStats.push({
                 ...battingStats,
                 CardTitle: curCard.CardTitle,
+                CardValue: curCard.CardValue,
                 Bats: curCard.Bats,
                 Throws: curCard.Throws,
                 Position: curCard.Position,
@@ -102,6 +119,7 @@ const joinPitchingPtCardValues = (stats: PitchingStats[], cards: PtCard[]) => {
             joinedStats.push({
                 ...stats[statsIndex],
                 CardTitle: curCard.CardTitle,
+                CardValue: curCard.CardValue,
                 Bats: curCard.Bats,
                 Throws: curCard.Throws,
                 Position: curCard.Position,

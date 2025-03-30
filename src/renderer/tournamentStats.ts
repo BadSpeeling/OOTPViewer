@@ -1,6 +1,7 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
 import { tournamentTypePicker } from "./tournamentTypePicker";
+import { Bats, Throws, Position} from "../backend/types"
 
 const model: {playerStats?: any} = {}
 
@@ -53,6 +54,14 @@ async function initializeDataTable () {
     }
 
     model.playerStats = await getPlayerStats(statsTypeID);
+    model.playerStats = model.playerStats.map((playerStat) => {
+        return {
+            ...playerStat,
+            Bats: Bats[playerStat.Bats],
+            Throws: Throws[playerStat.Throws],
+            Position: Position[playerStat.Position],
+        }
+    })
 
     if (model.playerStats) {
         
@@ -113,7 +122,7 @@ function buildTableHeader (columns) {
 }
 
 function battingColumns () {
-    return ['CardTitle','CardValue','POS','Bats','PA','AVG','OBP','SLG','OPS'];
+    return ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'];
 }
 
 function pitchingColumns () {

@@ -4,7 +4,6 @@ import * as path from 'path';
 
 import { statsExport } from "../../json/csvColumns.json"
 import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript } from "./database/sqliteScripts"
-import {uttGeneralColumns,uttBattingColumns,uttPitchingColumns, uttFieldingColumns, TediousParams} from './database/uttColumns';
 import { Database, getDatabase } from "./database/Database"
 
 import * as settings from '../../settings.json';

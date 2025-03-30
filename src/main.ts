@@ -3,8 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import {battingDataScript,pitchingDataScript,getRecentTournamentsScript,getPtSeasonBattingStats, getPtSeasonPitchingStats} from './backend/database/sqlServerScript';
-
+import {getTournamentBattingStats,getTournamentPitchingStats} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
@@ -114,29 +113,23 @@ app.whenReady().then(() => {
 
   })
 
-  ipcMain.handle('getTournamentStats', (_event, value: TournamentStatsQuery) => {
+  ipcMain.handle('getTournamentStats', async (_event, value: TournamentStatsQuery) => {
     console.log(value)
 
-    let dataScript;
     const statsTypeID = value.statsTypeID;
     const tournamentTypeID = value.tournamentTypeID.replace('-','');
     const qualifierValue = value.qualifierValue.replace('-','');
 
     if (statsTypeID === '0') {
-      dataScript = battingDataScript;
-      const positionQualifierString = value.positions.length > 0 ? `and [Position] in (${value.positions.join(',')})` : ""
-      dataScript = dataScript.replace('{{positionQualifier}}', positionQualifierString)
+      return await getTournamentBattingStats(path.join(...settings.databasePath), parseInt(tournamentTypeID));
+      
     }
     else if (statsTypeID === '1') {
-      dataScript = pitchingDataScript;
+      return await getTournamentPitchingStats(path.join(...settings.databasePath), parseInt(tournamentTypeID));
     }
     else {
       throw Error(statsTypeID + ' is not a valid statsTypeID value');
     }
-
-    dataScript = dataScript.replace('{{tournamentTypeID}}',tournamentTypeID);
-    dataScript = dataScript.replace('{{qualifierValue}}',qualifierValue);
-    return getDatabase().getAll(dataScript);
 
   })
 
@@ -208,57 +201,57 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  let dataScript = getRecentTournamentsScript;
-  const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  // let dataScript = getRecentTournamentsScript;
+  // const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
 
-  return recentTournaments.map((tournament: DatabaseRecord) => {
-    return {
-      W: tournament['W'],
-      L: tournament['L'],
-      TournamentName: tournament['Name'],
-      StatsBatchID: tournament['StatsBatchID'],
-      Description: tournament['Description'],
-      Timestamp: tournament['Timestamp']
-    }
-  })
+  // return recentTournaments.map((tournament: DatabaseRecord) => {
+  //   return {
+  //     W: tournament['W'],
+  //     L: tournament['L'],
+  //     TournamentName: tournament['Name'],
+  //     StatsBatchID: tournament['StatsBatchID'],
+  //     Description: tournament['Description'],
+  //     Timestamp: tournament['Timestamp']
+  //   }
+  // })
 
 }
 
 async function getSeasonStats (e, args: SeasonStatsQuery) {
 
-  let dataScript = args.statsTypeID === 0 ? getPtSeasonBattingStats : getPtSeasonPitchingStats;
-  const seasonStats: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  // let dataScript = args.statsTypeID === 0 ? getPtSeasonBattingStats : getPtSeasonPitchingStats;
+  // const seasonStats: DatabaseRecord[] = await getDatabase().getAll(dataScript)
 
-  return seasonStats.map((tournament: DatabaseRecord) => {
-    if (args.statsTypeID === 0) {
-      return {
-        "Perfect Team Season": tournament['Perfect Team Season'],
-        "Perfect Team Level": tournament['Perfect Team Level'],
-        "CardTitle": tournament['CardTitle'],
-        "POS": tournament['POS'],
-        "Bats": tournament['Bats'],
-        "PA": tournament['PA'],
-        "AVG": tournament['AVG'],
-        "OBP": tournament['OBP'],
-        "SLG": tournament['SLG'],
-        "OPS": tournament['OPS'],
-      }
-    }
-    else {
-      return {
-        "Perfect Team Season": tournament['Perfect Team Season'],
-        "Perfect Team Level": tournament['Perfect Team Level'],
-        "CardTitle": tournament['CardTitle'],
-        "G": tournament['G'],
-        "GS": tournament['GS'],
-        "K/9": tournament['K/9'],
-        "BB/9": tournament['BB/9'],
-        "HR/9": tournament['HR/9'],
-        "ERA": tournament['ERA'],
-        "Stamina": tournament['Stamina'],
-      }
-    }
-  })
+  // return seasonStats.map((tournament: DatabaseRecord) => {
+  //   if (args.statsTypeID === 0) {
+  //     return {
+  //       "Perfect Team Season": tournament['Perfect Team Season'],
+  //       "Perfect Team Level": tournament['Perfect Team Level'],
+  //       "CardTitle": tournament['CardTitle'],
+  //       "POS": tournament['POS'],
+  //       "Bats": tournament['Bats'],
+  //       "PA": tournament['PA'],
+  //       "AVG": tournament['AVG'],
+  //       "OBP": tournament['OBP'],
+  //       "SLG": tournament['SLG'],
+  //       "OPS": tournament['OPS'],
+  //     }
+  //   }
+  //   else {
+  //     return {
+  //       "Perfect Team Season": tournament['Perfect Team Season'],
+  //       "Perfect Team Level": tournament['Perfect Team Level'],
+  //       "CardTitle": tournament['CardTitle'],
+  //       "G": tournament['G'],
+  //       "GS": tournament['GS'],
+  //       "K/9": tournament['K/9'],
+  //       "BB/9": tournament['BB/9'],
+  //       "HR/9": tournament['HR/9'],
+  //       "ERA": tournament['ERA'],
+  //       "Stamina": tournament['Stamina'],
+  //     }
+  //   }
+  // })
 
 }
 

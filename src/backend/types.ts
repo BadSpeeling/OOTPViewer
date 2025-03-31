@@ -284,6 +284,14 @@ export interface PitchingStats {
     Outs: number,
 }
 
+export interface BattingStatsRates {
+    AVG: number,
+    OBP: number,
+    SLG: number,
+    ISO: number,
+    OPS: number,
+}
+
 export interface PitchingStatsRates {
     "K/9": number,
     "BB/9": number,
@@ -292,8 +300,12 @@ export interface PitchingStatsRates {
     "IP": number
 }
 
-export type BattingStatsExpanded = BattingStats & Partial<PtCard>
-export type PitchingStatsExpanded = PitchingStats & Partial<PtCard> & PitchingStatsRates
+export interface LeaguePlayStats {
+    LeagueYear: number,
+}
+
+export type BattingStatsExpanded = BattingStats & BattingStatsRates & Partial<PtCard> & Partial<LeaguePlayStats>
+export type PitchingStatsExpanded = PitchingStats & PitchingStatsRates & Partial<PtCard> & Partial<LeaguePlayStats>
 
 export enum Bats {
     R = 1,

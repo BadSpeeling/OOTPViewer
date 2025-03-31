@@ -1,17 +1,18 @@
 import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
 import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position,BattingStatsExpanded,PitchingStatsExpanded } from "./types"
+import { TournamentStatsQuery } from "../types"
 
 import { getPtCards } from './ptCardOperations'
 
 import * as path from "node:path"
 import * as setttings from "../../settings.json"
 
-export const getTournamentBattingStats = async (databasePath: string, tournamentTypeID: number) => {
+export const getTournamentBattingStats = async (databasePath: string, query: TournamentStatsQuery) => {
     
     const db = new Database(databasePath);
 
-    const battingStatsScript = getTournamentBattingStatsScript(tournamentTypeID);
+    const battingStatsScript = getTournamentBattingStatsScript(parseInt(query.tournamentTypeID));
     const summedBattingStats = await db.getAllMapped<BattingStats>(battingStatsScript);
 
     const ptCardIds = getPtCardIDs(summedBattingStats);
@@ -39,11 +40,11 @@ export const getTournamentBattingStats = async (databasePath: string, tournament
 
 }
 
-export const getTournamentPitchingStats = async (databasePath: string, tournamentTypeID: number) => {
+export const getTournamentPitchingStats = async (databasePath: string, query: TournamentStatsQuery) => {
     
     const db = new Database(databasePath);
 
-    const pitchingStatsScript = getTournamentPitchingStatsScript(tournamentTypeID)
+    const pitchingStatsScript = getTournamentPitchingStatsScript(parseInt(query.tournamentTypeID));
     const summedPitchingStats = await db.getAllMapped<PitchingStats>(pitchingStatsScript)
     
     const ptCardIds = getPtCardIDs(summedPitchingStats);

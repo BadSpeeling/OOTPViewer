@@ -15,7 +15,11 @@ export type PtPlayerStats = {
 }
 
 export type TournamentStatsQuery = {
-    tournamentTypeID: string,statsTypeID: string,qualifierValue: string,positions: string[]
+    tournamentTypeID: string,
+    statsTypeID: string,
+    qualifierValue: string,
+    positions: string[],
+    years?: string[],
 }
 
 export type SeasonStatsQuery = {

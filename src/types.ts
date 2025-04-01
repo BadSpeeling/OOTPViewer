@@ -15,11 +15,15 @@ export type PtPlayerStats = {
 }
 
 export type TournamentStatsQuery = {
-    tournamentTypeID: string,
-    statsTypeID: string,
+    tournamentTypeID: number,
+    statsType: StatsType,
     qualifierValue: string,
     positions: string[],
-    years?: string[],
+    years?: number[],
+}
+
+export enum StatsType {
+    Batting,Pitching,Fielding
 }
 
 export type SeasonStatsQuery = {

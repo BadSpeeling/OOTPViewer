@@ -226,7 +226,7 @@ select bs.PtCardID,json_extract([Description], '$.Year') [LeagueYear],SUM([G]) [
 from BattingStats bs
 join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID
 where sb.StatsBatchID in (${statsBatchID.join(',')})
-group by sb.StatsBatchID,json_extract([Description], '$.Year')
+group by bs.PtCardID,sb.StatsBatchID,json_extract([Description], '$.Year')
 order by bs.PtCardID ASC;
 `
 }
@@ -238,7 +238,7 @@ select ps.PtCardID,json_extract([Description], '$.Year') [LeagueYear],SUM([G]) [
 from PitchingStats ps
 join StatsBatch sb on ps.StatsBatchID = sb.StatsBatchID
 where sb.StatsBatchID in (${statsBatchID.join(',')})
-group by sb.StatsBatchID,json_extract([Description], '$.Year')
+group by ps.PtCardID,sb.StatsBatchID,json_extract([Description], '$.Year')
 order by ps.PtCardID ASC;
 `
 }

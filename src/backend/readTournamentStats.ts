@@ -1,75 +1,104 @@
-import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript } from "./database/sqliteScripts"
+import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript, getStatsBatchesForLeaguePlayYears, getLeagueBattingStatsScript, getLeaguePitchingStatsScript } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
 import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position,BattingStatsExpanded,PitchingStatsExpanded } from "./types"
-import { TournamentStatsQuery } from "../types"
+import { TournamentStatsQuery,StatsType } from "../types"
 
 import { getPtCards } from './ptCardOperations'
 
 import * as path from "node:path"
 import * as setttings from "../../settings.json"
 
-export const getTournamentBattingStats = async (databasePath: string, query: TournamentStatsQuery) => {
+export const getTournamentStats = async (databasePath: string, query: TournamentStatsQuery) => {
     
     const db = new Database(databasePath);
+    const summedStats = await readTournamentStats(query, db);
 
-    const battingStatsScript = getTournamentBattingStatsScript(parseInt(query.tournamentTypeID));
-    const summedBattingStats = await db.getAllMapped<BattingStats>(battingStatsScript);
-
-    const ptCardIds = getPtCardIDs(summedBattingStats);
+    const ptCardIds = getPtCardIDs(summedStats);
     const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
     const cards = await getPtCards(db, ["PtCardID","CardValue","CardTitle","Bats","Throws","Position"], whereClause);
 
-    const statsAndRatings = joinBattingPtCardValues(summedBattingStats, cards);
+    const statsAndRatings = joinStatsCards(query.statsType, summedStats, cards);
 
-    const summedAndComputedStats = statsAndRatings.map((summedStats) => {
-        let computedStats = {
-            ...summedStats,
-            "AVG": parseFloat(((summedStats.H) / (summedStats.AB)).toFixed(3)),
-            "OBP": parseFloat(((summedStats.H + summedStats.BB + summedStats.IBB + summedStats.HP) / (summedStats.AB + summedStats.BB + summedStats.IBB + summedStats.HP + summedStats.SF)).toFixed(3)),
-            "SLG": parseFloat(((summedStats.TB) / (summedStats.AB)).toFixed(3)),
-        }
-
-        return {
-            ...computedStats,
-            "ISO": parseFloat((computedStats.SLG - computedStats.AVG).toFixed(3)),
-            "OPS": parseFloat((computedStats.SLG + computedStats.OBP).toFixed(3)), 
-        }
-    })
-
+    const summedAndComputedStats = computeRateStats(query.statsType, statsAndRatings);
     return summedAndComputedStats;
 
 }
 
-export const getTournamentPitchingStats = async (databasePath: string, query: TournamentStatsQuery) => {
+const readTournamentStats = async (query: TournamentStatsQuery, db: Database) => {
+
+    const statsBatch = query.years ? ((await db.getAll(getStatsBatchesForLeaguePlayYears(query.tournamentTypeID, query.years))).map(s => s.StatsBatchID as number)) : undefined;
+
+    if (query.statsType === StatsType.Batting) {
+        const battingStatsScript = !statsBatch ? getTournamentBattingStatsScript(query.tournamentTypeID) : getLeagueBattingStatsScript(statsBatch);
+        return await db.getAllMapped<BattingStatsExpanded>(battingStatsScript);
+    }
+    else if (query.statsType === StatsType.Pitching) {
+        const pitchingStatsScript = !statsBatch ? getTournamentPitchingStatsScript(query.tournamentTypeID) : getLeaguePitchingStatsScript(statsBatch);
+        return await db.getAllMapped<PitchingStatsExpanded>(pitchingStatsScript);
+    }
+    else {
+        throw Error(StatsType[query.statsType].toString() + " is not a valid stats type")
+    }
+
+}
+
+export const computeRateStats = (statsType: StatsType, stats: BattingStats[] | PitchingStats[]) => {
+
+    if (statsType === StatsType.Batting) {
+        const battingStats = stats as BattingStats[];
+        return battingStats.map((summedStats) => {
+            let computedStats = {
+                ...summedStats,
+                "AVG": parseFloat(((summedStats.H) / (summedStats.AB)).toFixed(3)),
+                "OBP": parseFloat(((summedStats.H + summedStats.BB + summedStats.IBB + summedStats.HP) / (summedStats.AB + summedStats.BB + summedStats.IBB + summedStats.HP + summedStats.SF)).toFixed(3)),
+                "SLG": parseFloat(((summedStats.TB) / (summedStats.AB)).toFixed(3)),
+            }
     
-    const db = new Database(databasePath);
+            return {
+                ...computedStats,
+                "ISO": parseFloat((computedStats.SLG - computedStats.AVG).toFixed(3)),
+                "OPS": parseFloat((computedStats.SLG + computedStats.OBP).toFixed(3)), 
+            }
+        }) as BattingStatsExpanded[];
+    }
+    else if (statsType === StatsType.Pitching) {
+        const pitchingStats = stats as PitchingStats[];
+        return pitchingStats.map((summedStats) => {
+            return {
+                ...summedStats,
+                "K/9": (summedStats.K / (summedStats.Outs / 3)) * 9,
+                "BB/9": (summedStats.BB / (summedStats.Outs / 3)) * 9,
+                "HR/9": (summedStats.HR / (summedStats.Outs / 3)) * 9,
+                "H/9": (summedStats.HA / (summedStats.Outs / 3)) * 9,
+                "ERA": (summedStats.ER / (summedStats.Outs / 3)) * 9, 
+                "IP": parseFloat(Math.floor(summedStats.Outs / 3) + '.' + summedStats.Outs % 3)
+            }
+        }) as PitchingStatsExpanded[];
+    }
+    else {
+        throw Error(StatsType[statsType].toString() + " is not a valid stats type")
+    }
 
-    const pitchingStatsScript = getTournamentPitchingStatsScript(parseInt(query.tournamentTypeID));
-    const summedPitchingStats = await db.getAllMapped<PitchingStats>(pitchingStatsScript)
-    
-    const ptCardIds = getPtCardIDs(summedPitchingStats);
-    const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
-    const cards = await getPtCards(db, ["PtCardID","CardTitle","CardValue","Bats","Throws","Position"], whereClause);
-
-    const statsAndRatings = joinPitchingPtCardValues(summedPitchingStats, cards);
-
-    const summedAndComputedStats = statsAndRatings.map((summedStats) => {
-        return {
-            ...summedStats,
-            "K/9": (summedStats.K / (summedStats.Outs / 3)) * 9,
-            "BB/9": (summedStats.BB / (summedStats.Outs / 3)) * 9,
-            "HR/9": (summedStats.HR / (summedStats.Outs / 3)) * 9,
-            "H/9": (summedStats.HA / (summedStats.Outs / 3)) * 9,
-            "ERA": (summedStats.ER / (summedStats.Outs / 3)) * 9, 
-            "IP": parseFloat(Math.floor(summedStats.Outs / 3) + '.' + summedStats.Outs % 3)
-        }
-    })
-
-    return summedAndComputedStats;
 }
 
 const getPtCardIDs = (stats: BattingStats[] | PitchingStats[]) => {
     return stats.map((stat: BattingStats | PitchingStats) => stat.PtCardID)
+}
+
+const joinStatsCards = (statsType: StatsType, stats: BattingStats[] | PitchingStats[], cards: PtCard[]) => {
+
+    if (statsType === StatsType.Batting) {
+        const battingStats = stats as BattingStats[];
+        return joinBattingPtCardValues(battingStats, cards);
+    }
+    else if (statsType === StatsType.Pitching) {
+        const pitchingStats = stats as PitchingStats[];
+        return joinPitchingPtCardValues(pitchingStats, cards);
+    }
+    else {
+        throw Error(StatsType[statsType].toString() + " is not a valid stats type")
+    }
+
 }
 
 const joinBattingPtCardValues = (stats: BattingStats[], cards: PtCard[]) => {

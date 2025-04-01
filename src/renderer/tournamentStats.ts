@@ -76,7 +76,7 @@ async function initializeDataTable () {
 
 }
 
-async function getPlayerStats (statsTypeID) {
+async function getPlayerStats (statsTypeID: string) {
 
     const tournamentTypeID = $('#tournamentType').val() as string
     const qualifierValue = $('#qualifierValue').val() as string
@@ -91,7 +91,7 @@ async function getPlayerStats (statsTypeID) {
         positions = [selectedPositions];
     }
 
-    return await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID,qualifierValue, positions});
+    return await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID:parseInt(statsTypeID),qualifierValue, positions});
 
 }
 

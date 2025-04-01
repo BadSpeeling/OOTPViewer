@@ -4,7 +4,7 @@ import {Datatable} from "../src/backend/database/Datatable";
 import { getCards, writeCards, processPtCardList } from "../src/backend/ptCardOperations"
 
 import * as fs from 'node:fs'
-import { initializeDatabase } from "../src/backend/database/Database";
+import { getDatabase, initializeDatabase } from "../src/backend/database/Database";
 
 
 const currTime = Date.now();
@@ -22,10 +22,10 @@ const currTime = Date.now();
 
 const dir = 'E:\\ootp_data\\sqlite\\'
 
-test('test db init', async () => {
-  await initializeDatabase(['.','test.db']);
+// test('test db init', async () => {
+//   await initializeDatabase(['.','test.db']);
   
-})
+// })
 
 // test('tests that jest with typescript works', async () => {
         
@@ -61,16 +61,13 @@ test('test db init', async () => {
 
 // })
 
-// test('Run table load', async () => {
-//     await processPtCardList();
+test('Run table load', async () => {
+    await processPtCardList();
 
-//     const db = await open({
-//         filename: `E:\\ootp_data\\sqlite\\pt.db`,
-//         driver: sqlite3.Database
-//       });
+    const db = getDatabase();
 
-//     const result = await db.get("SELECT COUNT(*) FROM PtCard");
+    const result = await db.get("SELECT COUNT(*) FROM PtCard");
 
-//     console.log(result);
+    console.log(result);
 
-// })
+})

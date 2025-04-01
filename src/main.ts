@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import {getTournamentBattingStats,getTournamentPitchingStats} from './backend/readTournamentStats'
+import {getTournmentStats} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
@@ -13,7 +13,7 @@ import { DatabaseRecord } from "./backend/types"
 import * as csvColumns from '../json/csvColumns.json';
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType } from './types'
 
 declare global {
   interface Window {
@@ -116,19 +116,15 @@ app.whenReady().then(() => {
   ipcMain.handle('getTournamentStats', async (_event, value: TournamentStatsQuery) => {
     console.log(value)
 
-    const statsTypeID = value.statsTypeID;
-    const tournamentTypeID = value.tournamentTypeID.replace('-','');
-    const qualifierValue = value.qualifierValue.replace('-','');
-
-    if (statsTypeID === '0') {
-      return await getTournamentBattingStats(path.join(...settings.databasePath), parseInt(tournamentTypeID));
+    if (value.statsType === StatsType.Batting) {
+      return await getTournmentStats(value, path.join(...settings.databasePath));
       
     }
-    else if (statsTypeID === '1') {
-      return await getTournamentPitchingStats(path.join(...settings.databasePath), parseInt(tournamentTypeID));
+    else if (value.statsType === StatsType.Pitching) {
+      return await getTournmentStats(value, path.join(...settings.databasePath));
     }
     else {
-      throw Error(statsTypeID + ' is not a valid statsTypeID value');
+      throw Error(StatsType[value.statsType] + ' is not a valid statsTypeID value');
     }
 
   })

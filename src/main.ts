@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import {getTournmentStats} from './backend/readTournamentStats'
+import {getTournamentStats} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
@@ -14,6 +14,7 @@ import * as csvColumns from '../json/csvColumns.json';
 
 import * as settings from '../settings.json';
 import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType } from './types'
+import {Bats,Throws,Position} from "./backend/types"
 
 declare global {
   interface Window {
@@ -25,7 +26,7 @@ declare global {
     writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
     getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
-    getSeasonStats: (query: SeasonStatsQuery) => Promise<DatabaseRecord[]>,
+    getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
@@ -117,11 +118,11 @@ app.whenReady().then(() => {
     console.log(value)
 
     if (value.statsType === StatsType.Batting) {
-      return await getTournmentStats(value, path.join(...settings.databasePath));
+      return await getTournamentStats(path.join(...settings.databasePath), value);
       
     }
     else if (value.statsType === StatsType.Pitching) {
-      return await getTournmentStats(value, path.join(...settings.databasePath));
+      return await getTournamentStats(path.join(...settings.databasePath), value);
     }
     else {
       throw Error(StatsType[value.statsType] + ' is not a valid statsTypeID value');
@@ -213,41 +214,44 @@ async function getRecentTournaments (e, args) {
 
 }
 
-async function getSeasonStats (e, args: SeasonStatsQuery) {
+async function getSeasonStats (e, args: TournamentStatsQuery) {
 
-  // let dataScript = args.statsTypeID === 0 ? getPtSeasonBattingStats : getPtSeasonPitchingStats;
-  // const seasonStats: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  const seasonStats = await getTournamentStats(path.join(...settings.databasePath), args);
 
-  // return seasonStats.map((tournament: DatabaseRecord) => {
-  //   if (args.statsTypeID === 0) {
-  //     return {
-  //       "Perfect Team Season": tournament['Perfect Team Season'],
-  //       "Perfect Team Level": tournament['Perfect Team Level'],
-  //       "CardTitle": tournament['CardTitle'],
-  //       "POS": tournament['POS'],
-  //       "Bats": tournament['Bats'],
-  //       "PA": tournament['PA'],
-  //       "AVG": tournament['AVG'],
-  //       "OBP": tournament['OBP'],
-  //       "SLG": tournament['SLG'],
-  //       "OPS": tournament['OPS'],
-  //     }
-  //   }
-  //   else {
-  //     return {
-  //       "Perfect Team Season": tournament['Perfect Team Season'],
-  //       "Perfect Team Level": tournament['Perfect Team Level'],
-  //       "CardTitle": tournament['CardTitle'],
-  //       "G": tournament['G'],
-  //       "GS": tournament['GS'],
-  //       "K/9": tournament['K/9'],
-  //       "BB/9": tournament['BB/9'],
-  //       "HR/9": tournament['HR/9'],
-  //       "ERA": tournament['ERA'],
-  //       "Stamina": tournament['Stamina'],
-  //     }
-  //   }
-  // })
+  return seasonStats.map((stat) => {
+    if (args.statsType === StatsType.Batting) {
+      return {
+        "Perfect Team Season": stat['LeagueYear'],
+        "Perfect Team Level": stat['Perfect Team Level'],
+        "CardTitle": stat['CardTitle'],
+        "POS": Position[stat['Position']].toString(),
+        "Bats": Bats[stat['Bats']].toString(),
+        "PA": stat['PA'],
+        "AVG": stat['AVG'],
+        "OBP": stat['OBP'],
+        "SLG": stat['SLG'],
+        "OPS": stat['OPS'],
+      }
+    }
+    else if (args.statsType === StatsType.Pitching) {
+      return {
+        "Perfect Team Season": stat['LeagueYear'],
+        "Perfect Team Level": stat['Perfect Team Level'],
+        "CardTitle": stat['CardTitle'],
+        "Throws": Throws[stat['Throws']].toString(),
+        "G": stat['G'],
+        "GS": stat['GS'],
+        "K/9": stat['K/9'],
+        "BB/9": stat['BB/9'],
+        "HR/9": stat['HR/9'],
+        "ERA": stat['ERA'],
+        "Stamina": stat['Stamina'],
+      }
+    }
+    else {
+      throw Error(StatsType[args.statsType].toString() + " is not a valid type")
+    }
+  })
 
 }
 

@@ -139,9 +139,25 @@ test("Load Batting stats for league play", async () => {
             "RBI": 29,
             "SB": 8,
             "WAR": 0.5
+        },
+        {
+            "LeagueYear": 2028,
+            "PtCardID": 1,
+            "Bats":3,
+            "Throws":1,
+            "Position":6,
+            "G": 34,
+            "TB": 36,
+            "AB": 103,
+            "PA": 104,
+            "H": 23,
+            '1B': 22,
+            "HR": 1,
+            "RBI": 13,
+            "SB": 8,
+            "WAR": 1.9
         }
     ]
-
 
     const db = new Database(dir + "test.db");
     const statsBatch = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),'{"Year":2027,"Level":"High Bronze","Team":"Lil Dickey"}',2);`);
@@ -169,7 +185,7 @@ test("Load Batting stats for league play", async () => {
         statsType: 0,
         qualifierValue: '0',
         positions: [],
-        years: [2027],
+        years: [2027,2028],
     } as TournamentStatsQuery
 
     const battingStats = await getTournamentStats(dir + "test.db", query);
@@ -180,72 +196,151 @@ test("Load Batting stats for league play", async () => {
 
     expect(season1Card1).toBeTruthy();
     expect(season1Card2).toBeTruthy();
+    expect(season2Card2).toBeTruthy();
 
     expect(databaseObjectEqual(season1Card1,desiredData.find((data) => data.PtCardID === 1 && data.LeagueYear === 2027))).toBeTruthy();
     expect(databaseObjectEqual(season1Card2,desiredData.find((data) => data.PtCardID === 2 && data.LeagueYear === 2027))).toBeTruthy();
+    expect(databaseObjectEqual(season2Card2,desiredData.find((data) => data.PtCardID === 1 && data.LeagueYear === 2028))).toBeTruthy();
 
 })
 
-// test("Load Pitching stats for a tournament", async () => {
+test("Load Pitching stats for a tournament", async () => {
 
-//     const desiredData = [
-//         {
-//             "PtCardID": 1,
-//             "Bats":3,
-//             "Throws":1,
-//             "Position":6,
-//             "G": 36,
-//             "GS": 15,
-//             "IP": 58,
-//             "K": 28,
-//             "BB": 10,
-//             "WAR": 1.7
-//         },
-//         {
-//             "PtCardID": 2,
-//             "Bats":1,
-//             "Throws":1,
-//             "Position":4,
-//             "G": 22,
-//             "GS": 17,
-//             "IP": 61.1,
-//             "K": 21,
-//             "BB": 7,
-//             "WAR": 2.7
-//         }
-//     ]
+    const desiredData = [
+        {
+            "PtCardID": 1,
+            "Bats":3,
+            "Throws":1,
+            "Position":6,
+            "G": 36,
+            "GS": 15,
+            "IP": 58,
+            "K": 28,
+            "BB": 10,
+            "WAR": 1.7
+        },
+        {
+            "PtCardID": 2,
+            "Bats":1,
+            "Throws":1,
+            "Position":4,
+            "G": 22,
+            "GS": 17,
+            "IP": 61.1,
+            "K": 21,
+            "BB": 7,
+            "WAR": 2.7
+        }
+    ]
 
-//     const db = new Database(dir + "test.db");
-//     const statsBatch = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),"",1);`);
+    const db = new Database(dir + "test.db");
+    const statsBatch = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),"",1);`);
 
-//     const loadSampleData = `
-// insert into PitchingStats (PtCardID,TeamName,StatsBatchID,G,GS,IP,K,BB,WAR)
-// values
-// (1,'Team1',${statsBatch},5,5,10.2,10,2,0.5),
-// (1,'Team2',${statsBatch},11,10,30.1,3,2,1.4),
-// (1,'Team3',${statsBatch},20,0,17,15,6,-0.2),
-// (2,'Team4',${statsBatch},5,0,4.2,3,2,2.9),
-// (2,'Team5',${statsBatch},17,17,56.2,18,5,-0.2);`
+    const loadSampleData = `
+insert into PitchingStats (PtCardID,TeamName,StatsBatchID,G,GS,IP,K,BB,WAR)
+values
+(1,'Team1',${statsBatch},5,5,10.2,10,2,0.5),
+(1,'Team2',${statsBatch},11,10,30.1,3,2,1.4),
+(1,'Team3',${statsBatch},20,0,17,15,6,-0.2),
+(2,'Team4',${statsBatch},5,0,4.2,3,2,2.9),
+(2,'Team5',${statsBatch},17,17,56.2,18,5,-0.2);`
 
-//     await db.execute(loadSampleData);
+    await db.execute(loadSampleData);
 
-//     const query = {
-//         tournamentTypeID: 2,
-//         statsType: 0,
-//         qualifierValue: '0',
-//         positions: [],
-//         years: [2025],
-//     } as TournamentStatsQuery
+    const query = {
+        tournamentTypeID: 1,
+        statsType: 1,
+        qualifierValue: '0',
+        positions: [],
+    } as TournamentStatsQuery
 
-//     const pitchingStats = await getTournamentStats(dir + "test.db",query);
+    const pitchingStats = await getTournamentStats(dir + "test.db",query);
 
-//     const card1Stats = pitchingStats.find((stats) => stats.PtCardID === 1);
-//     const card2Stats = pitchingStats.find((stats) => stats.PtCardID === 2);
+    const card1Stats = pitchingStats.find((stats) => stats.PtCardID === 1);
+    const card2Stats = pitchingStats.find((stats) => stats.PtCardID === 2);
     
-//     expect(card1Stats).toBeTruthy();
-//     expect(card2Stats).toBeTruthy();
+    expect(card1Stats).toBeTruthy();
+    expect(card2Stats).toBeTruthy();
 
-//     expect(databaseObjectEqual(card1Stats,desiredData.find((data) => data.PtCardID === 1))).toBeTruthy();
-//     expect(databaseObjectEqual(card2Stats,desiredData.find((data) => data.PtCardID === 2))).toBeTruthy();
+    expect(databaseObjectEqual(card1Stats,desiredData.find((data) => data.PtCardID === 1))).toBeTruthy();
+    expect(databaseObjectEqual(card2Stats,desiredData.find((data) => data.PtCardID === 2))).toBeTruthy();
 
-// })
+})
+
+test("Load Pitching stats for league play", async () => {
+
+    const desiredData = [
+        {
+            "LeagueYear": 2027,
+            "PtCardID": 1,
+            "Bats":3,
+            "Throws":1,
+            "Position":6,
+            "G": 13,
+            "ER": 32,
+        },
+        {
+            "LeagueYear": 2027,
+            "PtCardID": 2,
+            "Bats":1,
+            "Throws":1,
+            "Position":4,
+            "G": 14,
+            "ER": 25,
+        },
+        {
+            "LeagueYear": 2028,
+            "PtCardID": 1,
+            "Bats":3,
+            "Throws":1,
+            "Position":6,
+            "G": 8,
+            "ER": 3,
+        },
+    ]
+
+
+    const db = new Database(dir + "test.db");
+    const statsBatch = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),'{"Year":2027,"Level":"High Bronze","Team":"Lil Dickey"}',2);`);
+
+    const loadSampleData = `
+    insert into PitchingStats (PtCardID,TeamName,StatsBatchID,G,ER)
+    values
+    (1,'Team1',${statsBatch},5,7),
+    (1,'Team2',${statsBatch},8,25),
+    (2,'Team4',${statsBatch},10,22),
+    (2,'Team5',${statsBatch},4,3);`
+
+    const statsBatch1 = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch(),'{"Year":2028,"Level":"High Bronze","Team":"Lil Dickey"}',2);`);
+    await db.execute(loadSampleData);
+
+    const loadSampleData1 = `
+    insert into PitchingStats (PtCardID,TeamName,StatsBatchID,G,ER)
+    values
+    (1,'Team3',${statsBatch1},8,3);`
+
+    await db.execute(loadSampleData1);
+
+    const query = {
+        tournamentTypeID: 2,
+        statsType: 1,
+        qualifierValue: '0',
+        positions: [],
+        years: [2027,2028],
+    } as TournamentStatsQuery
+
+    const pitchingStats = await getTournamentStats(dir + "test.db",query);
+
+    const season1Card1 = pitchingStats.find((stats) => stats.PtCardID === 1 && stats.LeagueYear === 2027);
+    const season1Card2 = pitchingStats.find((stats) => stats.PtCardID === 2 && stats.LeagueYear === 2027);
+    const season2Card1 = pitchingStats.find((stats) => stats.PtCardID === 1 && stats.LeagueYear === 2028);
+
+    expect(season1Card1).toBeTruthy();
+    expect(season1Card2).toBeTruthy();
+    expect(season2Card1).toBeTruthy();
+
+    expect(databaseObjectEqual(season1Card1,desiredData.find((data) => data.PtCardID === 1 && data.LeagueYear === 2027))).toBeTruthy();
+    expect(databaseObjectEqual(season1Card2,desiredData.find((data) => data.PtCardID === 2 && data.LeagueYear === 2027))).toBeTruthy();
+    expect(databaseObjectEqual(season2Card1,desiredData.find((data) => data.PtCardID === 1 && data.LeagueYear === 2028))).toBeTruthy();
+
+})

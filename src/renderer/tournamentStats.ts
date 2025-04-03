@@ -91,7 +91,7 @@ async function getPlayerStats (statsTypeID: string) {
         positions = [selectedPositions];
     }
 
-    return await window.electronAPI.getTournamentStats({tournamentTypeID,statsTypeID:parseInt(statsTypeID),qualifierValue, positions});
+    return await window.electronAPI.getTournamentStats({tournamentTypeID: parseInt(tournamentTypeID),statsType:parseInt(statsTypeID),qualifierValue, positions});
 
 }
 

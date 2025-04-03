@@ -1,10 +1,13 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
-import { SeasonStatsQuery, } from "../types";
+import { SeasonStatsQuery, TournamentStatsQuery, } from "../types";
 
 $(document).ready(async () => {
 
     $('#loadBtn').click(loadTable)
+
+    const years = [...Array(52).keys()].map((year => year + 2025));
+    $('#season').html(years.map(year => `<option value=${year}>${year}</option>`).join(''));
 
 })
 
@@ -22,7 +25,20 @@ async function loadTable () {
         throw Error(statsTypeID + ' is not a valid StatsType');
     }
 
-    const seasonStats = await window.electronAPI.getSeasonStats({statsTypeID:parseInt(statsTypeID)} as SeasonStatsQuery)
+    const seasons = $('#season').val();
+    let seasonsParam;
+
+    if (typeof seasons === 'object') {
+        seasonsParam = seasons.map((season => parseInt(season)))
+    }
+    else if (typeof seasons === 'number'){
+        seasonsParam = [seasons]
+    }
+    else if (typeof seasons === 'string') {
+        seasonsParam = [parseInt(seasons)]
+    }
+
+    const seasonStats = await window.electronAPI.getSeasonStats({tournamentTypeID: 2,statsType:parseInt(statsTypeID),qualifierValue: '0', positions: [] as string[], years: seasonsParam} as TournamentStatsQuery)
 
     const tableHeader = buildTableHeader(columns);
     const tableBody = buildTableBody(seasonStats, columns);

@@ -328,4 +328,5 @@ export enum Position {
     LF = 7,
     CF = 8,
     RF = 9,
+    DH = 10,
 }

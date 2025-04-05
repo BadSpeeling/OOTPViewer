@@ -45,7 +45,9 @@ const openLanding = () => {
     } 
   })
 
-  win.loadFile(path.join(__dirname, '..', 'views', 'landing.html'))
+  //win.loadFile(path.join(__dirname, '..', 'views', 'landing.html'))
+  win.loadURL('http://localhost:3000')
+
 }
 
 const openStatsImporter = () => {

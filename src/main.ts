@@ -13,7 +13,7 @@ import { DatabaseRecord } from "./backend/types"
 import * as csvColumns from '../json/csvColumns.json';
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType } from './types'
 import {Bats,Throws,Position} from "./backend/types"
 
 declare global {
@@ -24,7 +24,7 @@ declare global {
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
     writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
-    getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
+    getTournamentTypes: () => Promise<TournamentType[]>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
@@ -188,7 +188,15 @@ async function clearPtFolderHtmlFiles (htmlStatsFolder: string) {
 }
 
 async function getTournamentTypes (e, args) {
-  return await getDatabase().getAll("SELECT * FROM TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  
+  const data = await getDatabase().getAll("SELECT * FROM TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  return data.map((row) => {
+    return {
+      TournamentTypeID: parseInt(row["TournamentTypeID"].toString()),
+      Name: row["Name"].toString()
+    } as TournamentType
+  });
+
 }
 
 async function lookupData (e, args) {

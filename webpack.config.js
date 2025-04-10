@@ -7,7 +7,7 @@ module.exports = {
 	devtool: 'inline-source-map',
 	entry: {
 		landing: './src/renderer/landing.ts',
-		statsImporter: './src/renderer/statsImporter.ts',
+		statsImporter: './src/renderer/statsImporter.tsx',
 		loadTournamentStats: './src/renderer/tournamentStats.ts',
 		seasonStats: './src/renderer/seasonStats.ts',
 	},

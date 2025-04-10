@@ -1,35 +1,92 @@
-import { PtDataExportFile, PtDataStatsFile } from '../types'
-import {tournamentTypePicker} from "./tournamentTypePicker"
+import { PtDataExportFile, PtDataStatsFile,TournamentType } from '../types'
+import { TournamentTypePicker } from "./tournamentTypePicker"
+import { getTournamentOptions } from "./dataLoader"
+
+import * as React from "react";
+import {createRoot} from "react-dom/client";
 
 const model = {}
 
 $(document).ready(async function(e) {
     
-    tournamentTypePicker('tournamentTypeWrapper');
-    preparePage();
     $('#collectTournamentsToInsert').click(handleSubmit);
     $('#reloadPage').click(reloadPage);
 
+    const tournamentFiles: PtDataExportFile[] = await window.electronAPI.findTournamentExports();
+
+    const tournaments = await getTournamentOptions();
+    const wrapper = document.getElementById("reactWrapper");
+
+    if (wrapper) {
+        const root = createRoot(wrapper);
+        root.render(Test({tournaments, tournamentFiles}));
+    }
+
 })
 
-async function preparePage () {
-    model['htmlFiles'] = await window.electronAPI.findTournamentExports()
-        
-    //build table rows with content
-    let tableElement = model['htmlFiles'].map((htmlFile) => {
-        return `<tr key=${htmlFile['key']}><td><input type='checkbox'/></td><td>${htmlFile.fileName}</td><td><input name='Description'/></td><td name='Status'></td></tr>`
-        // return "  <div class='TournamentWriteSelector'>"
-        //         +   `<div>${htmlFile.fileName}</div><div><input name='Description'/></div><div><input type='checkbox'/></div>`
-        //         +"</div>"
-    }).join('')
+type Props = {
+    tournaments: TournamentType[],
+    tournamentFiles: PtDataExportFile[];
+}
 
-    //insert table into UI
-        $('#tournamentOptions').append("<table>"
-    +   "<tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>"
-    +   tableElement
-    +   "</table>")
+export const Test = ({tournaments, tournamentFiles}: Props) => {
 
-    $('#tournamentList').show()
+    React.useState(0)
+    return (<></>)
+
+    // const [curTournamentExports,setTournamentExports] = React.useState(tournamentFiles.map(tourney => {
+    //     return {
+    //         ...tourney,
+    //         description: "",
+    //         tournamentTypeID: 0,
+    //         isCumulativeFlag: false,
+    //         dataSaveSuccessful: false,
+    //     } as PtDataStatsFile
+    // }));
+
+    // return (
+    //     <>
+    //         <div id="tournamentList">
+    //             <div><b id="tournamentListStatus"></b></div>
+    //             <div id="tournamentTypeWrapper"><TournamentTypePicker tournaments={tournaments}/></div>
+    //             <div id="tournamentOptions"><TournamentExports curTournamentExports={curTournamentExports} setTournamentExports={setTournamentExports}/></div>
+    //             <div>
+    //                 <button id="collectTournamentsToInsert" onClick={handleSubmit}>Write Data</button>
+    //                 <button id="reloadTable">Reload Table</button>
+    //             </div>
+    //         </div>
+    //     </>
+    // );
+}
+
+type TournamentExportProps = {
+    curTournamentExports: PtDataStatsFile[],
+    setTournamentExports: React.Dispatch<React.SetStateAction<PtDataStatsFile[]>>
+}
+
+function TournamentExports ({curTournamentExports, setTournamentExports}: TournamentExportProps) {
+    
+    const updateTournamentExport = (tourney: PtDataStatsFile,index: number) => {
+        setTournamentExports(curTournamentExports.map((t, i) => {
+            return index === i ? tourney : t;
+        }));
+    }
+
+    const updateDescription = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        updateTournamentExport({...curTournamentExports[index],description: e.target.value}, index)
+    }
+
+    const tableBody = curTournamentExports.map((tourney, index) => {
+        return <tr key={tourney.key}><td><input type='checkbox'/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'></td></tr>
+    })
+
+    return (
+        <table>
+            <tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>
+            {tableBody}
+        </table>
+    )
+
 }
 
 function reloadPage() {

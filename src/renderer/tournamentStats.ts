@@ -1,13 +1,13 @@
 import "datatables.net";
 import "datatables.net-fixedheader";
-import { tournamentTypePicker } from "./tournamentTypePicker";
+import { TournamentTypePicker } from "./tournamentTypePicker";
 import { Bats, Throws, Position} from "../backend/types"
 
 const model: {playerStats?: any} = {}
 
 $(document).ready(() => {
 
-    tournamentTypePicker('tournamentTypeWrapper');
+    //TournamentTypePicker('tournamentTypeWrapper');
     updateQualifierName();
     $('#loadTournamentTable').click(initializeDataTable);
     $('#statsType').change(updateQualifierName);

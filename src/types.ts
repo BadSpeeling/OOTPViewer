@@ -38,6 +38,7 @@ export interface PtDataStatsFile extends PtDataExportFile {
     description: string,
     tournamentTypeID: number,
     isCumulativeFlag: boolean,
+    dataSaveSuccessful: boolean,
 }
 
 export interface TournamentMetaData {
@@ -47,4 +48,9 @@ export interface TournamentMetaData {
     StatsBatchID: number,
     Description: string,
     Timestamp: Date,
+}
+
+export interface TournamentType {
+    TournamentTypeID: number,
+    Name: string,
 }

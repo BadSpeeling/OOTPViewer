@@ -1,6 +1,6 @@
 import { PtDataExportFile, PtDataStatsFile, TournamentType, DataSaveStatus } from '../types'
 import { TournamentTypePicker } from "./tournamentTypePicker"
-import { getTournamentOptions } from "./dataLoader"
+import { getTournamentOptions } from "./getTournamentTypes"
 
 import * as React from "react";
 import {createRoot} from "react-dom/client";

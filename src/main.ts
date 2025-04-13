@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import {getTournamentStats} from './backend/readTournamentStats'
+import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
@@ -206,19 +206,11 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  let dataScript = getRecentTournamentsScript;
-  const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  const teamName = 'Lil Dickey';
+  const limitAmount = 10;
 
-  return recentTournaments.map((tournament: DatabaseRecord) => {
-    return {
-      W: tournament['W'],
-      L: tournament['L'],
-      TournamentName: tournament['Name'],
-      StatsBatchID: tournament['StatsBatchID'],
-      Description: tournament['Description'],
-      Timestamp: tournament['Timestamp']
-    }
-  })
+  const recentTournaments = await getRecentTournamentsHandler(path.join(...settings.databasePath), teamName, limitAmount);
+  return recentTournaments;
 
 }
 

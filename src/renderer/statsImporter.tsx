@@ -1,4 +1,4 @@
-import { PtDataExportFile, PtDataStatsFile,TournamentType } from '../types'
+import { PtDataExportFile, PtDataStatsFile, TournamentType, DataSaveStatus } from '../types'
 import { TournamentTypePicker } from "./tournamentTypePicker"
 import { getTournamentOptions } from "./dataLoader"
 
@@ -19,7 +19,7 @@ $(document).ready(async function(e) {
 
     if (wrapper) {
         const root = createRoot(wrapper);
-        root.render(Test({tournaments, tournamentFiles}));
+        root.render(<Page tournaments={tournaments} tournamentFiles={tournamentFiles} />);
     }
 
 })
@@ -29,34 +29,34 @@ type Props = {
     tournamentFiles: PtDataExportFile[];
 }
 
-export const Test = ({tournaments, tournamentFiles}: Props) => {
+function Page ({tournaments, tournamentFiles}: Props) {
 
-    React.useState(0)
-    return (<></>)
+    const [curTournamentExports,setTournamentExports] = React.useState(tournamentFiles.map(tourney => {
+        return {
+            ...tourney,
+            description: "",
+            tournamentTypeID: 0,
+            isIncludedFlag: false,
+            isCumulativeFlag: false,
+            dataSaveStatus: DataSaveStatus.None,
+        } as PtDataStatsFile
+    }));
 
-    // const [curTournamentExports,setTournamentExports] = React.useState(tournamentFiles.map(tourney => {
-    //     return {
-    //         ...tourney,
-    //         description: "",
-    //         tournamentTypeID: 0,
-    //         isCumulativeFlag: false,
-    //         dataSaveSuccessful: false,
-    //     } as PtDataStatsFile
-    // }));
+    const [selectedTournamentType, setSelectedTournamentType] = React.useState(0);
 
-    // return (
-    //     <>
-    //         <div id="tournamentList">
-    //             <div><b id="tournamentListStatus"></b></div>
-    //             <div id="tournamentTypeWrapper"><TournamentTypePicker tournaments={tournaments}/></div>
-    //             <div id="tournamentOptions"><TournamentExports curTournamentExports={curTournamentExports} setTournamentExports={setTournamentExports}/></div>
-    //             <div>
-    //                 <button id="collectTournamentsToInsert" onClick={handleSubmit}>Write Data</button>
-    //                 <button id="reloadTable">Reload Table</button>
-    //             </div>
-    //         </div>
-    //     </>
-    // );
+    return (
+        <>
+            <div id="tournamentList">
+                <div><b id="tournamentListStatus"></b></div>
+                <div id="tournamentTypeWrapper"><TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournaments}/></div>
+                <div id="tournamentOptions"><TournamentExports curTournamentExports={curTournamentExports} setTournamentExports={setTournamentExports}/></div>
+                <div>
+                    <button id="collectTournamentsToInsert" onClick={(e) => handleSubmit(selectedTournamentType, curTournamentExports, setTournamentExports)}>Write Data</button>
+                    <button id="reloadTable">Reload Table</button>
+                </div>
+            </div>
+        </>
+    );
 }
 
 type TournamentExportProps = {
@@ -76,8 +76,12 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
         updateTournamentExport({...curTournamentExports[index],description: e.target.value}, index)
     }
 
+    const updateCheckbox = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        updateTournamentExport({...curTournamentExports[index],isIncludedFlag: e.target.checked}, index)
+    }
+
     const tableBody = curTournamentExports.map((tourney, index) => {
-        return <tr key={tourney.key}><td><input type='checkbox'/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'></td></tr>
+        return <tr key={tourney.key}><td><input type='checkbox' checked={tourney.isIncludedFlag} onChange={(e) => updateCheckbox(e, index)}/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'>{tournamentRowStatusIcon(tourney.dataSaveStatus)}</td></tr>
     })
 
     return (
@@ -89,100 +93,63 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
 
 }
 
-function reloadPage() {
-    $('option#defaultTournament').val('')
-    $('#tournamentOptions').empty()
-    $('#reloadTable').hide()
-    $('#collectTournamentsToInsert').show()
-}
+async function handleSubmit (tournamentTypeID: number, tournamentFiles: PtDataStatsFile[], setTournamentExports: React.Dispatch<React.SetStateAction<PtDataStatsFile[]>>) {
 
-function handleSubmit () {
-    
-    let htmlTournamentFilesToWrite: PtDataExportFile[] = collectTournamentsToInsert()
-    submitTournaments(htmlTournamentFilesToWrite)
+    const pendingTournaments = tournamentFiles.filter(tourney => tourney.isIncludedFlag).map(tourney => {
+        return {
+            ...tourney,
+            dataSaveStatus: DataSaveStatus.Pending
+        }
+    });
 
-}
+    setTournamentExports(pendingTournaments);
+    const results = await importTournaments(tournamentTypeID, tournamentFiles)
+    setTournamentExports(pendingTournaments.map((tourney) => {
 
-function collectTournamentsToInsert() {
+        const result = results.find(result => result.key === tourney.key);
 
-    let tournamentKeys = $('input:checked').parents('tr').toArray().map((val) => parseInt(val.getAttribute('key')))
-
-    let lookupModelValue = (key) => {
-        for (let curModelValue of model['htmlFiles']) {
-            if (curModelValue['key'] === key) {
-                return curModelValue
+        if (result) {
+            return {
+                ...tourney,
+                dataSaveStatus: result.status
             }
         }
-    }
-
-    let htmlTournamentFilesToWrite: PtDataExportFile[] = []
-
-    for (let curTournamentKey of tournamentKeys) {
-        let curTournamentFile = lookupModelValue(curTournamentKey)
-        if (curTournamentFile) {
-            
-            htmlTournamentFilesToWrite.push({
-                ...curTournamentFile,
-                description:$(`#tournamentList tr[key=${curTournamentKey}] input[name=Description]`).val(),
-                tournamentTypeID:$('#tournamentType').val(),
-                isCumulativeFlag: 0
-            })
-
+        else {
+            return tourney;
         }
-    }
 
-    return htmlTournamentFilesToWrite
+    }));
 
 }
 
-async function submitTournaments (htmlTournamentFilesToWrite) {
+async function importTournaments (tournamentTypeID: number, htmlTournamentFilesToWrite: PtDataExportFile[]) {
+
+    const results: {key: number, status: DataSaveStatus}[] = []
 
     for (let curHtmlTournamentFile of htmlTournamentFilesToWrite) {
         
-        uxTournamentRowStatus(curHtmlTournamentFile.key, 'Pending')
-        const isSuccess = await window.electronAPI.writeHtmlTournamentStats(curHtmlTournamentFile)
-
-        console.log(curHtmlTournamentFile.ptFolder + " : " + isSuccess)
-        
-        if (isSuccess) {
-            uxTournamentRowStatus(curHtmlTournamentFile.key, 'Success')
-        }
-        else {
-            uxTournamentRowStatus(curHtmlTournamentFile.key, 'Failure')
-            console.log(isSuccess.msg)
-        }
+        const isSuccess: boolean = await window.electronAPI.writeHtmlTournamentStats(tournamentTypeID, curHtmlTournamentFile)
+        results.push({status: isSuccess ? DataSaveStatus.Successful : DataSaveStatus.Failure, key: curHtmlTournamentFile.key})
         
     }
 
-    $('#reloadTable').show()
+    return results;
 
 }
 
-async function getRecentTournaments () {
-    let recentTournaments = await window.electronAPI.getRecentTournaments()
-    
-    $.each(recentTournaments, (_,tourney) => {
-        let timestamp = tourney['Entry Date']
-        //let curDate = `${timestamp.getMonth()+1}/${timestamp.getDate()}/${timestamp.getFullYear()} ${timestamp.getHours()}:${timestamp.getMinutes()}`
-        //$('#recentTournaments').append(`<tr><td>${curDate}</td><td>${tourney['Description']}</td><td>${tourney['Name']}</td></tr>`)
-    })
-}
+function tournamentRowStatusIcon (status: DataSaveStatus) {
 
-function uxTournamentRowStatus (key, status) {
-
-    const statusCell = $(`tr[key=${key}] td[name=Status]`)
-    let htmlToInsert = null
-
-    if (status === 'Pending') {
-        htmlToInsert = '<div class="loader"></div>'
+    if (status === DataSaveStatus.Pending) {
+        return <div className="loader"></div>
     }
-    else if (status === 'Success') {
-        htmlToInsert = '<div>&#x2705;</div>'
+    else if (status === DataSaveStatus.Successful) {
+        return <div>&#x2705;</div>
     }
-    else if (status === 'Failure') {
-        htmlToInsert = '<div>&#x274C;</div>'
+    else if (status === DataSaveStatus.Failure) {
+        return <div>&#x274C;</div>
     }
-
-    statusCell.html(htmlToInsert)
+    else {
+        return <></>
+    }
 
 }

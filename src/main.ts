@@ -23,7 +23,7 @@ declare global {
 
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
-    writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
+    writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
     getTournamentTypes: () => Promise<TournamentType[]>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
@@ -98,13 +98,13 @@ const openSeasonStats = () => {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('writeHtmlTournamentStats', async (_event, value) => {
+  ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value) => {
     console.log(value)
     
     const writer = new HtmlStatsTool(settings.databasePath);
     const liveUpdateID = null;
 
-    const writeResults = await writer.handleTournamentStatsWrite(value, liveUpdateID);
+    const writeResults = await writer.handleTournamentStatsWrite(value, tournamentTypeID, liveUpdateID);
 
     if (writeResults) {
       await clearPtFolderHtmlFiles(value.path)

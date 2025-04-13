@@ -36,9 +36,16 @@ export type PtStats = {
 
 export interface PtDataStatsFile extends PtDataExportFile {
     description: string,
-    tournamentTypeID: number,
     isCumulativeFlag: boolean,
-    dataSaveSuccessful: boolean,
+    isIncludedFlag: boolean,
+    dataSaveStatus: DataSaveStatus,
+}
+
+export enum DataSaveStatus {
+    None,
+    Pending,
+    Successful,
+    Failure,
 }
 
 export interface TournamentMetaData {

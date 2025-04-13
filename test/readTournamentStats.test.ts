@@ -4,7 +4,7 @@ import { databaseObjectEqual } from "../src/utilities"
 import * as path from "node:path"
 import * as fs from "node:fs"
 
-import { getTournamentStats } from "../src/backend/readTournamentStats"
+import { getTournamentStats, getRecentTournamentsHandler } from "../src/backend/readTournamentStats"
 import { TournamentStatsQuery } from "../src/types"
 
 const dir = "E:\\ootp_data\\sqlite\\"
@@ -343,4 +343,34 @@ test("Load Pitching stats for league play", async () => {
     expect(databaseObjectEqual(season1Card2,desiredData.find((data) => data.PtCardID === 2 && data.LeagueYear === 2027))).toBeTruthy();
     expect(databaseObjectEqual(season2Card1,desiredData.find((data) => data.PtCardID === 1 && data.LeagueYear === 2028))).toBeTruthy();
 
+})
+
+test("Get recent tourmanents test", async () => {
+
+    const desiredData = {
+        'Import Date': '2025-03-14',
+        'W': 13,
+        'L': 7,
+        'Tournament Name': 'Test'
+    }
+
+    const db = new Database(dir + "test.db");
+    const statsBatch = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentTypeID) values (unixepoch('2025-03-14'),"",1);`);
+
+    const loadSampleData = `
+insert into PitchingStats (PtCardID,TeamName,StatsBatchID,G,W,L)
+values
+(1,'Team1',${statsBatch},0,5,3),
+(2,'Team1',${statsBatch},0,0,2),
+(3,'Team1',${statsBatch},0,8,2)
+`
+
+    await db.execute(loadSampleData);
+
+    const limit = 1;
+    const recentTournaments = await getRecentTournamentsHandler(dir + "test.db", 'Team1', limit);
+    
+    expect(limit === recentTournaments.length).toBeTruthy();
+    databaseObjectEqual(recentTournaments[0], desiredData);
+    
 })

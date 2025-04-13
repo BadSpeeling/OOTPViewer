@@ -23,7 +23,7 @@ declare global {
 
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
-    writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
+    writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<boolean>,
     getTournamentTypes: () => Promise<TournamentType[]>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
@@ -206,19 +206,19 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  // let dataScript = getRecentTournamentsScript;
-  // const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  let dataScript = getRecentTournamentsScript;
+  const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
 
-  // return recentTournaments.map((tournament: DatabaseRecord) => {
-  //   return {
-  //     W: tournament['W'],
-  //     L: tournament['L'],
-  //     TournamentName: tournament['Name'],
-  //     StatsBatchID: tournament['StatsBatchID'],
-  //     Description: tournament['Description'],
-  //     Timestamp: tournament['Timestamp']
-  //   }
-  // })
+  return recentTournaments.map((tournament: DatabaseRecord) => {
+    return {
+      W: tournament['W'],
+      L: tournament['L'],
+      TournamentName: tournament['Name'],
+      StatsBatchID: tournament['StatsBatchID'],
+      Description: tournament['Description'],
+      Timestamp: tournament['Timestamp']
+    }
+  })
 
 }
 

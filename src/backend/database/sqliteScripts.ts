@@ -251,3 +251,21 @@ where TournamentTypeID = ${tournamentTypeID}
 and json_extract([Description], '$.Year') in (${years.join(',')});
 `
 }
+
+export const getRecentTournaments = (teamName: string, limitAmt: number) => {
+
+    return `
+SELECT sb.StatsBatchID, DATE(Timestamp, 'unixepoch') [Import Date], tr.W, tr.L, tt.Name [Tournament Name], sb.Description
+FROM StatsBatch sb
+JOIN ( 
+	SELECT SUM(W) W, SUM(L) L, StatsBatchID
+	FROM PitchingStats ps
+	WHERE TeamName = '${teamName}'
+	GROUP BY ps.StatsBatchID
+) tr ON sb.StatsBatchID = tr.StatsBatchID 
+JOIN TournamentType tt ON sb.TournamentTypeID = tt.TournamentTypeID
+ORDER BY Timestamp DESC
+LIMIT ${limitAmt}
+`
+
+}

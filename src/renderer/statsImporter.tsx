@@ -5,12 +5,7 @@ import { getTournamentOptions } from "./dataLoader"
 import * as React from "react";
 import {createRoot} from "react-dom/client";
 
-const model = {}
-
-$(document).ready(async function(e) {
-    
-    $('#collectTournamentsToInsert').click(handleSubmit);
-    $('#reloadPage').click(reloadPage);
+addEventListener("load", async (event) => {
 
     const tournamentFiles: PtDataExportFile[] = await window.electronAPI.findTournamentExports();
 
@@ -122,7 +117,7 @@ async function handleSubmit (tournamentTypeID: number, tournamentFiles: PtDataSt
 
 }
 
-async function importTournaments (tournamentTypeID: number, htmlTournamentFilesToWrite: PtDataExportFile[]) {
+async function importTournaments (tournamentTypeID: number, htmlTournamentFilesToWrite: PtDataStatsFile[]) {
 
     const results: {key: number, status: DataSaveStatus}[] = []
 

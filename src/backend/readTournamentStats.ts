@@ -1,7 +1,7 @@
-import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript, getStatsBatchesForLeaguePlayYears, getLeagueBattingStatsScript, getLeaguePitchingStatsScript } from "./database/sqliteScripts"
+import {  getTournamentBattingStatsScript, getTournamentPitchingStatsScript, getStatsBatchesForLeaguePlayYears, getLeagueBattingStatsScript, getLeaguePitchingStatsScript, getRecentTournaments } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
 import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position,BattingStatsExpanded,PitchingStatsExpanded } from "./types"
-import { TournamentStatsQuery,StatsType } from "../types"
+import { TournamentStatsQuery,StatsType,TournamentMetaData } from "../types"
 
 import { getPtCards } from './ptCardOperations'
 
@@ -162,5 +162,12 @@ const joinPitchingPtCardValues = (stats: PitchingStats[], cards: PtCard[]) => {
     }
 
     return joinedStats;
+
+}
+
+export const getRecentTournamentsHandler = async (databasePath: string, teamName: string, limitAmt: number) => {
+    
+    const db = new Database(databasePath);
+    return await db.getAllMapped<TournamentMetaData>(getRecentTournaments(teamName, limitAmt));
 
 }

@@ -1,5 +1,4 @@
-import "datatables.net";
-import "datatables.net-fixedheader";
+
 import { SeasonStatsQuery, TournamentStatsQuery, } from "../types";
 
 $(document).ready(async () => {
@@ -38,7 +37,7 @@ async function loadTable () {
         seasonsParam = [parseInt(seasons)]
     }
 
-    const seasonStats = await window.electronAPI.getSeasonStats({tournamentTypeID: 2,statsType:parseInt(statsTypeID),qualifierValue: '0', positions: [] as string[], years: seasonsParam} as TournamentStatsQuery)
+    const seasonStats = await window.electronAPI.getSeasonStats({tournamentTypeID: 2,statsType:parseInt(statsTypeID),qualifierValue: 0, positions: [] as string[], years: seasonsParam} as TournamentStatsQuery)
 
     const tableHeader = buildTableHeader(columns);
     const tableBody = buildTableBody(seasonStats, columns);

@@ -8,7 +8,7 @@ import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
 import { getDatabase } from "./backend/database/Database";
-import { DatabaseRecord } from "./backend/types"
+import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded } from "./backend/types"
 
 import * as csvColumns from '../json/csvColumns.json';
 
@@ -25,7 +25,7 @@ declare global {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
     writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<boolean>,
     getTournamentTypes: () => Promise<TournamentType[]>,
-    getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
+    getTournamentStats: (query: TournamentStatsQuery) => Promise<BattingStatsExpanded[] | PitchingStatsExpanded[]>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,

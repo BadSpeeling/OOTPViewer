@@ -8,7 +8,7 @@ module.exports = {
 	entry: {
 		landing: './src/renderer/landing.tsx',
 		statsImporter: './src/renderer/statsImporter.tsx',
-		loadTournamentStats: './src/renderer/tournamentStats.ts',
+		loadTournamentStats: './src/renderer/tournamentStats.tsx',
 		seasonStats: './src/renderer/seasonStats.ts',
 	},
 	output: {

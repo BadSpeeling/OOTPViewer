@@ -86,7 +86,7 @@ test("Load Batting stats for a tournament", async () => {
     const query = {
         tournamentTypeID: 1,
         statsType: 0,
-        qualifierValue: '0',
+        qualifierValue: 0,
         positions: [],
     } as TournamentStatsQuery
 
@@ -183,7 +183,7 @@ test("Load Batting stats for league play", async () => {
     const query = {
         tournamentTypeID: 2,
         statsType: 0,
-        qualifierValue: '0',
+        qualifierValue: 0,
         positions: [],
         years: [2027,2028],
     } as TournamentStatsQuery
@@ -250,7 +250,7 @@ values
     const query = {
         tournamentTypeID: 1,
         statsType: 1,
-        qualifierValue: '0',
+        qualifierValue: 0,
         positions: [],
     } as TournamentStatsQuery
 
@@ -324,7 +324,7 @@ test("Load Pitching stats for league play", async () => {
     const query = {
         tournamentTypeID: 2,
         statsType: 1,
-        qualifierValue: '0',
+        qualifierValue: 0,
         positions: [],
         years: [2027,2028],
     } as TournamentStatsQuery

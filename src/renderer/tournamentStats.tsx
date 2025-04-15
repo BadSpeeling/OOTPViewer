@@ -50,12 +50,18 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
     const [selectedTournamentType, setSelectedTournamentType] = React.useState(0);
     const [statsTypeID, setStatsType] = React.useState(0);
     const [qualifierValue, setQualifierValue] = React.useState('');
+    const [positions, setPositions] = React.useState([] as string[])
 
     const dataLoadHandler = async () => {
-        const playerStats: BattingStatsExpanded[] | PitchingStatsExpanded[] = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0);
+        const playerStats: BattingStatsExpanded[] | PitchingStatsExpanded[] = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0, positions);
         setPlayerStats(playerStats);
     }
     
+    const setPositionsHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const options = Array.from(e.target.selectedOptions, option => option.value);
+        setPositions(options);
+    };
+
     let columns: string[];
 
     if (statsTypeID === 0) {
@@ -85,6 +91,17 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
                     <option value={0}>Batting</option>
                     <option value={1}>Pitching</option>
                 </select>
+                <select multiple value={positions.map(position => position.toString())} onChange={setPositionsHandler}>
+                    <option value={1}>P</option>
+                    <option value={2}>C</option>
+                    <option value={3}>1B</option>
+                    <option value={4}>2B</option>
+                    <option value={5}>3B</option>
+                    <option value={6}>SS</option>
+                    <option value={7}>LF</option>
+                    <option value={8}>CF</option>
+                    <option value={9}>RF</option>
+                </select>
                 <div>Min {getQualifierName(statsTypeID)} to qualify: <input value={qualifierValue} onChange={(e) => setQualifierValue(e.target.value)}/></div>
             </div>
             { 
@@ -104,29 +121,20 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
 
 }
 
-async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qualifierValue: number) {
+async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qualifierValue: number, positions: string[]) {
 
-    const selectedPositions = $('#position').val();
-    let positions: string[] = [];
-
-    if (Array.isArray(selectedPositions)) {
-        positions = selectedPositions;
-    }
-    else if (typeof selectedPositions === 'string') {
-        positions = [selectedPositions];
-    }
-
+    
     return await window.electronAPI.getTournamentStats({tournamentTypeID, statsType: statsTypeID, qualifierValue, positions} as TournamentStatsQuery);
 
 }
 
 function buildTableBody (data: any, columns) {
 
-    const tableBody = data.map((dataRecord) => {
+    const tableBody = data.map((dataRecord, index) => {
         const curRow = columns.map((column) => {
             return (<td>{dataRecord[column]}</td>)
         })
-        return (<tr>{curRow}</tr>)
+        return (<tr key={index+1}>{curRow}</tr>)
 
     })
 
@@ -140,7 +148,7 @@ function buildTableHeader (columns) {
         return (<th>{column}</th>)
     });
 
-    return (<thead><tr>{tableHeaders}</tr></thead>)
+    return (<thead><tr key={0}>{tableHeaders}</tr></thead>)
 
 }
 

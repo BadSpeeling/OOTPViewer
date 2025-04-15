@@ -107,9 +107,8 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
             { 
                 playerStatsEnummed.length > 0 &&
                 <div>
-                    <DataTable>
-                        { buildTableHeader(columns) }
-                        { buildTableBody(playerStatsEnummed, columns) }
+                    <DataTable data={buildTableBody(playerStatsEnummed, columns)}>
+                        { buildTableHeader(columns) }                        
                     </DataTable>
                 </div>
             }
@@ -130,15 +129,11 @@ async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qu
 
 function buildTableBody (data: any, columns) {
 
-    const tableBody = data.map((dataRecord, index) => {
-        const curRow = columns.map((column) => {
-            return (<td>{dataRecord[column]}</td>)
-        })
-        return (<tr key={index+1}>{curRow}</tr>)
-
+    const tableBody = data.map((dataRecord) => {
+        return columns.map((column) => dataRecord[column])
     })
 
-    return (<tbody>${tableBody}</tbody>)
+    return tableBody
 
 }
 
@@ -148,7 +143,7 @@ function buildTableHeader (columns) {
         return (<th>{column}</th>)
     });
 
-    return (<thead><tr key={0}>{tableHeaders}</tr></thead>)
+    return (<thead><tr>{tableHeaders}</tr></thead>)
 
 }
 

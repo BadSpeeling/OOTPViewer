@@ -23,22 +23,7 @@ const currTime = Date.now();
 const dir = 'E:\\ootp_data\\sqlite\\'
 
 // test('test db init', async () => {
-//   await initializeDatabase(['.','test.db']);
-  
-// })
-
-// test('tests that jest with typescript works', async () => {
-        
-//     fs.closeSync(fs.openSync(dir + `${currTime}.db`, 'a+'));
-
-//     const db = await open({
-//         filename: dir + `${currTime}.db`,
-//         driver: sqlite3.Database
-//       });
-  
-//       await db.exec(tables.map((table) => table.createTableString()).join(""));
-//       await db.close();
-
+//   await initializeDatabase(['E:','ootp_data','sqlite',`${currTime}.db`]);
 // })
 
 // test('Run table load', async () => {

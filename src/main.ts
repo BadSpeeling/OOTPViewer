@@ -25,7 +25,7 @@ declare global {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
     writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<boolean>,
     getTournamentTypes: () => Promise<TournamentType[]>,
-    getTournamentStats: (query: TournamentStatsQuery) => Promise<BattingStatsExpanded[] | PitchingStatsExpanded[]>,
+    getTournamentStats: (query: TournamentStatsQuery) => Promise<{headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]}>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
@@ -118,11 +118,11 @@ app.whenReady().then(() => {
     console.log(value)
 
     if (value.statsType === StatsType.Batting) {
-      return await getTournamentStats(path.join(...settings.databasePath), value);
+      return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
       
     }
     else if (value.statsType === StatsType.Pitching) {
-      return await getTournamentStats(path.join(...settings.databasePath), value);
+      return {headers: ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
     }
     else {
       throw Error(StatsType[value.statsType] + ' is not a valid statsTypeID value');

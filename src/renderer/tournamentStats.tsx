@@ -47,32 +47,22 @@ type StatsDisplayProps = {
 function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
     
     const [playerStats,setPlayerStats] = React.useState([] as BattingStatsExpanded[] | PitchingStatsExpanded[])
+    const [headers, setHeaders] = React.useState([] as string[])
     const [selectedTournamentType, setSelectedTournamentType] = React.useState(0);
     const [statsTypeID, setStatsType] = React.useState(0);
     const [qualifierValue, setQualifierValue] = React.useState('');
     const [positions, setPositions] = React.useState([] as string[])
 
     const dataLoadHandler = async () => {
-        const playerStats: BattingStatsExpanded[] | PitchingStatsExpanded[] = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0, positions);
-        setPlayerStats(playerStats);
+        const statsResult = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0, positions);
+        setPlayerStats(statsResult.stats);
+        setHeaders(statsResult.headers);
     }
     
     const setPositionsHandler = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const options = Array.from(e.target.selectedOptions, option => option.value);
         setPositions(options);
     };
-
-    let columns: string[];
-
-    if (statsTypeID === 0) {
-        columns = battingColumns();
-    }
-    else if (statsTypeID === 1) {
-        columns = pitchingColumns();
-    }
-    else {
-        throw Error(statsTypeID + ' is not a valid StatsType');
-    }
 
     const playerStatsEnummed = playerStats.map((playerStat) => {
         return {
@@ -107,8 +97,8 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
             { 
                 playerStatsEnummed.length > 0 &&
                 <div>
-                    <DataTable data={buildTableBody(playerStatsEnummed, columns)}>
-                        { buildTableHeader(columns) }                        
+                    <DataTable data={buildTableBody(playerStatsEnummed, headers)}>
+                        { buildTableHeader(headers) }                        
                     </DataTable>
                 </div>
             }
@@ -122,8 +112,8 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
 
 async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qualifierValue: number, positions: string[]) {
 
-    
-    return await window.electronAPI.getTournamentStats({tournamentTypeID, statsType: statsTypeID, qualifierValue, positions} as TournamentStatsQuery);
+    const response = await window.electronAPI.getTournamentStats({tournamentTypeID, statsType: statsTypeID, qualifierValue, positions} as TournamentStatsQuery);
+    return response as {headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]};
 
 }
 

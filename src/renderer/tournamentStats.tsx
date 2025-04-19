@@ -15,8 +15,6 @@ addEventListener("load", async (event) => {
     const tournamentOptions = await getTournamentOptions();
     DataTable.use(DT);
 
-    $('#position').change()
-
     const wrapper = document.getElementById("reactWrapper");
 
     if (wrapper) {

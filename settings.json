@@ -1,5 +1,6 @@
 {
     "ootpRoot": ["C:","Users","ericf","OneDrive","Documents","Out of the Park Developments","OOTP Baseball 26"],
     "ptCardFile": ["online_data","pt_card_list.csv"],
-    "databasePath": ["E:","ootp_data","sqlite","pt.db"]
+    "databasePath": ["E:","ootp_data","sqlite","pt.db"],
+    "leaguePlayTournamentID": 2
 }

@@ -3,17 +3,17 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import {getTournamentStats} from './backend/readTournamentStats'
+import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
 
 import { getDatabase } from "./backend/database/Database";
-import { DatabaseRecord } from "./backend/types"
+import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded } from "./backend/types"
 
 import * as csvColumns from '../json/csvColumns.json';
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType } from './types'
 import {Bats,Throws,Position} from "./backend/types"
 
 declare global {
@@ -23,13 +23,14 @@ declare global {
 
   interface TournamentExporterAPI {
     findTournamentExports: () => Promise<PtDataExportFile[]>,
-    writeHtmlTournamentStats: (exportFile: PtDataStatsFile) => Promise<PtDataExportFile>,
-    getTournamentTypes: () => Promise<{TournamentTypeID:string,Name:string}>,
-    getTournamentStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
+    writeHtmlTournamentStats: (tournamentTypeID: number, exportFile: PtDataStatsFile) => Promise<boolean>,
+    getTournamentTypes: () => Promise<TournamentType[]>,
+    getTournamentStats: (query: TournamentStatsQuery) => Promise<{headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]}>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
+    openSeasonStats: () => void,
     openStatsImporter: () => void,
     loadPtCards: () => void,
   }
@@ -98,13 +99,13 @@ const openSeasonStats = () => {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('writeHtmlTournamentStats', async (_event, value) => {
+  ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value) => {
     console.log(value)
     
     const writer = new HtmlStatsTool(settings.databasePath);
     const liveUpdateID = null;
 
-    const writeResults = await writer.handleTournamentStatsWrite(value, liveUpdateID);
+    const writeResults = await writer.handleTournamentStatsWrite(value, tournamentTypeID, liveUpdateID);
 
     if (writeResults) {
       await clearPtFolderHtmlFiles(value.path)
@@ -118,11 +119,11 @@ app.whenReady().then(() => {
     console.log(value)
 
     if (value.statsType === StatsType.Batting) {
-      return await getTournamentStats(path.join(...settings.databasePath), value);
+      return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
       
     }
     else if (value.statsType === StatsType.Pitching) {
-      return await getTournamentStats(path.join(...settings.databasePath), value);
+      return {headers: ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
     }
     else {
       throw Error(StatsType[value.statsType] + ' is not a valid statsTypeID value');
@@ -188,7 +189,15 @@ async function clearPtFolderHtmlFiles (htmlStatsFolder: string) {
 }
 
 async function getTournamentTypes (e, args) {
-  return await getDatabase().getAll("SELECT * FROM TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  
+  const data = await getDatabase().getAll("SELECT * FROM TournamentType ORDER BY IsQuick DESC,IsCap DESC,IsLive DESC,[Name] ASC")
+  return data.map((row) => {
+    return {
+      TournamentTypeID: parseInt(row["TournamentTypeID"].toString()),
+      Name: row["Name"].toString()
+    } as TournamentType
+  });
+
 }
 
 async function lookupData (e, args) {
@@ -198,19 +207,11 @@ async function lookupData (e, args) {
 
 async function getRecentTournaments (e, args) {
 
-  // let dataScript = getRecentTournamentsScript;
-  // const recentTournaments: DatabaseRecord[] = await getDatabase().getAll(dataScript)
+  const teamName = 'Lil Dickey';
+  const limitAmount = 10;
 
-  // return recentTournaments.map((tournament: DatabaseRecord) => {
-  //   return {
-  //     W: tournament['W'],
-  //     L: tournament['L'],
-  //     TournamentName: tournament['Name'],
-  //     StatsBatchID: tournament['StatsBatchID'],
-  //     Description: tournament['Description'],
-  //     Timestamp: tournament['Timestamp']
-  //   }
-  // })
+  const recentTournaments = await getRecentTournamentsHandler(path.join(...settings.databasePath), teamName, limitAmount);
+  return recentTournaments;
 
 }
 

@@ -1,7 +1,7 @@
-import { getTournamentBattingStatsScript, getTournamentPitchingStatsScript, getStatsBatchesForLeaguePlayYears, getLeagueBattingStatsScript, getLeaguePitchingStatsScript } from "./database/sqliteScripts"
+import {  getTournamentBattingStatsScript, getTournamentPitchingStatsScript, getStatsBatchesForLeaguePlayYears, getLeagueBattingStatsScript, getLeaguePitchingStatsScript, getRecentTournaments } from "./database/sqliteScripts"
 import { Database } from "../backend/database/Database"
 import { BattingStats,PitchingStats,PtCard,Bats,Throws,Position,BattingStatsExpanded,PitchingStatsExpanded } from "./types"
-import { TournamentStatsQuery,StatsType } from "../types"
+import { TournamentStatsQuery,StatsType,TournamentMetaData } from "../types"
 
 import { getPtCards } from './ptCardOperations'
 
@@ -11,11 +11,25 @@ import * as setttings from "../../settings.json"
 export const getTournamentStats = async (databasePath: string, query: TournamentStatsQuery) => {
     
     const db = new Database(databasePath);
-    const summedStats = await readTournamentStats(query, db);
+    let summedStats = await readTournamentStats(query, db);
 
     const ptCardIds = getPtCardIDs(summedStats);
-    const whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
+    let whereClause = `WHERE PtCardID IN (${ptCardIds.join(',')})`
+
+    if (query.positions.length > 0) {
+        whereClause += ` AND Position IN (${query.positions.join(',')})`
+    }
+
     const cards = await getPtCards(db, ["PtCardID","CardValue","CardTitle","Bats","Throws","Position"], whereClause);
+
+    if (query.positions.length > 0) {
+        summedStats = summedStats.filter((statRow) => cards.find((card) => card.PtCardID === statRow.PtCardID)) as BattingStatsExpanded[] | PitchingStatsExpanded[]
+    }
+
+    if (query.qualifierValue) {
+        const qualifierStat = query.statsType === StatsType.Batting ? "PA" : query.statsType == StatsType.Pitching ? "G" : "";
+        summedStats = summedStats.filter((summedStatsRow) => summedStatsRow[qualifierStat] >= query.qualifierValue) as BattingStatsExpanded[] | PitchingStatsExpanded[]
+    }   
 
     const statsAndRatings = joinStatsCards(query.statsType, summedStats, cards);
 
@@ -162,5 +176,12 @@ const joinPitchingPtCardValues = (stats: PitchingStats[], cards: PtCard[]) => {
     }
 
     return joinedStats;
+
+}
+
+export const getRecentTournamentsHandler = async (databasePath: string, teamName: string, limitAmt: number) => {
+    
+    const db = new Database(databasePath);
+    return await db.getAllMapped<TournamentMetaData>(getRecentTournaments(teamName, limitAmt));
 
 }

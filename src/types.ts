@@ -17,13 +17,13 @@ export type PtPlayerStats = {
 export type TournamentStatsQuery = {
     tournamentTypeID: number,
     statsType: StatsType,
-    qualifierValue: string,
+    qualifierValue: number,
     positions: string[],
     years?: number[],
 }
 
 export enum StatsType {
-    Batting,Pitching,Fielding
+    Batting = 0,Pitching = 1,Fielding = 2
 }
 
 export type SeasonStatsQuery = {
@@ -36,8 +36,16 @@ export type PtStats = {
 
 export interface PtDataStatsFile extends PtDataExportFile {
     description: string,
-    tournamentTypeID: number,
     isCumulativeFlag: boolean,
+    isIncludedFlag: boolean,
+    dataSaveStatus: DataSaveStatus,
+}
+
+export enum DataSaveStatus {
+    None,
+    Pending,
+    Successful,
+    Failure,
 }
 
 export interface TournamentMetaData {
@@ -47,4 +55,9 @@ export interface TournamentMetaData {
     StatsBatchID: number,
     Description: string,
     Timestamp: Date,
+}
+
+export interface TournamentType {
+    TournamentTypeID: number,
+    Name: string,
 }

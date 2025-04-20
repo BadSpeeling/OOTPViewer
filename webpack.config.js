@@ -6,10 +6,10 @@ module.exports = {
 	mode: 'development',
 	devtool: 'inline-source-map',
 	entry: {
-		landing: './src/renderer/landing.ts',
-		statsImporter: './src/renderer/statsImporter.ts',
-		loadTournamentStats: './src/renderer/tournamentStats.ts',
-		seasonStats: './src/renderer/seasonStats.ts',
+		landing: './src/renderer/landing.tsx',
+		statsImporter: './src/renderer/statsImporter.tsx',
+		loadTournamentStats: './src/renderer/tournamentStats.tsx',
+		seasonStats: './src/renderer/seasonStats.tsx',
 	},
 	output: {
 		path: path.resolve(__dirname,'dist','renderer'),

@@ -11,6 +11,7 @@
     "rootDir": "src",
     "outDir": "dist",
     "resolveJsonModule": true,
+    "jsx": "react",
     "lib": ["ES2021","ES2021.Promise","ES2022.Error","DOM"]
   },
   "include": ["src/**/*"],

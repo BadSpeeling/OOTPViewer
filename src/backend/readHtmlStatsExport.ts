@@ -22,7 +22,7 @@ export class HtmlStatsTool {
         this.database = new Database(path.join(...databasePath))
     }
 
-    async handleTournamentStatsWrite (htmlOutput: PtDataStatsFile, liveUpdateID: number | null) {
+    async handleTournamentStatsWrite (htmlOutput: PtDataStatsFile, tournamentTypeID: number, liveUpdateID: number | null) {
 
         try {
             const tournamentOutput = await this.#convertHtmlFileToTournamentOutput(htmlOutput)
@@ -31,7 +31,7 @@ export class HtmlStatsTool {
                 liveUpdateID = await this.getRecentLiveUpdate()
             }
         
-            await this.#writeTournamentStats(htmlOutput, tournamentOutput.stats, liveUpdateID)
+            await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID)
             return true;
 
         }
@@ -41,11 +41,11 @@ export class HtmlStatsTool {
 
     }
     
-    async #writeTournamentStats (htmlOutput: PtDataStatsFile, stats: PtPlayerStats[], liveUpdateID: number) {
+    async #writeTournamentStats (description: string, tournamentTypeID: number, stats: PtPlayerStats[], liveUpdateID: number) {
     
         const database = this.database;
     
-        const statsBatchID = await this.#createStatsBatch(htmlOutput);
+        const statsBatchID = await this.#createStatsBatch(description, tournamentTypeID);
 
         const battingStats = stats.filter((stat) => typeof stat.battingStats.G === 'number' && stat.battingStats.G > 0);
         const pitchingStats = stats.filter((stat) => typeof stat.pitchingStats.G === 'number' && stat.pitchingStats.G > 0);
@@ -165,11 +165,11 @@ export class HtmlStatsTool {
     
     }
     
-    async #createStatsBatch (htmlOutput: PtDataStatsFile) : Promise<number> {
+    async #createStatsBatch (description: string, tournamentTypeID: number) : Promise<number> {
     
         const db = this.database;
-        const description = htmlOutput.description.replaceAll('"','""'.replaceAll("'","''"));
-        const statsBatchID = await db.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${description}',${htmlOutput.tournamentTypeID})`);
+        description = description.replaceAll('"','""'.replaceAll("'","''"));
+        const statsBatchID = await db.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${description}',${tournamentTypeID})`);
     
         return statsBatchID;
     

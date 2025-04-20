@@ -30,16 +30,16 @@ const Landing = ({recentTournaments}: LandingProps) => {
        window.electronAPI.openTournamentStats() 
     };
 
-    const openCardMarketManagerHandler = (e) => {
-        
+    const openSeasonStatsHandler = (e) => {
+        window.electronAPI.openSeasonStats()
     };
 
     return (
         <>
             <div>
                 <button id="openStatsImporter" onClick={openStatsImporterHandler}>Stats Importer</button>
-                <button id="openStatsViewer" onClick={openTournamentStatsHandler}>Stats Viewer</button>
-                <button id="openCardMarketManager">Card Market</button>
+                <button id="openStatsViewer" onClick={openTournamentStatsHandler}>Tournament Stats</button>
+                <button id="openSeasonStats" onClick={openSeasonStatsHandler}>Season Stats</button>
             </div>
             <div>
                 <RecentTournaments recentTournaments={recentTournaments}/>

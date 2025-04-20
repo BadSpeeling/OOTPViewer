@@ -9,7 +9,7 @@ module.exports = {
 		landing: './src/renderer/landing.tsx',
 		statsImporter: './src/renderer/statsImporter.tsx',
 		loadTournamentStats: './src/renderer/tournamentStats.tsx',
-		seasonStats: './src/renderer/seasonStats.ts',
+		seasonStats: './src/renderer/seasonStats.tsx',
 	},
 	output: {
 		path: path.resolve(__dirname,'dist','renderer'),

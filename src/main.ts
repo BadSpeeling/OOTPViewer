@@ -30,6 +30,7 @@ declare global {
     getRecentTournaments: () => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
+    openSeasonStats: () => void,
     openStatsImporter: () => void,
     loadPtCards: () => void,
   }

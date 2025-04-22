@@ -14,6 +14,7 @@
         {"nameInSource":"LastName","databaseColumnName":"FirstName","type":"TEXT"},
         {"nameInSource":"FirstName","databaseColumnName":"LastName","type":"TEXT"},
         {"nameInSource":"NickName","databaseColumnName":"NickName","type":"TEXT"},
+        {"nameInSource":"Nation","databaseColumnName":"Nation","type":"TEXT"},
         {"nameInSource":"UniformNumber","databaseColumnName":"UniformNumber","type":"INTEGER"},
         {"nameInSource":"DayOB","databaseColumnName":"DayOB","type":"INTEGER"},
         {"nameInSource":"MonthOB","databaseColumnName":"MonthOB","type":"INTEGER"},

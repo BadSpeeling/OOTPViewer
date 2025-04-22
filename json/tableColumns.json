@@ -15,6 +15,7 @@
             {"name":"FirstName","type":"TEXT","isNullable":false},
             {"name":"LastName","type":"TEXT","isNullable":false},
             {"name":"NickName","type":"TEXT","isNullable":false},
+            {"name":"Nation","type":"TEXT","isNullable":false},
             {"name":"UniformNumber","type":"INTEGER","isNullable":false},
             {"name":"DayOB","type":"INTEGER","isNullable":false},
             {"name":"MonthOB","type":"INTEGER","isNullable":false},

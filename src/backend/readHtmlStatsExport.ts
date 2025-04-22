@@ -45,7 +45,7 @@ export class HtmlStatsTool {
     
         const database = this.database;
     
-        const statsBatchID = await this.#createStatsBatch(description, tournamentTypeID);
+        const statsBatchID = await this.createStatsBatch(description, tournamentTypeID);
 
         const battingStats = stats.filter((stat) => typeof stat.battingStats.G === 'number' && stat.battingStats.G > 0);
         const pitchingStats = stats.filter((stat) => typeof stat.pitchingStats.G === 'number' && stat.pitchingStats.G > 0);
@@ -165,10 +165,10 @@ export class HtmlStatsTool {
     
     }
     
-    async #createStatsBatch (description: string, tournamentTypeID: number) : Promise<number> {
+    async createStatsBatch (description: string, tournamentTypeID: number) : Promise<number> {
     
         const db = this.database;
-        description = description.replaceAll('"','""'.replaceAll("'","''"));
+        //description = description.replaceAll('"','""'.replaceAll("'","''"));
         const statsBatchID = await db.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${description}',${tournamentTypeID})`);
     
         return statsBatchID;

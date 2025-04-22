@@ -31,8 +31,8 @@ export class HtmlStatsTool {
                 liveUpdateID = await this.getRecentLiveUpdate()
             }
         
-            await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID)
-            return true;
+            const statsBatchID = await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID)
+            return statsBatchID;
 
         }
         catch (error) {
@@ -59,6 +59,8 @@ export class HtmlStatsTool {
             const pitchingScript = tournamentPitchingStatsWriteScript(pitchingStats, liveUpdateID, statsBatchID);
             await database.execute(pitchingScript);
         }
+
+        return statsBatchID;
 
     }
     

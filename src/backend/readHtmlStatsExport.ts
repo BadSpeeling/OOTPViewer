@@ -8,7 +8,7 @@ import { Database, getDatabase } from "./database/Database"
 
 import * as settings from '../../settings.json';
 import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
-import { } from "./types"
+import { GeneralStatsWriteFilter } from "./types"
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
@@ -31,7 +31,9 @@ export class HtmlStatsTool {
                 liveUpdateID = await this.getRecentLiveUpdate()
             }
         
-            const statsBatchID = await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID)
+            const filter = htmlOutput.onlyMyTeamFlag ? {TeamName: "Lil Dickey"} : undefined
+
+            const statsBatchID = await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID, filter)
             return statsBatchID;
 
         }
@@ -41,14 +43,19 @@ export class HtmlStatsTool {
 
     }
     
-    async #writeTournamentStats (description: string, tournamentTypeID: number, stats: PtPlayerStats[], liveUpdateID: number) {
+    async #writeTournamentStats (description: string, tournamentTypeID: number, stats: PtPlayerStats[], liveUpdateID: number, filter?: GeneralStatsWriteFilter) {
     
         const database = this.database;
     
         const statsBatchID = await this.createStatsBatch(description, tournamentTypeID);
+        let statsToWrite = stats;
 
-        const battingStats = stats.filter((stat) => typeof stat.battingStats.G === 'number' && stat.battingStats.G > 0);
-        const pitchingStats = stats.filter((stat) => typeof stat.pitchingStats.G === 'number' && stat.pitchingStats.G > 0);
+        if (filter) {
+            statsToWrite = this.#statsGeneralFilter(statsToWrite, filter);
+        }
+
+        const battingStats = statsToWrite.filter((stat) => typeof stat.battingStats.G === 'number' && stat.battingStats.G > 0);
+        const pitchingStats = statsToWrite.filter((stat) => typeof stat.pitchingStats.G === 'number' && stat.pitchingStats.G > 0);
 
         if (battingStats.length > 0) {
             const battingScript = tournamentBattingStatsWriteScript(battingStats, liveUpdateID, statsBatchID);
@@ -184,6 +191,14 @@ export class HtmlStatsTool {
         
         return result.LiveUpdateID;
     
+    }
+
+    #statsGeneralFilter (stats: PtPlayerStats[], filter: GeneralStatsWriteFilter) {
+
+        return stats.filter((stat) => {
+            return stat.generalStats.TM === filter.TeamName
+        })
+
     }
 
 }

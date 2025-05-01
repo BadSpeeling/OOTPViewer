@@ -32,6 +32,7 @@ function Page ({tournaments, tournamentFiles}: Props) {
             description: "",
             tournamentTypeID: 0,
             isIncludedFlag: false,
+            onlyMyTeamFlag: false,
             isCumulativeFlag: false,
             dataSaveStatus: DataSaveStatus.None,
         } as PtDataStatsFile
@@ -75,13 +76,17 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
         updateTournamentExport({...curTournamentExports[index],isIncludedFlag: e.target.checked}, index)
     }
 
+    const updateMyTeamFlag = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        updateTournamentExport({...curTournamentExports[index],onlyMyTeamFlag: e.target.checked}, index)
+    }
+
     const tableBody = curTournamentExports.map((tourney, index) => {
-        return <tr key={tourney.key}><td><input type='checkbox' checked={tourney.isIncludedFlag} onChange={(e) => updateCheckbox(e, index)}/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'>{tournamentRowStatusIcon(tourney.dataSaveStatus)}</td></tr>
+        return <tr key={tourney.key}><td><input type='checkbox' checked={tourney.onlyMyTeamFlag} onChange={(e) => updateMyTeamFlag(e, index)}/></td><td><input type='checkbox' checked={tourney.isIncludedFlag} onChange={(e) => updateCheckbox(e, index)}/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'>{tournamentRowStatusIcon(tourney.dataSaveStatus)}</td></tr>
     })
 
     return (
         <table>
-            <tr><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>
+            <tr><th>Only My Team?</th><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>
             {tableBody}
         </table>
     )

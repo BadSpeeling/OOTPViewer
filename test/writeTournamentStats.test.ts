@@ -8,10 +8,10 @@ import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript }
 import { HtmlStatsTool } from "../src/backend/readHtmlStatsExport"
 import { statsExport } from '../json/csvColumns.json'
 
-import {PtDataStatsFile} from "../src/types"
+import {PtDataStatsFile, PtPlayerStats} from "../src/types"
 
 beforeAll(async () => {
-    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
+    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt-skeleton.db','E:\\ootp_data\\sqlite\\test.db');
 });
   
 afterAll(() => {
@@ -30,7 +30,8 @@ test('Populate BattingStats table with record', async () => {
       description: "This is a test!",
       isCumulativeFlag: false,
       isIncludedFlag: true,
-      dataSaveStatus: 0
+      dataSaveStatus: 0,
+      onlyMyTeamFlag: false,
     }, 1, null)
 
     const desiredData = [
@@ -129,7 +130,8 @@ test('Populate PitchingStats table with pitching records', async () => {
     description: "This is a test!",
     isCumulativeFlag: false,
     isIncludedFlag: true,
-    dataSaveStatus: 0
+    dataSaveStatus: 0,
+    onlyMyTeamFlag: false,
   }, 1, null)
 
   const desiredData = [
@@ -319,5 +321,31 @@ test('Create a StatsBatch record', async () => {
   const databaseRecord = await new Database(path.join(...db)).getMapped<{Description:string}>(`select Description from StatsBatch where StatsBatchID=${statsBatchID}`)
   
   expect(JSON.stringify(record) === databaseRecord.Description).toBeTruthy();
+
+})
+
+test('Write only my team stats', async () => {
+
+  const tool =new HtmlStatsTool(["E:","ootp_data","sqlite","test.db"]);
+  const statsBatchID = await tool.handleTournamentStatsWrite({
+    key:0,
+    isSuccess:false,
+    ptFolder:"",
+    path:"D:\\OOTP Perfect Team\\js-ootpviewer\\test\\data",
+    fileName:"tournament_data_2_rows_myteamtest.html",
+    description: "This is a test!",
+    isCumulativeFlag: false,
+    isIncludedFlag: true,
+    dataSaveStatus: 0,
+    onlyMyTeamFlag: true
+  }, 1, null)
+
+  const db = new Database("E:\\ootp_data\\sqlite\\test.db");
+
+  const battingRecord1 = await db.get(`select * from main.BattingStats where PtCardID = 27 and StatsBatchID = ${statsBatchID}`)
+  const battingRecordMissing = await db.get(`select * from main.BattingStats where PtCardID = 28 and StatsBatchID = ${statsBatchID}`)
+
+  expect(battingRecord1).toBeTruthy()
+  expect(battingRecordMissing).toBeFalsy()
 
 })

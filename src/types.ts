@@ -39,6 +39,7 @@ export interface PtDataStatsFile extends PtDataExportFile {
     isCumulativeFlag: boolean,
     isIncludedFlag: boolean,
     dataSaveStatus: DataSaveStatus,
+    onlyMyTeamFlag: boolean,    
 }
 
 export enum DataSaveStatus {

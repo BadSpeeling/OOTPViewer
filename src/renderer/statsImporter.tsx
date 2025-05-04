@@ -90,16 +90,18 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
 
 async function handleSubmit (tournamentTypeID: number, tournamentFiles: PtDataStatsFile[], setTournamentExports: React.Dispatch<React.SetStateAction<PtDataStatsFile[]>>) {
 
-    const pendingTournaments = tournamentFiles.filter(tourney => tourney.isIncludedFlag).map(tourney => {
+    const pendingTournamentsUpdateStatus = tournamentFiles.map(tourney => {
         return {
             ...tourney,
-            dataSaveStatus: DataSaveStatus.Pending
+            dataSaveStatus: tourney.isIncludedFlag ? DataSaveStatus.Pending : tourney.dataSaveStatus
         }
     });
 
-    setTournamentExports(pendingTournaments);
-    const results = await importTournaments(tournamentTypeID, tournamentFiles)
-    setTournamentExports(pendingTournaments.map((tourney) => {
+    const tournamentsToWrite = tournamentFiles.filter(tourney => tourney.isIncludedFlag);
+
+    setTournamentExports(pendingTournamentsUpdateStatus);
+    const results = await importTournaments(tournamentTypeID, tournamentsToWrite)
+    setTournamentExports(tournamentFiles.map((tourney) => {
 
         const result = results.find(result => result.key === tourney.key);
 

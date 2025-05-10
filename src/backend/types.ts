@@ -330,3 +330,7 @@ export enum Position {
     RF = 9,
     DH = 10,
 }
+
+export interface GeneralStatsWriteFilter {
+    TeamName: string,
+}

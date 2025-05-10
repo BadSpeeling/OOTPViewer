@@ -1,26 +1,28 @@
-import { TournamentMetaData } from "../types";
+import { TournamentMetaData, PtTeam } from "../types";
 import { dateTime } from "../utilities";
 
 import * as React from "react";
-import {createRoot} from "react-dom/client";
+import { createRoot } from "react-dom/client";
+import { PtTeamSelector } from "./ptTeamSelector";
 
 addEventListener("load", async (event) => {
 
-    const recentTournaments: TournamentMetaData[] = await window.electronAPI.getRecentTournaments()
+    const myTeams = await window.electronAPI.getPtTeams() as PtTeam[];
+    
     const wrapper = document.getElementById("reactWrapper");
 
     if (wrapper) {
         const root = createRoot(wrapper);
-        root.render(<Landing recentTournaments={recentTournaments} />);
+        root.render(<Landing myTeams={myTeams} />);
     }
 
 });
 
 type LandingProps = {
-    recentTournaments: TournamentMetaData[],
+    myTeams: PtTeam[],
 }
 
-const Landing = ({recentTournaments}: LandingProps) => {
+const Landing = ({myTeams}: LandingProps) => {
 
     const openStatsImporterHandler = (e) => {
         window.electronAPI.openStatsImporter()
@@ -34,6 +36,13 @@ const Landing = ({recentTournaments}: LandingProps) => {
         window.electronAPI.openSeasonStats()
     };
 
+    const [selectedTeamName, setSelectedTeamName] = React.useState(myTeams.length > 0 ? myTeams[0].TeamName : "");
+    const [recentTournaments,setRecentTournaments] = React.useState([]);
+
+    React.useEffect(() => {
+        (async () => {setRecentTournaments(await window.electronAPI.getRecentTournaments(selectedTeamName))})();
+    }, [selectedTeamName]);
+
     return (
         <>
             <div>
@@ -42,7 +51,8 @@ const Landing = ({recentTournaments}: LandingProps) => {
                 <button id="openSeasonStats" onClick={openSeasonStatsHandler}>Season Stats</button>
             </div>
             <div>
-                <RecentTournaments recentTournaments={recentTournaments}/>
+                <PtTeamSelector selectedTeamName={selectedTeamName} setSelectedTeamName={setSelectedTeamName} teams={myTeams}/>
+                {recentTournaments && <RecentTournaments recentTournaments={recentTournaments}/>}
             </div>
         </>
     )

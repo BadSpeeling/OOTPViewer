@@ -1,20 +1,22 @@
-import { PtDataExportFile, PtDataStatsFile, TournamentType, DataSaveStatus } from '../types'
+import { PtDataExportFile, PtDataStatsFile, TournamentType, DataSaveStatus, PtTeam } from '../types'
 import { TournamentTypePicker } from "./tournamentTypePicker"
 import { getTournamentOptions } from "./getTournamentTypes"
 
 import * as React from "react";
 import {createRoot} from "react-dom/client";
+import { PtTeamSelector } from './ptTeamSelector';
 
 addEventListener("load", async (event) => {
 
     const tournamentFiles: PtDataExportFile[] = await window.electronAPI.findTournamentExports();
+    const myTeams = await window.electronAPI.getPtTeams() as PtTeam[];
 
     const tournaments = await getTournamentOptions();
     const wrapper = document.getElementById("reactWrapper");
 
     if (wrapper) {
         const root = createRoot(wrapper);
-        root.render(<Page tournaments={tournaments} tournamentFiles={tournamentFiles} />);
+        root.render(<Page tournaments={tournaments} tournamentFiles={tournamentFiles} myTeams={myTeams}/>);
     }
 
 })
@@ -22,9 +24,12 @@ addEventListener("load", async (event) => {
 type Props = {
     tournaments: TournamentType[],
     tournamentFiles: PtDataExportFile[];
+    myTeams: PtTeam[];
 }
 
-function Page ({tournaments, tournamentFiles}: Props) {
+function Page ({tournaments, tournamentFiles, myTeams}: Props) {
+
+    const [selectedTeamName, setSelectedTeamName] = React.useState(myTeams.length > 0 ? myTeams[0].TeamName : "");
 
     const [curTournamentExports,setTournamentExports] = React.useState(tournamentFiles.map(tourney => {
         return {
@@ -45,9 +50,10 @@ function Page ({tournaments, tournamentFiles}: Props) {
             <div id="tournamentList">
                 <div><b id="tournamentListStatus"></b></div>
                 <div id="tournamentTypeWrapper"><TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournaments}/></div>
+                <div><PtTeamSelector selectedTeamName={selectedTeamName} setSelectedTeamName={setSelectedTeamName} teams={myTeams}/></div>
                 <div id="tournamentOptions"><TournamentExports curTournamentExports={curTournamentExports} setTournamentExports={setTournamentExports}/></div>
                 <div>
-                    <button id="collectTournamentsToInsert" onClick={(e) => handleSubmit(selectedTournamentType, curTournamentExports, setTournamentExports)}>Write Data</button>
+                    <button id="collectTournamentsToInsert" onClick={(e) => handleSubmit(selectedTournamentType, curTournamentExports, setTournamentExports, selectedTeamName)}>Write Data</button>
                     <button id="reloadTable">Reload Table</button>
                 </div>
             </div>
@@ -93,16 +99,21 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
 
 }
 
-async function handleSubmit (tournamentTypeID: number, tournamentFiles: PtDataStatsFile[], setTournamentExports: React.Dispatch<React.SetStateAction<PtDataStatsFile[]>>) {
+async function handleSubmit (tournamentTypeID: number, tournamentFiles: PtDataStatsFile[], setTournamentExports: React.Dispatch<React.SetStateAction<PtDataStatsFile[]>>, selectedTeamName: string) {
 
     const pendingTournamentsUpdateStatus = tournamentFiles.map(tourney => {
         return {
             ...tourney,
-            dataSaveStatus: tourney.isIncludedFlag ? DataSaveStatus.Pending : tourney.dataSaveStatus
+            dataSaveStatus: tourney.isIncludedFlag ? DataSaveStatus.Pending : tourney.dataSaveStatus,
         }
     });
 
-    const tournamentsToWrite = tournamentFiles.filter(tourney => tourney.isIncludedFlag);
+    const tournamentsToWrite = tournamentFiles.filter(tourney => tourney.isIncludedFlag).map((tourney) => {
+        return {
+            ...tourney,
+            myTeamName: tourney.onlyMyTeamFlag ? selectedTeamName : undefined,
+        }
+    });
 
     setTournamentExports(pendingTournamentsUpdateStatus);
     const results = await importTournaments(tournamentTypeID, tournamentsToWrite)

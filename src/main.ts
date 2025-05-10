@@ -6,6 +6,7 @@ import * as fs from 'node:fs';
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
 import {readPtCardList} from "./backend/ptCardOperations";
+import {getSetting,updateSetting} from "./backend/settings";
 
 import { getDatabase } from "./backend/database/Database";
 import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded } from "./backend/types"
@@ -13,7 +14,7 @@ import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded } from "./b
 import * as csvColumns from '../json/csvColumns.json';
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType, PtTeam } from './types'
 import {Bats,Throws,Position} from "./backend/types"
 
 declare global {
@@ -27,12 +28,13 @@ declare global {
     getTournamentTypes: () => Promise<TournamentType[]>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<{headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]}>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
-    getRecentTournaments: () => Promise<TournamentMetaData[]>
+    getRecentTournaments: (teamName: string) => Promise<TournamentMetaData[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openSeasonStats: () => void,
     openStatsImporter: () => void,
     loadPtCards: () => void,
+    getPtTeams: () => Promise<PtTeam[]>
   }
 
 }
@@ -131,6 +133,8 @@ app.whenReady().then(() => {
 
   })
 
+  ipcMain.handle('getPtTeams', getPtTeams)
+
   ipcMain.handle('openFile', lookupData)
   ipcMain.handle('getRecentTournaments', getRecentTournaments)
   ipcMain.handle('getTournamentTypes', getTournamentTypes)
@@ -149,6 +153,15 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 });
+
+function getPtTeams (e) {
+  return getSetting<string[]>('myTeamNames').map((team, index) => {
+    return {
+      PtTeamID: index,
+      TeamName: team,
+    }
+  }) as PtTeam[];
+}
 
 async function writePtCards (e, args) {
 
@@ -205,14 +218,13 @@ async function lookupData (e, args) {
   return arr;
 }
 
-async function getRecentTournaments (e, args) {
+async function getRecentTournaments (e, teamName) {
 
-  const teamName = 'Lil Dickey';
   const limitAmount = 10;
 
   const recentTournaments = await getRecentTournamentsHandler(path.join(...settings.databasePath), teamName, limitAmount);
   return recentTournaments;
-
+  
 }
 
 async function getSeasonStats (e, args: TournamentStatsQuery) {

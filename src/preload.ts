@@ -24,8 +24,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openStatsImporter: () => ipcRenderer.invoke('openStatsImporter'),
 
   getTournamentStats: (value) => ipcRenderer.invoke('getTournamentStats', value),
-  getRecentTournaments: () => ipcRenderer.invoke('getRecentTournaments'),
+  getRecentTournaments: (teamName) => ipcRenderer.invoke('getRecentTournaments', teamName),
   getTournamentTypes: () => ipcRenderer.invoke('getTournamentTypes'),
-  getSeasonStats: (value) => ipcRenderer.invoke('getSeasonStats', value)
+  getSeasonStats: (value) => ipcRenderer.invoke('getSeasonStats', value),
+
+  getPtTeams: () => ipcRenderer.invoke('getPtTeams'),
 
 })

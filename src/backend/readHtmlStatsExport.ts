@@ -31,7 +31,7 @@ export class HtmlStatsTool {
                 liveUpdateID = await this.getRecentLiveUpdate()
             }
         
-            const filter = htmlOutput.onlyMyTeamFlag ? {TeamName: "Lil Dickey"} : undefined
+            const filter = htmlOutput.onlyMyTeamFlag ? {TeamName: htmlOutput.myTeamName} : undefined
 
             const statsBatchID = await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID, filter)
             return statsBatchID;

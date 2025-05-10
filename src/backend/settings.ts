@@ -2,7 +2,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 
 const settingsPath = () => {
-    return [".","settings.json"];
+    return [__dirname,"..","..","settings.json"];
 }
 
 export const checkIfSettingsExist = () => {

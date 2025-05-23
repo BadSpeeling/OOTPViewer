@@ -8,19 +8,17 @@ import { readPtCardList } from "../src/backend/ptCardOperations"
 import { ptCardList } from '../json/csvColumns.json'
 import { CsvRecord } from '../src/backend/types'
 import { ptCardListLoadScript } from "../src/backend/database/sqliteScripts"
-import { processPtCardList } from "../src/backend/ptCardOperations"
+import { processPtCardList, getLiveUpdates } from "../src/backend/ptCardOperations"
+
+const dir = "C:\\Users\\efrye\\Documents\\"
 
 beforeAll(async () => {
-    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
+    fs.copyFileSync(dir + 'pt.db',dir + 'test.db');
 });
   
 afterAll(() => {
-    fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
+    fs.unlink(dir + 'test.db', () => {});
 });
-
-test('tests that jest with typescript works', () => {
-    expect([1,2,3].reduce((acc, curr) => acc + curr, 0)).toBe(6);
-})    
 
 test('Read a card out of pt_card_list', async () => {
 
@@ -154,6 +152,16 @@ test('Read a card out of pt_card_list', async () => {
     const loadedCard = cards[0];
 
     expect(databaseObjectEqual(loadedCard,desiredData)).toBeTruthy();
+
+})
+
+test('Read LiveUpdate values', async () => {
+
+    const database = new Database(dir + "test.db");
+    database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-04-01')");
+
+    const liveUpdate = await getLiveUpdates(database);
+    expect(liveUpdate.length).toBeTruthy();
 
 })
 
@@ -419,7 +427,7 @@ test('Populate PtCards table with record', async () => {
     }
 
     const script = await ptCardListLoadScript([liveCard,historicalCard],ptCardList);
-    const database = new Database("E:\\ootp_data\\sqlite\\test.db");
+    const database = new Database(dir + "test.db");
 
     await database.execute(script);
     const liveCardRecord = await database.get(`select CardID,CardTitle,CardValue from PtCard where CardID = ${expectedLiveCard.CardID}`)
@@ -678,7 +686,7 @@ test('Populate PtCards table with updated live cards', async () => {
         "date": "2025-03-15"
     }
 
-    const database = new Database("E:\\ootp_data\\sqlite\\test.db");
+    const database = new Database(dir + "test.db");
 
     database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-04-01')");
 

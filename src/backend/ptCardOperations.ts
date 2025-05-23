@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'node:path'
 
 import { Database } from "./database/Database"
-import { ptCardListLoadScript } from './database/sqliteScripts'
+import { ptCardListLoadScript, getLiveUpdatesScript } from './database/sqliteScripts'
 
 import { ptCardList } from '../../json/csvColumns.json'
-import { CsvDataColumn,CsvRecord,PtCard } from "./types"
+import { CsvDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
 
 import * as settings from "../../settings.json"
 
@@ -125,4 +125,8 @@ ORDER BY PtCardID asc
 
     return await db.getAllMapped<PtCard>(getCardsScript);
 
+}
+
+export const getLiveUpdates = async (db: Database) => {
+    return await db.getAllMapped<LiveUpdate>(getLiveUpdatesScript());
 }

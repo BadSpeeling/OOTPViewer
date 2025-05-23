@@ -9,13 +9,10 @@ import {readPtCardList} from "./backend/ptCardOperations";
 import {getSetting,updateSetting} from "./backend/settings";
 
 import { getDatabase } from "./backend/database/Database";
-import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded } from "./backend/types"
-
-import * as csvColumns from '../json/csvColumns.json';
+import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position } from "./backend/types"
 
 import * as settings from '../settings.json';
 import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType, PtTeam } from './types'
-import {Bats,Throws,Position} from "./backend/types"
 
 declare global {
   interface Window {
@@ -28,11 +25,13 @@ declare global {
     getTournamentTypes: () => Promise<TournamentType[]>,
     getTournamentStats: (query: TournamentStatsQuery) => Promise<{headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]}>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
-    getRecentTournaments: (teamName: string) => Promise<TournamentMetaData[]>
+    getRecentTournaments: (teamName: string) => Promise<TournamentMetaData[]>,
+    getLiveUpdates: () => Promise<LiveUpdate[]>
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openSeasonStats: () => void,
     openStatsImporter: () => void,
+    openCardImporter: () => void,
     loadPtCards: () => void,
     getPtTeams: () => Promise<PtTeam[]>
   }
@@ -100,6 +99,18 @@ const openSeasonStats = () => {
   win.loadFile(path.join('views','seasonStats.html'))
 }
 
+const openCardImporter = () => {
+  const win = new BrowserWindow({
+    width: 400,
+    height: 300,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    } 
+  })
+
+  win.loadFile(path.join('views','cardImporter.html'))
+}
+
 app.whenReady().then(() => {
   ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value) => {
     console.log(value)
@@ -146,6 +157,7 @@ app.whenReady().then(() => {
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
   ipcMain.handle('openTournamentStats', openTournamentStats)
   ipcMain.handle('openSeasonStats', openSeasonStats)
+  ipcMain.handle('openCardImporter', openCardImporter)
 
   openLanding()
 });

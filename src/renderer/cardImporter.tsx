@@ -9,7 +9,7 @@ addEventListener("load", async (event) => {
 
     if (wrapper) {
         const root = createRoot(wrapper);
-        root.render(<Landing />);
+        root.render(<LiveUpdates />);
     }
 
 });

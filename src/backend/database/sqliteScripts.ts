@@ -269,3 +269,10 @@ LIMIT ${limitAmt}
 `
 
 }
+
+export const getLiveUpdatesScript = () => {
+    return `
+SELECT LiveUpdateID,EffectiveDate
+FROM LiveUpdate
+    `
+}

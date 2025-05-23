@@ -68,8 +68,3 @@ export interface PtTeam {
     PtTeamID: number,
     TeamName: string,
 }
-
-export interface LiveUpdate {
-    LiveUpdateID: number,
-    EffectiveDate: string,
-}

@@ -374,3 +374,52 @@ values
     databaseObjectEqual(recentTournaments[0], desiredData);
     
 })
+
+test("Get tournaments from timeframe", async () => {
+
+
+    const db = new Database(dir + "test.db");
+    const statsBatch1 = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentStartDate,TournamentTypeID) values (unixepoch(),"","2025-05-06",1);`);
+    const statsBatch2 = await db.insertOne(`insert into StatsBatch (Timestamp,Description,TournamentStartDate,TournamentTypeID) values (unixepoch(),"","2025-05-07",1);`);
+
+    await db.insertOne(`insert into BattingStats (StatsBatchID,TeamName,PtCardID,G,AB,PA) values (${statsBatch1},'Team1',1,10,5,5),(${statsBatch2},'Team2',2,10,5,5);`);
+    await db.insertOne(`insert into PitchingStats (StatsBatchID,TeamName,PtCardID,G) values (${statsBatch1},'Team1',1,10),(${statsBatch2},'Team2',2,10);`);
+
+    const battingQuery = {
+        tournamentTypeID: 1,
+        statsType: 0,
+        qualifierValue: 0,
+        positions: [],
+        tourneyTimeframe: {
+            startDate: '2025-05-07',
+            endDate: '2025-05-07',
+        }
+    } as TournamentStatsQuery
+
+    const pitchingQuery = {
+        tournamentTypeID: 1,
+        statsType: 1,
+        qualifierValue: 0,
+        positions: [],
+        tourneyTimeframe: {
+            startDate: '2025-05-07',
+            endDate: '2025-05-07',
+        }
+    } as TournamentStatsQuery
+
+    const battingStats = await getTournamentStats(dir + "test.db",battingQuery);
+    const pitchingStats = await getTournamentStats(dir + "test.db", pitchingQuery);
+
+    const battingStatsPastTourney = battingStats.find(b => b.PtCardID === 1);
+    const battingStatsCurrentTourney = battingStats.find(b => b.PtCardID === 2);
+
+    const pitchingStatsPastTourney = pitchingStats.find(b => b.PtCardID === 1);
+    const pitchingStatsCurrentTourney = pitchingStats.find(b => b.PtCardID === 2);
+
+    expect(battingStatsPastTourney).toBeFalsy();
+    expect(battingStatsCurrentTourney).toBeTruthy();
+
+    expect(pitchingStatsPastTourney).toBeFalsy();
+    expect(pitchingStatsCurrentTourney).toBeTruthy();
+
+})

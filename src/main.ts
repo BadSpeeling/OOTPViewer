@@ -120,6 +120,14 @@ app.whenReady().then(() => {
   ipcMain.handle('getTournamentStats', async (_event, value: TournamentStatsQuery) => {
     console.log(value)
 
+    value = {
+      ...value,
+      tourneyTimeframe: {
+            startDate: '2025-05-05',
+            endDate: '2026-03-14',
+      }
+    }
+
     if (value.statsType === StatsType.Batting) {
       return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
       

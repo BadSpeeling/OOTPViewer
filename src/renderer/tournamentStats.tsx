@@ -50,9 +50,11 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
     const [statsTypeID, setStatsType] = React.useState(0);
     const [qualifierValue, setQualifierValue] = React.useState('');
     const [positions, setPositions] = React.useState([] as string[])
+    const [tournamentStartDate, setTournamentStartDate] = React.useState('1970-01-01');
+    const [tournamentEndDate, setTournamentEndDate] = React.useState('1970-01-01');
 
     const dataLoadHandler = async () => {
-        const statsResult = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0, positions);
+        const statsResult = await getPlayerStats(selectedTournamentType, statsTypeID, qualifierValue.length > 0 ? parseInt(qualifierValue) : 0, positions, tournamentStartDate, tournamentEndDate);
         setPlayerStats(statsResult.stats);
         setHeaders(statsResult.headers);
     }
@@ -75,6 +77,7 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
         <>
             <div>
                 <TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournamentOptions}/>            
+                <TournamentDatePicker tournamentStartDate={tournamentStartDate} setTournamentStartDate={setTournamentStartDate} tournamentEndDate={tournamentEndDate} setTournamentEndDate={setTournamentEndDate}/>
                 <select value={statsTypeID} onChange={(e) => setStatsType(parseInt(e.target.value))}>
                     <option value={0}>Batting</option>
                     <option value={1}>Pitching</option>
@@ -108,10 +111,36 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
 
 }
 
-async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qualifierValue: number, positions: string[]) {
+async function getPlayerStats (tournamentTypeID: number, statsTypeID: number, qualifierValue: number, positions: string[], tournamentStartDate: string, tournamentEndDate: string) {
 
-    const response = await window.electronAPI.getTournamentStats({tournamentTypeID, statsType: statsTypeID, qualifierValue, positions} as TournamentStatsQuery);
+    const response = await window.electronAPI.getTournamentStats({tournamentTypeID, statsType: statsTypeID, qualifierValue, positions, tourneyTimeframe: {startDate:tournamentStartDate,endDate:tournamentEndDate}} as TournamentStatsQuery);
     return response as {headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]};
+
+}
+
+type TournamentDatePicker = {
+    tournamentStartDate: string,
+    setTournamentStartDate: React.Dispatch<React.SetStateAction<string>>,
+    tournamentEndDate: string,
+    setTournamentEndDate: React.Dispatch<React.SetStateAction<string>>,
+}
+
+function TournamentDatePicker ({tournamentStartDate, setTournamentStartDate, tournamentEndDate, setTournamentEndDate}: TournamentDatePicker) {
+
+    const tournamentStartDateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTournamentStartDate(e.currentTarget.value);
+    }
+
+    const tournamentEndDateHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTournamentEndDate(e.currentTarget.value);
+    }
+
+    return (
+        <div>
+            <span>Start Date:</span><input value={tournamentStartDate} onChange={tournamentStartDateHandler} type="date" />
+            <span>End Date:</span><input value={tournamentEndDate} onChange={tournamentEndDateHandler} type="date" />
+        </div>
+    )
 
 }
 

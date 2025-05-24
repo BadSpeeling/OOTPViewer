@@ -20,6 +20,10 @@ export type TournamentStatsQuery = {
     qualifierValue: number,
     positions: string[],
     years?: number[],
+    tourneyTimeframe?: {
+        startDate: string,
+        endDate: string,
+    } 
 }
 
 export enum StatsType {

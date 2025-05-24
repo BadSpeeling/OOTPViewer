@@ -43,11 +43,11 @@ const readTournamentStats = async (query: TournamentStatsQuery, db: Database) =>
     const statsBatch = query.years ? ((await db.getAll(getStatsBatchesForLeaguePlayYears(query.tournamentTypeID, query.years))).map(s => s.StatsBatchID as number)) : undefined;
 
     if (query.statsType === StatsType.Batting) {
-        const battingStatsScript = !statsBatch ? getTournamentBattingStatsScript(query.tournamentTypeID) : getLeagueBattingStatsScript(statsBatch);
+        const battingStatsScript = !statsBatch ? getTournamentBattingStatsScript(query) : getLeagueBattingStatsScript(statsBatch);
         return await db.getAllMapped<BattingStatsExpanded>(battingStatsScript);
     }
     else if (query.statsType === StatsType.Pitching) {
-        const pitchingStatsScript = !statsBatch ? getTournamentPitchingStatsScript(query.tournamentTypeID) : getLeaguePitchingStatsScript(statsBatch);
+        const pitchingStatsScript = !statsBatch ? getTournamentPitchingStatsScript(query) : getLeaguePitchingStatsScript(statsBatch);
         return await db.getAllMapped<PitchingStatsExpanded>(pitchingStatsScript);
     }
     else {

@@ -122,7 +122,6 @@ app.whenReady().then(() => {
 
     if (value.statsType === StatsType.Batting) {
       return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
-      
     }
     else if (value.statsType === StatsType.Pitching) {
       return {headers: ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};

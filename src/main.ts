@@ -5,7 +5,7 @@ import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
-import {readPtCardList} from "./backend/ptCardOperations";
+import {getLiveUpdates, readPtCardList} from "./backend/ptCardOperations";
 import {getSetting,updateSetting} from "./backend/settings";
 
 import { getDatabase } from "./backend/database/Database";
@@ -151,6 +151,7 @@ app.whenReady().then(() => {
   ipcMain.handle('findTournamentExports', findTournamentExports)
   ipcMain.handle('getSeasonStats', getSeasonStats);
   ipcMain.handle('writePtCards', writePtCards);
+  ipcMain.handle('getLiveUpdates', getLiveUpdatesHandler);
 
   ipcMain.handle('openStatsImporter', openStatsImporter)
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
@@ -297,4 +298,9 @@ async function findTournamentExports () : Promise<PtDataExportFile[]> {
 
   return htmlFilesToReturn
 
+}
+
+async function getLiveUpdatesHandler (): Promise<LiveUpdate[]> {
+  const databasePath = path.join(...settings.databasePath);
+  return getLiveUpdates(databasePath);
 }

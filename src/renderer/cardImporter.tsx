@@ -6,30 +6,28 @@ import { createRoot } from "react-dom/client";
 addEventListener("load", async (event) => {
 
     const wrapper = document.getElementById("reactWrapper");
+    const liveUpdates = await window.electronAPI.getLiveUpdates();
 
     if (wrapper) {
         const root = createRoot(wrapper);
-        root.render(<LiveUpdates />);
+        root.render(<CardImporter liveUpdates={liveUpdates}/>);
     }
 
 });
 
-const Landing = () => {
-
-    const loadPtCards = (e) => {
-        window.electronAPI.loadPtCards()
-    };
-
+type CardImporterProps = {
+    liveUpdates: LiveUpdate[],
 }
 
-const LiveUpdates = () => {
+const CardImporter = ({liveUpdates}: CardImporterProps) => {
 
-    const [liveUpdates,setLiveUpdates] = React.useState([] as LiveUpdate[]);
+    //const [liveUpdates,setLiveUpdates] = React.useState([] as LiveUpdate[]);
     
     const liveUpdatesBody = liveUpdates.map((liveUpdate) => <div>{liveUpdate.EffectiveDate}</div>);
 
     return (
         <div>
+            <div><b>Effective Date</b></div>
             {liveUpdatesBody}
         </div>
     )

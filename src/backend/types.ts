@@ -336,6 +336,6 @@ export interface GeneralStatsWriteFilter {
 }
 
 export interface LiveUpdate {
-    LiveUpdateID: number,
+    LiveUpdateID: number | null,
     EffectiveDate: string,
 }

@@ -8,9 +8,9 @@ import { readPtCardList } from "../src/backend/ptCardOperations"
 import { ptCardList } from '../json/csvColumns.json'
 import { CsvRecord } from '../src/backend/types'
 import { ptCardListLoadScript } from "../src/backend/database/sqliteScripts"
-import { processPtCardList, getLiveUpdates } from "../src/backend/ptCardOperations"
+import { processPtCardList, getLiveUpdates, writeLiveUpdate,  } from "../src/backend/ptCardOperations"
 
-const dir = "C:\\Users\\efrye\\Documents\\"
+const dir = 'E:\\ootp_data\\sqlite\\'
 
 beforeAll(async () => {
     fs.copyFileSync(dir + 'pt.db',dir + 'test.db');
@@ -155,13 +155,19 @@ test('Read a card out of pt_card_list', async () => {
 
 })
 
-test('Read LiveUpdate values', async () => {
+test('LiveUpdate CRUD', async () => {
 
-    const database = new Database(dir + "test.db");
-    database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-04-01')");
+    const databasePath = dir + "test.db";
+    
+    const liveUpdateID = await writeLiveUpdate(databasePath, {LiveUpdateID: null, EffectiveDate: '2025-04-01'});
+    const liveUpdates1 = await getLiveUpdates(databasePath);
+    
+    expect(liveUpdates1.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-01');
 
-    const liveUpdate = await getLiveUpdates(database);
-    expect(liveUpdate.length).toBeTruthy();
+    await writeLiveUpdate(databasePath, {LiveUpdateID: liveUpdateID, EffectiveDate: '2025-04-15'});
+    const liveUpdates2 = await getLiveUpdates(databasePath);
+
+    expect(liveUpdates2.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-15');
 
 })
 

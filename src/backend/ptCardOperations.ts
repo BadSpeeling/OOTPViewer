@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'node:path'
 
 import { Database } from "./database/Database"
-import { ptCardListLoadScript, getLiveUpdatesScript } from './database/sqliteScripts'
+import { ptCardListLoadScript, getLiveUpdatesScript, insertLiveUpdate, updateLiveUpdate } from './database/sqliteScripts'
 
 import { ptCardList } from '../../json/csvColumns.json'
 import { CsvDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
@@ -127,6 +127,24 @@ ORDER BY PtCardID asc
 
 }
 
-export const getLiveUpdates = async (db: Database) => {
+export const getLiveUpdates = async (databasePath: string) => {
+    const db = new Database(databasePath);
     return await db.getAllMapped<LiveUpdate>(getLiveUpdatesScript());
+}
+
+export const writeLiveUpdate = async (databasePath: string, liveUpdate: LiveUpdate) => {
+    
+    const db = new Database(databasePath);
+
+    if (liveUpdate.LiveUpdateID) {
+        const updateScript = updateLiveUpdate(liveUpdate);
+        await db.execute(updateScript);
+        return liveUpdate.LiveUpdateID;    
+    }
+    else {
+        const insertScript = insertLiveUpdate(liveUpdate);
+        const liveUpdateID = await db.insertOne(insertScript);
+        return liveUpdateID;
+    }
+    
 }

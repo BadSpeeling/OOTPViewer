@@ -72,3 +72,7 @@ export interface PtTeam {
     PtTeamID: number,
     TeamName: string,
 }
+
+export enum ProcessCardsStatus {
+    None,Success,Fail
+}

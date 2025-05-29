@@ -5,14 +5,14 @@ import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
-import {getLiveUpdates, readPtCardList} from "./backend/ptCardOperations";
+import {getLiveUpdates, readPtCardList, processPtCardList} from "./backend/ptCardOperations";
 import {getSetting,updateSetting} from "./backend/settings";
 
 import { getDatabase } from "./backend/database/Database";
 import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position } from "./backend/types"
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType, PtTeam } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType, PtTeam, ProcessCardsStatus } from './types'
 
 declare global {
   interface Window {
@@ -26,7 +26,8 @@ declare global {
     getTournamentStats: (query: TournamentStatsQuery) => Promise<{headers: string[], stats:BattingStatsExpanded[] | PitchingStatsExpanded[]}>,
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: (teamName: string) => Promise<TournamentMetaData[]>,
-    getLiveUpdates: () => Promise<LiveUpdate[]>
+    getLiveUpdates: () => Promise<LiveUpdate[]>,
+    writePtCards: () => Promise<ProcessCardsStatus>,
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openSeasonStats: () => void,
@@ -178,11 +179,11 @@ function getPtTeams (e) {
 async function writePtCards (e, args) {
 
   try {
-    const filePath = path.join(...settings.ootpRoot.concat(settings.ptCardFile));
-    //const ptCards = await readPtCardList();
+    await processPtCardList();
+    return ProcessCardsStatus.Success;
   }
   catch (e) {
-    console.log(e.reason);
+    return ProcessCardsStatus.Fail;
   }
 
 }

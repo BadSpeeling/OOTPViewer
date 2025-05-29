@@ -334,3 +334,8 @@ export enum Position {
 export interface GeneralStatsWriteFilter {
     TeamName: string,
 }
+
+export interface LiveUpdate {
+    LiveUpdateID: number | null,
+    EffectiveDate: string,
+}

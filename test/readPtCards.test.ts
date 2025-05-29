@@ -8,19 +8,17 @@ import { readPtCardList } from "../src/backend/ptCardOperations"
 import { ptCardList } from '../json/csvColumns.json'
 import { CsvRecord } from '../src/backend/types'
 import { ptCardListLoadScript } from "../src/backend/database/sqliteScripts"
-import { processPtCardList } from "../src/backend/ptCardOperations"
+import { processPtCardList, getLiveUpdates, writeLiveUpdate,  } from "../src/backend/ptCardOperations"
+
+const dir = 'E:\\ootp_data\\sqlite\\'
 
 beforeAll(async () => {
-    fs.copyFileSync('E:\\ootp_data\\sqlite\\pt.db','E:\\ootp_data\\sqlite\\test.db');
+    fs.copyFileSync(dir + 'pt.db',dir + 'test.db');
 });
   
 afterAll(() => {
-    fs.unlink('E:\\ootp_data\\sqlite\\test.db', () => {});
+    fs.unlink(dir + 'test.db', () => {});
 });
-
-test('tests that jest with typescript works', () => {
-    expect([1,2,3].reduce((acc, curr) => acc + curr, 0)).toBe(6);
-})    
 
 test('Read a card out of pt_card_list', async () => {
 
@@ -154,6 +152,22 @@ test('Read a card out of pt_card_list', async () => {
     const loadedCard = cards[0];
 
     expect(databaseObjectEqual(loadedCard,desiredData)).toBeTruthy();
+
+})
+
+test('LiveUpdate CRUD', async () => {
+
+    const databasePath = dir + "test.db";
+    
+    const liveUpdateID = await writeLiveUpdate(databasePath, {LiveUpdateID: null, EffectiveDate: '2025-04-01'});
+    const liveUpdates1 = await getLiveUpdates(databasePath);
+    
+    expect(liveUpdates1.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-01');
+
+    await writeLiveUpdate(databasePath, {LiveUpdateID: liveUpdateID, EffectiveDate: '2025-04-15'});
+    const liveUpdates2 = await getLiveUpdates(databasePath);
+
+    expect(liveUpdates2.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-15');
 
 })
 
@@ -419,7 +433,7 @@ test('Populate PtCards table with record', async () => {
     }
 
     const script = await ptCardListLoadScript([liveCard,historicalCard],ptCardList);
-    const database = new Database("E:\\ootp_data\\sqlite\\test.db");
+    const database = new Database(dir + "test.db");
 
     await database.execute(script);
     const liveCardRecord = await database.get(`select CardID,CardTitle,CardValue from PtCard where CardID = ${expectedLiveCard.CardID}`)
@@ -428,4 +442,271 @@ test('Populate PtCards table with record', async () => {
     expect(databaseObjectEqual(liveCardRecord,expectedLiveCard)).toBeTruthy();
     expect(databaseObjectEqual(historicalCardRecord,historicalLiveCard)).toBeTruthy();
 
+})
+
+test('Populate PtCards table with updated live cards', async () => {
+
+    const liveCard = {
+        "Card Title": "MLB 2025 Live RF Jared Young NYM",
+        "Card ID": 76225,
+        "Card Value": 67,
+        "Card Type": 1,
+        "Card Sub Type": 0,
+        "Card Badge": "",
+        "Card Series": "",
+        "Year": 2025,
+        "Peak": "N",
+        "Team": "New York Mets",
+        "Franchise": "NYM",
+        "LastName": "Young",
+        "FirstName": "Jared",
+        "NickName": "",
+        "UniformNumber": 3,
+        "DayOB": 9,
+        "MonthOB": 7,
+        "YearOB": 1995,
+        "Bats": 2,
+        "Throws": 1,
+        "Position": 9,
+        "Pitcher Role": 0,
+        "Contact": 67,
+        "Gap": 86,
+        "Power": 77,
+        "Eye": 85,
+        "Avoid Ks": 66,
+        "BABIP": 71,
+        "Contact vL": 65,
+        "Gap vL": 82,
+        "Power vL":74,
+        "Eye vL": 79,
+        "Avoid K vL": 63,
+        "BABIP vL": 70,
+        "Contact vR": 69,
+        "Gap vR": 87,
+        "Power vR": 79,
+        "Eye vR": 88,
+        "Avoid K vR": 68,
+        "BABIP vR": 72,
+        "GB Hitter Type": 2,
+        "FB Hitter Type": 2,
+        "BattedBallType": 0,
+        "Speed": 67,
+        "Steal Rate": 31,
+        "Stealing": 70,
+        "Baserunning": 67,
+        "Sac bunt": 64,
+        "Bunt for hit": 33,
+        "Stuff": 1,
+        "Movement": 20,
+        "Control": 1,
+        "pHR": 1,
+        "pBABIP": 60,
+        "Stuff vL": 1,
+        "Movement vL": 20,
+        "Control vL": 1,
+        "pHR vL": 1,
+        "pBABIP vL": 59,
+        "Stuff vR": 1,
+        "Movement vR": 21,
+        "Control vR": 1,
+        "pHR vR": 1,
+        "pBABIP vR": 62,
+        "Fastball": 9,
+        "Slider": 0,
+        "Curveball": 0,
+        "Changeup": 0,
+        "Cutter": 0,
+        "Sinker": 0,
+        "Splitter": 0,
+        "Forkball": 0,
+        "Screwball": 0,
+        "Circlechange": 0,
+        "Knucklecurve": 0,
+        "Knuckleball": 0,
+        "Stamina": 1,
+        "Hold": 0,
+        "GB": 4,
+        "Velocity": "80-83",
+        "Arm Slot": 3,
+        "Height": 185,
+        "Infield Range": 44,
+        "Infield Error": 55,
+        "Infield Arm": 53,
+        "DP": 48,
+        "CatcherAbil": 1,
+        "CatcherFrame": 1,
+        "Catcher Arm": 4,
+        "OF Range": 54,
+        "OF Error": 60,
+        "OF Arm": 51,
+        "Pos Rating P": 0,
+        "Pos Rating C": 0,
+        "Pos Rating 1B": 13,
+        "Pos Rating 2B": 0,
+        "Pos Rating 3B": 0,
+        "Pos Rating SS": 0,
+        "Pos Rating LF": 12,
+        "Pos Rating CF": 0,
+        "Pos Rating RF": 50,
+        "LearnC": 0,
+        "Learn1B": 1,
+        "Learn2B": 1,
+        "Learn3B": 1,
+        "LearnSS": 1,
+        "LearnLF": 1,
+        "LearnCF": 1,
+        "LearnRF": 1,
+        "era": 8,
+        "tier": 1,
+        "MissionValue": 2,
+        "limit": 0,
+        "owned": 0,
+        "brefid": "youngja02",
+        "Buy Order High": 60,
+        "Sell Order Low": 195,
+        "Last 10 Price": 115,
+        "Last 10 Price(VAR)": 0,
+        "date": "2025-03-15"
+    } as CsvRecord
+
+    const liveCard2 = {
+        "Card Title": "MLB 2025 Live RF Jared Young NYM",
+        "Card ID": 76225,
+        "Card Value": 67,
+        "Card Type": 1,
+        "Card Sub Type": 0,
+        "Card Badge": "",
+        "Card Series": "",
+        "Year": 2025,
+        "Peak": "N",
+        "Team": "New York Mets",
+        "Franchise": "NYM",
+        "LastName": "Young",
+        "FirstName": "Jared",
+        "NickName": "",
+        "UniformNumber": 3,
+        "DayOB": 9,
+        "MonthOB": 7,
+        "YearOB": 1995,
+        "Bats": 2,
+        "Throws": 1,
+        "Position": 9,
+        "Pitcher Role": 0,
+        "Contact": 67,
+        "Gap": 86,
+        "Power": 177,
+        "Eye": 85,
+        "Avoid Ks": 66,
+        "BABIP": 71,
+        "Contact vL": 65,
+        "Gap vL": 82,
+        "Power vL":74,
+        "Eye vL": 79,
+        "Avoid K vL": 63,
+        "BABIP vL": 70,
+        "Contact vR": 69,
+        "Gap vR": 87,
+        "Power vR": 79,
+        "Eye vR": 88,
+        "Avoid K vR": 68,
+        "BABIP vR": 72,
+        "GB Hitter Type": 2,
+        "FB Hitter Type": 2,
+        "BattedBallType": 0,
+        "Speed": 67,
+        "Steal Rate": 31,
+        "Stealing": 70,
+        "Baserunning": 67,
+        "Sac bunt": 64,
+        "Bunt for hit": 33,
+        "Stuff": 1,
+        "Movement": 20,
+        "Control": 1,
+        "pHR": 1,
+        "pBABIP": 60,
+        "Stuff vL": 1,
+        "Movement vL": 20,
+        "Control vL": 1,
+        "pHR vL": 1,
+        "pBABIP vL": 59,
+        "Stuff vR": 1,
+        "Movement vR": 21,
+        "Control vR": 1,
+        "pHR vR": 1,
+        "pBABIP vR": 62,
+        "Fastball": 9,
+        "Slider": 0,
+        "Curveball": 0,
+        "Changeup": 0,
+        "Cutter": 0,
+        "Sinker": 0,
+        "Splitter": 0,
+        "Forkball": 0,
+        "Screwball": 0,
+        "Circlechange": 0,
+        "Knucklecurve": 0,
+        "Knuckleball": 0,
+        "Stamina": 1,
+        "Hold": 0,
+        "GB": 4,
+        "Velocity": "80-83",
+        "Arm Slot": 3,
+        "Height": 185,
+        "Infield Range": 44,
+        "Infield Error": 55,
+        "Infield Arm": 53,
+        "DP": 48,
+        "CatcherAbil": 1,
+        "CatcherFrame": 1,
+        "Catcher Arm": 4,
+        "OF Range": 54,
+        "OF Error": 60,
+        "OF Arm": 51,
+        "Pos Rating P": 0,
+        "Pos Rating C": 0,
+        "Pos Rating 1B": 13,
+        "Pos Rating 2B": 0,
+        "Pos Rating 3B": 0,
+        "Pos Rating SS": 0,
+        "Pos Rating LF": 12,
+        "Pos Rating CF": 0,
+        "Pos Rating RF": 50,
+        "LearnC": 0,
+        "Learn1B": 1,
+        "Learn2B": 1,
+        "Learn3B": 1,
+        "LearnSS": 1,
+        "LearnLF": 1,
+        "LearnCF": 1,
+        "LearnRF": 1,
+        "era": 8,
+        "tier": 1,
+        "MissionValue": 2,
+        "limit": 0,
+        "owned": 0,
+        "brefid": "youngja02",
+        "Buy Order High": 60,
+        "Sell Order Low": 195,
+        "Last 10 Price": 115,
+        "Last 10 Price(VAR)": 0,
+        "date": "2025-03-15"
+    }
+
+    const database = new Database(dir + "test.db");
+
+    database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-04-01')");
+
+    const script1 = await ptCardListLoadScript([liveCard],ptCardList);
+    await database.execute(script1);
+
+    database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-05-01')");
+
+    const script2 = await ptCardListLoadScript([liveCard2],ptCardList);
+    await database.execute(script2);
+
+    const liveCards = await database.getAll(`select CardID,CardTitle,CardValue from PtCard where CardID = ${liveCard.CardID}`)
+
+    expect(liveCards.length).toBe(2);
+    expect(liveCards[0].LiveUpdateID !== liveCards[1].LiveUpdateID);
+    
 })

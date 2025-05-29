@@ -10,6 +10,7 @@ module.exports = {
 		statsImporter: './src/renderer/statsImporter.tsx',
 		loadTournamentStats: './src/renderer/tournamentStats.tsx',
 		seasonStats: './src/renderer/seasonStats.tsx',
+		cardImporter: './src/renderer/cardImporter.tsx'
 	},
 	output: {
 		path: path.resolve(__dirname,'dist','renderer'),

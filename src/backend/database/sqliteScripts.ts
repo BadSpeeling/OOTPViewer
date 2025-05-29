@@ -1,4 +1,4 @@
-import { CsvDataColumn,CsvRecord,Constraint } from "../types"
+import { CsvDataColumn,CsvRecord,Constraint,LiveUpdate } from "../types"
 import {PtPlayerStats,TournamentStatsQuery} from "../../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 import {CsvDataToTempTable} from "./Datatable"
@@ -270,4 +270,25 @@ ORDER BY Timestamp DESC
 LIMIT ${limitAmt}
 `
 
+}
+
+export const getLiveUpdatesScript = () => {
+    return `
+SELECT LiveUpdateID,DATE(EffectiveDate,'unixepoch') EffectiveDate
+FROM LiveUpdate
+    `
+}
+
+export const insertLiveUpdate = (liveUpdate: LiveUpdate) => {
+    return `
+INSERT INTO LiveUpdate (EffectiveDate) VALUES (UNIXEPOCH('${liveUpdate.EffectiveDate}'))    
+    `
+}
+
+export const updateLiveUpdate = (liveUpdate: LiveUpdate) => {
+    return `
+UPDATE LiveUpdate
+SET EffectiveDate = UNIXEPOCH('${liveUpdate.EffectiveDate}')
+WHERE LiveUpdateID = ${liveUpdate.LiveUpdateID}
+    `
 }

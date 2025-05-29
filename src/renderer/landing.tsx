@@ -36,6 +36,10 @@ const Landing = ({myTeams}: LandingProps) => {
         window.electronAPI.openSeasonStats()
     };
 
+    const openCardImporterHandler = (e) => {
+        window.electronAPI.openCardImporter()
+    }
+
     const [selectedTeamName, setSelectedTeamName] = React.useState(myTeams.length > 0 ? myTeams[0].TeamName : "");
     const [recentTournaments,setRecentTournaments] = React.useState([]);
 
@@ -49,6 +53,7 @@ const Landing = ({myTeams}: LandingProps) => {
                 <button id="openStatsImporter" onClick={openStatsImporterHandler}>Stats Importer</button>
                 <button id="openStatsViewer" onClick={openTournamentStatsHandler}>Tournament Stats</button>
                 <button id="openSeasonStats" onClick={openSeasonStatsHandler}>Season Stats</button>
+                <button id="openSeasonStats" onClick={openCardImporterHandler}>Card Importer</button>
             </div>
             <div>
                 <PtTeamSelector selectedTeamName={selectedTeamName} setSelectedTeamName={setSelectedTeamName} teams={myTeams}/>

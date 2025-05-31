@@ -137,8 +137,8 @@ function TournamentDatePicker ({tournamentStartDate, setTournamentStartDate, tou
 
     return (
         <div>
-            <span>Start Date:</span><input value={tournamentStartDate} onChange={tournamentStartDateHandler} type="date" />
-            <span>End Date:</span><input value={tournamentEndDate} onChange={tournamentEndDateHandler} type="date" />
+            <span>Start Date:</span><input value={tournamentStartDate} onChange={tournamentStartDateHandler} />
+            <span>End Date:</span><input value={tournamentEndDate} onChange={tournamentEndDateHandler} />
         </div>
     )
 

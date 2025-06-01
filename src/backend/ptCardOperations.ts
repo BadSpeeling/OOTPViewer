@@ -9,19 +9,11 @@ import { CsvDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
 
 import * as settings from "../../settings.json"
 
-//     const script = await ptCardListLoadScript([liveCard,historicalCard],ptCardList);
-//     const database = new Database(".\\test\\test.db");
-
-//     await database.execute(script);
-//     const liveCardRecord = await database.get(`select CardID,CardTitle,CardValue from Card where CardID = 64889`)
-//     const historicalCardRecord = await database.get(`select CardID,CardTitle,CardValue from Card where CardID = 65911`)
-    
-
-export async function processPtCardList () {
+export async function processPtCardList (database: Database) {
 
     const ptCardFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
     const cards = await getCards(path.join(...ptCardFilePath));
-    writeCards(path.join(...settings.databasePath), cards);
+    writeCards(database, cards);
 
 }
 
@@ -32,12 +24,10 @@ export async function getCards (path: string) {
 
 }
 
-export async function writeCards (path: string, cards: CsvRecord[]) {
+export async function writeCards (database: Database, cards: CsvRecord[]) {
 
-    const db = new Database(path);
     const script = ptCardListLoadScript(cards, ptCardList);
-
-    await db.execute(script);
+    await database.execute(script);
 
 }
 

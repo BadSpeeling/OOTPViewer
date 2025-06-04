@@ -47,9 +47,9 @@ const dir = 'E:\\ootp_data\\sqlite\\'
 // })
 
 test('Run table load', async () => {
-    await processPtCardList();
 
     const db = getDatabase();
+    await processPtCardList(db);
 
     const result = await db.get("SELECT COUNT(*) FROM PtCard");
 

@@ -74,5 +74,5 @@ export interface PtTeam {
 }
 
 export enum ProcessCardsStatus {
-    None,Success,Fail
+    None,Success,Fail,LiveUpdateNeeded
 }

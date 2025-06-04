@@ -114,6 +114,7 @@
             {"name":"era","type":"INTEGER","isNullable":false},
             {"name":"MissionValue","type":"INTEGER","isNullable":false},
             {"name":"limit","type":"INTEGER","isNullable":false},
+            {"name":"tier","type":"INTEGER","isNullable":false},
             {"name":"owned","type":"INTEGER","isNullable":false},
             {"name":"brefid","type":"TEXT","isNullable":false},
             {"name":"date","type":"INTEGER","isNullable":false},

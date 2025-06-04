@@ -16,6 +16,13 @@ ${ptCardListInsertCardsPart()}
 `
 }
 
+export const checkIfLiveUpdateOccuredScript = (records: CsvRecord[]) => {
+
+    const recordsInsert = records.map((record) => `(${record['Card ID']},${record['Card Value']})`).join(',')
+    return checkIfLiveUpdateOccuredPart(recordsInsert);
+
+}
+
 const rawDataLoadPart = (tableName: string, records: CsvRecord[], columns: CsvDataColumn[], primaryKey: string, constraints?: Constraint[]) => {
 
     const datatable = CsvDataToTempTable(tableName, columns, primaryKey, constraints);
@@ -279,16 +286,32 @@ FROM LiveUpdate
     `
 }
 
-export const insertLiveUpdate = (liveUpdate: LiveUpdate) => {
+export const insertLiveUpdateScript = (liveUpdate: LiveUpdate) => {
     return `
 INSERT INTO LiveUpdate (EffectiveDate) VALUES (UNIXEPOCH('${liveUpdate.EffectiveDate}'))    
     `
 }
 
-export const updateLiveUpdate = (liveUpdate: LiveUpdate) => {
+export const updateLiveUpdateScript = (liveUpdate: LiveUpdate) => {
     return `
 UPDATE LiveUpdate
 SET EffectiveDate = UNIXEPOCH('${liveUpdate.EffectiveDate}')
 WHERE LiveUpdateID = ${liveUpdate.LiveUpdateID}
+    `
+}
+
+export const checkIfLiveUpdateOccuredPart = (recordsToCheck: string) => {
+    return `
+WITH 
+cteLiveUpdate AS (
+	SELECT LiveUpdateID FROM LiveUpdate ORDER BY EffectiveDate DESC LIMIT 1
+),
+cteCardOverall(CardID,CardValue) AS (
+	VALUES ${recordsToCheck}
+)
+SELECT CASE WHEN t.CardValue != c.CardValue THEN 1 ELSE 0 END LiveUpdateOccured, c.CardID
+FROM cteCardOverall t
+JOIN PtCard c ON t.CardID = c.CardID
+JOIN cteLiveUpdate u ON c.LiveUpdateID = u.LiveUpdateID;     
     `
 }

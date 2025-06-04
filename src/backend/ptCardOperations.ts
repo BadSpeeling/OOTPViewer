@@ -2,18 +2,28 @@ import * as fs from 'fs';
 import * as path from 'node:path'
 
 import { Database } from "./database/Database"
-import { ptCardListLoadScript, getLiveUpdatesScript, insertLiveUpdate, updateLiveUpdate } from './database/sqliteScripts'
+import { ptCardListLoadScript, getLiveUpdatesScript, insertLiveUpdateScript, updateLiveUpdateScript, checkIfLiveUpdateOccuredScript } from './database/sqliteScripts'
 
 import { ptCardList } from '../../json/csvColumns.json'
 import { CsvDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
+import { ProcessCardsStatus } from "../types"
 
 import * as settings from "../../settings.json"
 
-export async function processPtCardList (database: Database) {
+export async function processPtCardList (database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
 
     const ptCardFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
     const cards = await getCards(path.join(...ptCardFilePath));
-    writeCards(database, cards);
+
+    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, cards) : false;
+
+    if (!liveUpdateOccuredFlag) {
+        writeCards(database, cards);
+        return ProcessCardsStatus.Success
+    }
+    else {
+        return ProcessCardsStatus.LiveUpdateNeeded
+    }
 
 }
 
@@ -122,19 +132,25 @@ export const getLiveUpdates = async (databasePath: string) => {
     return await db.getAllMapped<LiveUpdate>(getLiveUpdatesScript());
 }
 
-export const writeLiveUpdate = async (databasePath: string, liveUpdate: LiveUpdate) => {
+export const upsertLiveUpdate = async (database: Database, liveUpdate: LiveUpdate) => {
     
-    const db = new Database(databasePath);
-
     if (liveUpdate.LiveUpdateID) {
-        const updateScript = updateLiveUpdate(liveUpdate);
-        await db.execute(updateScript);
+        const updateScript = updateLiveUpdateScript(liveUpdate);
+        await database.execute(updateScript);
         return liveUpdate.LiveUpdateID;    
     }
     else {
-        const insertScript = insertLiveUpdate(liveUpdate);
-        const liveUpdateID = await db.insertOne(insertScript);
+        const insertScript = insertLiveUpdateScript(liveUpdate);
+        const liveUpdateID = await database.insertOne(insertScript);
         return liveUpdateID;
     }
     
+}
+
+export const checkIfLiveUpdateOccured = async (database: Database, cards: CsvRecord[]) => {
+
+    const script  = checkIfLiveUpdateOccuredScript(cards);
+    const cardsInLiveUpdate = await database.getAllMapped<{LiveUpdateOccured: boolean, CardID: number}>(script);
+    return typeof cardsInLiveUpdate.find(card => card.LiveUpdateOccured) !== 'undefined'
+
 }

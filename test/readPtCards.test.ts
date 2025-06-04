@@ -4,7 +4,7 @@ import * as fs from "node:fs"
 
 import { readPtCardList } from "../src/backend/ptCardOperations"
 import { ptCardList } from '../json/csvColumns.json'
-import { writeCards, getLiveUpdates, writeLiveUpdate,  } from "../src/backend/ptCardOperations"
+import { writeCards, getLiveUpdates, upsertLiveUpdate, checkIfLiveUpdateOccured } from "../src/backend/ptCardOperations"
 
 import * as readPtCardsTest from "./data/json/readPtCardsTestData"
 
@@ -26,19 +26,21 @@ test('Read a card out of pt_card_list', async () => {
     expect(cards.length).toBe(1);
     const loadedCard = cards[0];
     expect(databaseObjectEqual(loadedCard,desiredData)).toBeTruthy();
+    
 
 })
 
 test('LiveUpdate CRUD', async () => {
 
     const databasePath = dir + "test.db";
-    
-    const liveUpdateID = await writeLiveUpdate(databasePath, {LiveUpdateID: null, EffectiveDate: '2025-04-01'});
+    const database = new Database(databasePath);
+
+    const liveUpdateID = await upsertLiveUpdate(database, {LiveUpdateID: null, EffectiveDate: '2025-04-01'});
     const liveUpdates1 = await getLiveUpdates(databasePath);
     
     expect(liveUpdates1.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-01');
 
-    await writeLiveUpdate(databasePath, {LiveUpdateID: liveUpdateID, EffectiveDate: '2025-04-15'});
+    await upsertLiveUpdate(database, {LiveUpdateID: liveUpdateID, EffectiveDate: '2025-04-15'});
     const liveUpdates2 = await getLiveUpdates(databasePath);
 
     expect(liveUpdates2.find((liveUpdate) => liveUpdate.LiveUpdateID === liveUpdateID)?.EffectiveDate).toBe('2025-04-15');
@@ -67,13 +69,29 @@ test('Populate PtCards table with updated live cards', async () => {
     const database = new Database(dir + "test.db");
 
     await writeCards(database, [liveCardVersion1]);
-    database.execute("insert into LiveUpdate (EffectiveDate) values ('2025-05-01')");
+    const newLiveUpdateID = await database.insertOne("insert into LiveUpdate (EffectiveDate) values (UNIXEPOCH('2025-05-01'))");
     await writeCards(database, [liveCardVersion2]);
 
-    const liveCards = await database.getAll(`select CardID,CardTitle,CardValue from PtCard where CardID = ${liveCardVersion1["Card ID"]} order by LiveUpdateID asc`)
+    const liveCards = await database.getAll(`select CardID,CardTitle,CardValue,LiveUpdateID from PtCard where CardID = ${liveCardVersion1["Card ID"]} order by LiveUpdateID asc`)
 
     expect(liveCards.length).toBe(2);
-    expect(liveCards[0].LiveUpdateID == 1);
-    expect(liveCards[1].LiveUpdateID == 2)
+    expect(liveCards[0].LiveUpdateID !== newLiveUpdateID);
+    expect(liveCards[1].LiveUpdateID === newLiveUpdateID)
+
+})
+
+test('Detect a live update has happened for live cards', async () => {
+    
+    const liveUpdateCardVersion1 = readPtCardsTest.checkLiveUpdateOccuredTest.liveCardVersion1;
+    const liveUpdateCardVersion2 = readPtCardsTest.checkLiveUpdateOccuredTest.liveCardVersion2;
+
+    const database = new Database(dir + "test.db");
+    await writeCards(database, [liveUpdateCardVersion1]);
+
+    const checkIfLiveUpdateOccuredResult = await checkIfLiveUpdateOccured(database, [liveUpdateCardVersion2]);
+    expect(checkIfLiveUpdateOccuredResult).toBeTruthy();
+
+    const checkIfLiveUpdateOccuredResultFalse = await checkIfLiveUpdateOccured(database, [liveUpdateCardVersion1]);
+    expect(checkIfLiveUpdateOccuredResultFalse).toBeFalsy();
 
 })

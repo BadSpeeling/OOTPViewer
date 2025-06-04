@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 contextBridge.exposeInMainWorld('electronAPI', {
   writeHtmlTournamentStats: (tournamentTypeID, value) => ipcRenderer.invoke('writeHtmlTournamentStats', tournamentTypeID, value),
-  writePtCards: () => ipcRenderer.invoke('writePtCards'),
+  writePtCards: (bypassLiveUpdateOccuredCheck) => ipcRenderer.invoke('writePtCards', bypassLiveUpdateOccuredCheck),
   
   openFile: () => ipcRenderer.invoke('openFile'),
   findTournamentExports: () => ipcRenderer.invoke('findTournamentExports'),
@@ -31,5 +31,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLiveUpdates: () => ipcRenderer.invoke('getLiveUpdates'),
 
   getPtTeams: () => ipcRenderer.invoke('getPtTeams'),
-
+  upsertLiveUpdate: (liveUpdate) => ipcRenderer.invoke('upsertLiveUpdate', liveUpdate),
 })

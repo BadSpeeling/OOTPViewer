@@ -5,10 +5,10 @@ import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
-import {getLiveUpdates, readPtCardList, processPtCardList} from "./backend/ptCardOperations";
+import {getLiveUpdates, readPtCardList, processPtCardList, upsertLiveUpdate} from "./backend/ptCardOperations";
 import {getSetting,updateSetting} from "./backend/settings";
 
-import { getDatabase } from "./backend/database/Database";
+import { getDatabase, Database } from "./backend/database/Database";
 import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position } from "./backend/types"
 
 import * as settings from '../settings.json';
@@ -27,14 +27,15 @@ declare global {
     getSeasonStats: (query: TournamentStatsQuery) => Promise<DatabaseRecord[]>,
     getRecentTournaments: (teamName: string) => Promise<TournamentMetaData[]>,
     getLiveUpdates: () => Promise<LiveUpdate[]>,
-    writePtCards: () => Promise<ProcessCardsStatus>,
+    writePtCards: (bypassLiveUpdateOccuredCheck: boolean) => Promise<ProcessCardsStatus>,
     openPtLeagueExporter: () => void,
     openTournamentStats: () => void,
     openSeasonStats: () => void,
     openStatsImporter: () => void,
     openCardImporter: () => void,
     loadPtCards: () => void,
-    getPtTeams: () => Promise<PtTeam[]>
+    getPtTeams: () => Promise<PtTeam[]>,
+    upsertLiveUpdate: (liveUpdate: LiveUpdate) => Promise<boolean>,
   }
 
 }
@@ -153,6 +154,7 @@ app.whenReady().then(() => {
   ipcMain.handle('getSeasonStats', getSeasonStats);
   ipcMain.handle('writePtCards', writePtCards);
   ipcMain.handle('getLiveUpdates', getLiveUpdatesHandler);
+  ipcMain.handle('upsertLiveUpdate', upsertLiveUpdateHandler);
 
   ipcMain.handle('openStatsImporter', openStatsImporter)
   ipcMain.handle('openPtLeagueExporter', openPtLeagueExporter)
@@ -176,11 +178,13 @@ function getPtTeams (e) {
   }) as PtTeam[];
 }
 
-async function writePtCards (e, args) {
+async function writePtCards (e, bypassLiveUpdateOccuredCheck: boolean) {
 
   try {
-    await processPtCardList();
-    return ProcessCardsStatus.Success;
+    const databasePath = getSetting("databasePath") as string[];
+    const database = new Database(path.join(...databasePath));
+    const result = await processPtCardList(database, bypassLiveUpdateOccuredCheck);
+    return result;
   }
   catch (e) {
     return ProcessCardsStatus.Fail;
@@ -304,4 +308,20 @@ async function findTournamentExports () : Promise<PtDataExportFile[]> {
 async function getLiveUpdatesHandler (): Promise<LiveUpdate[]> {
   const databasePath = path.join(...settings.databasePath);
   return getLiveUpdates(databasePath);
+}
+
+async function upsertLiveUpdateHandler (e, liveUpdate: LiveUpdate): Promise<boolean> {
+
+  const databasePath = getSetting('databasePath') as string[];
+  const database = new Database(path.join(...databasePath));
+
+  try {
+    upsertLiveUpdate(database, liveUpdate);
+    return true;
+  }
+  catch (err) {
+    //Log!
+    return false;
+  }
+
 }

@@ -17,7 +17,7 @@ export function TournamentTypePicker ({tournaments, selectedTournamentType, setS
     ]
 
     return (
-        <select value={selectedTournamentType} onChange={(e) => { setSelectedTournamentType(parseInt(e.target.value)) }} id="tournamentType">
+        <select className="border-gray border-1 rounded-md" value={selectedTournamentType} onChange={(e) => { setSelectedTournamentType(parseInt(e.target.value)) }} id="tournamentType">
             ${optionElements}
         </select>
     )

@@ -16,11 +16,9 @@ export const PtTeamSelector = ({teams,selectedTeamName,setSelectedTeamName}: PtT
     })
 
     return (
-        <div>
-            <select value={selectedTeamName} onChange={(e) => { setSelectedTeamName(e.target.value) }}>
-                {teamOptions}
-            </select>
-        </div>
+        <select className="border-gray border-1 rounded-md" value={selectedTeamName} onChange={(e) => { setSelectedTeamName(e.target.value) }}>
+            {teamOptions}
+        </select>
     )
 
 }

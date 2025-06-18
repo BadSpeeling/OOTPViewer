@@ -75,36 +75,40 @@ function StatsDisplay ({tournamentOptions}: StatsDisplayProps) {
 
     return (
         <>
-            <div>
-                <TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournamentOptions}/>            
-                <TournamentDatePicker tournamentStartDate={tournamentStartDate} setTournamentStartDate={setTournamentStartDate} tournamentEndDate={tournamentEndDate} setTournamentEndDate={setTournamentEndDate}/>
-                <select value={statsTypeID} onChange={(e) => setStatsType(parseInt(e.target.value))}>
-                    <option value={0}>Batting</option>
-                    <option value={1}>Pitching</option>
-                </select>
-                <select multiple value={positions.map(position => position.toString())} onChange={setPositionsHandler}>
-                    <option value={1}>P</option>
-                    <option value={2}>C</option>
-                    <option value={3}>1B</option>
-                    <option value={4}>2B</option>
-                    <option value={5}>3B</option>
-                    <option value={6}>SS</option>
-                    <option value={7}>LF</option>
-                    <option value={8}>CF</option>
-                    <option value={9}>RF</option>
-                </select>
-                <div>Min {getQualifierName(statsTypeID)} to qualify: <input value={qualifierValue} onChange={(e) => setQualifierValue(e.target.value)}/></div>
+            <div className="m-4">
+                <div className="mb-2"><TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournamentOptions}/></div>
+                <div className="mb-2"><TournamentDatePicker tournamentStartDate={tournamentStartDate} setTournamentStartDate={setTournamentStartDate} tournamentEndDate={tournamentEndDate} setTournamentEndDate={setTournamentEndDate}/></div>
+                <div className="mb-2">
+                    <select className="border-gray border-1 rounded-md" value={statsTypeID} onChange={(e) => setStatsType(parseInt(e.target.value))}>
+                        <option value={0}>Batting</option>
+                        <option value={1}>Pitching</option>
+                    </select>
+                </div>
+                <div className="mb-2">
+                    <select className="border-gray border-1 rounded-md" multiple value={positions.map(position => position.toString())} onChange={setPositionsHandler}>
+                        <option value={1}>P</option>
+                        <option value={2}>C</option>
+                        <option value={3}>1B</option>
+                        <option value={4}>2B</option>
+                        <option value={5}>3B</option>
+                        <option value={6}>SS</option>
+                        <option value={7}>LF</option>
+                        <option value={8}>CF</option>
+                        <option value={9}>RF</option>
+                    </select>
+                </div>
+                <div>Min {getQualifierName(statsTypeID)} to qualify: <input className="border-gray border-1 rounded-md" value={qualifierValue} onChange={(e) => setQualifierValue(e.target.value)}/></div>
             </div>
             { 
                 playerStatsEnummed.length > 0 &&
-                <div>
+                <div className="m-4">
                     <DataTable data={buildTableBody(playerStatsEnummed, headers)}>
                         { buildTableHeader(headers) }                        
                     </DataTable>
                 </div>
             }
-            <div>
-                <button onClick={dataLoadHandler}>Load</button>
+            <div className="m-4">
+                <button className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" onClick={dataLoadHandler}>Load</button>
             </div>
         </>
     )
@@ -136,10 +140,10 @@ function TournamentDatePicker ({tournamentStartDate, setTournamentStartDate, tou
     }
 
     return (
-        <div>
-            <span>Start Date:</span><input value={tournamentStartDate} onChange={tournamentStartDateHandler} />
-            <span>End Date:</span><input value={tournamentEndDate} onChange={tournamentEndDateHandler} />
-        </div>
+        <>
+            <div className="mb-2"><span className="inline-block mr-2">Start Date:</span><input className="border-gray border-1 rounded-md" value={tournamentStartDate} onChange={tournamentStartDateHandler} /></div>
+            <div className="mb-2"><span className="inline-block mr-2">End Date:</span><input className="border-gray border-1 rounded-md" value={tournamentEndDate} onChange={tournamentEndDateHandler} /></div>
+        </>
     )
 
 }

@@ -47,14 +47,13 @@ function Page ({tournaments, tournamentFiles, myTeams}: Props) {
 
     return (
         <>
-            <div id="tournamentList">
-                <div><b id="tournamentListStatus"></b></div>
-                <div id="tournamentTypeWrapper"><TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournaments}/></div>
-                <div><PtTeamSelector selectedTeamName={selectedTeamName} setSelectedTeamName={setSelectedTeamName} teams={myTeams}/></div>
+            <div>
+                <div className="m-4"><TournamentTypePicker selectedTournamentType={selectedTournamentType} setSelectedTournamentType={setSelectedTournamentType} tournaments={tournaments}/></div>
+                <div className="m-4"><PtTeamSelector selectedTeamName={selectedTeamName} setSelectedTeamName={setSelectedTeamName} teams={myTeams}/></div>
                 <div id="tournamentOptions"><TournamentExports curTournamentExports={curTournamentExports} setTournamentExports={setTournamentExports}/></div>
-                <div>
-                    <button id="collectTournamentsToInsert" onClick={(e) => handleSubmit(selectedTournamentType, curTournamentExports, setTournamentExports, selectedTeamName)}>Write Data</button>
-                    <button id="reloadTable">Reload Table</button>
+                <div className="my-4">
+                    <button className="w-32 mx-8 cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" onClick={(e) => handleSubmit(selectedTournamentType, curTournamentExports, setTournamentExports, selectedTeamName)}>Write Data</button>
+                    <button className="w-32 mx-8 cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Reload Table</button>
                 </div>
             </div>
         </>
@@ -87,12 +86,26 @@ function TournamentExports ({curTournamentExports, setTournamentExports}: Tourna
     }
 
     const tableBody = curTournamentExports.map((tourney, index) => {
-        return <tr key={tourney.key}><td><input type='checkbox' checked={tourney.onlyMyTeamFlag} onChange={(e) => updateMyTeamFlag(e, index)}/></td><td><input type='checkbox' checked={tourney.isIncludedFlag} onChange={(e) => updateCheckbox(e, index)}/></td><td>{tourney.fileName}</td><td><input name='Description' onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td><td className='status'>{tournamentRowStatusIcon(tourney.dataSaveStatus)}</td></tr>
+        return (
+            <tr className="table-header" key={tourney.key}>
+                <td className="p-2 text-center"><input type='checkbox' checked={tourney.onlyMyTeamFlag} onChange={(e) => updateMyTeamFlag(e, index)}/></td>
+                <td className="p-2 text-center"><input type='checkbox' checked={tourney.isIncludedFlag} onChange={(e) => updateCheckbox(e, index)}/></td>
+                <td className="p-2 text-center">{tourney.fileName}</td>
+                <td className="p-2 text-center"><input className="border-gray border-1 rounded-md px-2 py-1" onChange={(e) => updateDescription(e,index)} value={curTournamentExports[index].description}/></td>
+                <td className="p-2 text-center">{tournamentRowStatusIcon(tourney.dataSaveStatus)}</td>
+            </tr>
+        )
     })
 
     return (
         <table>
-            <tr><th>Only My Team?</th><th>Include?</th><th>File</th><th>Description</th><th>Status</th></tr>
+            <tr className="table-header">
+                <th className="p-2 text-center">Only My Team?</th>
+                <th className="p-2 text-center">Include?</th>
+                <th className="p-2 text-center">File</th>
+                <th className="p-2 text-center">Description</th>
+                <th className="p-2 text-center">Status</th>
+            </tr>
             {tableBody}
         </table>
     )

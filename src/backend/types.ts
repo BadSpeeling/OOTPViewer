@@ -28,6 +28,7 @@ export interface DatatableModel {
     columns: DatatableColumn[],
     primaryKey?: string,
     constraints?: Constraint[],
+    foreignKeyTables?: string[],
 }
 
 export interface PtCard {

@@ -8,12 +8,14 @@ export class Datatable {
     primaryKey?: string;
     constraints?: Constraint[];
     isTemporaryFlag: boolean;
+    foreignKeyTables?: string[];
 
     constructor(tableName: string, isTemporaryFlag: boolean, model: DatatableModel) {
         this.tableName = tableName;
         this.tableColumns = model.columns;
         this.primaryKey = model.primaryKey;
         this.constraints = model.constraints;
+        this.foreignKeyTables = model.foreignKeyTables;
         this.isTemporaryFlag = isTemporaryFlag;
     }
 
@@ -24,6 +26,7 @@ export class Datatable {
         }).join(', ');
 
         const primaryKeyPart = this.primaryKey ? `, PRIMARY KEY(${this.primaryKey})` : "";
+        
         let constraintsPart: string = ""; 
 
         if (this.constraints) {
@@ -32,15 +35,36 @@ export class Datatable {
             }).join('\n');
         }
 
+        let foreignKeysPart: string = "";
+
+        if (this.foreignKeyTables) {
+            foreignKeysPart = ','+this.foreignKeyTables.map((fk) => this.#foreignKey(fk)).join(',\n');
+        }
+
         return `
-CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${constraintsPart});
+CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${constraintsPart} ${foreignKeysPart});
 `
 
     }
 
+    #foreignKey (referenceTableName: string) {
+        return `CONSTRAINT "FK_${this.tableName}_${referenceTableName}ID_${referenceTableName}_${referenceTableName}ID" FOREIGN KEY("${referenceTableName}ID") REFERENCES "${referenceTableName}"("${referenceTableName}ID")`
+    }
+
 }
 
-export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: string, constraints?: Constraint[]) => {
+export const createIndicies = () => {
+    return `
+CREATE INDEX "iBattingStats_StatsBatch" ON "BattingStats" (
+	"StatsBatchID"	ASC
+);
+CREATE INDEX "iPitchingStats_StatsBatch" ON "PitchingStats" (
+    "StatsBatchID"  ASC
+);    
+    `
+}
+
+export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: string, constraints?: Constraint[], foreignKeyTables?: string[]) => {
 
     const isTemporaryFlag = true;
     const datatableModel: DatatableModel = {
@@ -53,6 +77,7 @@ export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], 
         }),
         constraints,
         primaryKey,
+        foreignKeyTables,
     }
 
     return new Datatable(tableName, isTemporaryFlag, datatableModel);

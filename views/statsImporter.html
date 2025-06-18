@@ -1,38 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://code.jquery.com; style-src 'unsafe-inline'">
-    <!-- <script>window.$ = window.jQuery = require('./jquery-3.4.1.min.js');</script> -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="../dist/renderer/statsImporter.js"></script>
-    <title>Stats Importer</title>
-
-    <style>
-      #recentTournaments th {
-        padding-right: 15px;
-      }
-      .TournamentWriteSelector > * {
-        display:inline-flex
-      }
-      .loader {
-        border: 6px solid #f3f3f3; /* Light grey */
-        border-top: 6px solid #3498db; /* Blue */
-        border-radius: 50%;
-        width: 5px;
-        height: 5px;
-        margin: auto;
-        animation: spin 2s linear infinite;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-
-  </head>
+    <head>
+        <meta charset="UTF-8">
+        <script src="../dist/renderer/statsImporter.js"></script>
+        <link href="../css/main-output.css" rel="stylesheet">
+    </head>
   <body>
 
     <div id="reactWrapper"></div>

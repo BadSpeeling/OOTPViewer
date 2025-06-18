@@ -44,11 +44,11 @@ const CardImporter = ({liveUpdates}: CardImporterProps) => {
     const showProcessCardsButton = processCardsStatus !== ProcessCardsStatus.LiveUpdateNeeded || bypassLiveUpdateCheckFlag;
 
     return (
-        <div>
+        <div className="m-8">
             <LiveUpdatePanel processCardsStatus={processCardsStatus} liveUpdates={liveUpdates} setBypassLiveUpdateCheckFlag={setBypassLiveUpdateCheckFlag}/>
             <div>
                 <div><span>{processCardsMessage()}</span></div>
-                {showProcessCardsButton && <div><button onClick={writePtCardsHandler}>Process Cards</button></div>}
+                {showProcessCardsButton && <div><button className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" onClick={writePtCardsHandler}>Process Cards</button></div>}
             </div>
         </div>
     )
@@ -63,11 +63,11 @@ type LiveUpdatePanelProps = {
 
 const LiveUpdatePanel = ({processCardsStatus, liveUpdates, setBypassLiveUpdateCheckFlag}: LiveUpdatePanelProps) => {
 
-    const liveUpdatesBody = liveUpdates.map((liveUpdate) => <div>{liveUpdate.EffectiveDate}</div>);
+    const liveUpdatesBody = liveUpdates.map((liveUpdate) => <div className="mb-2">{liveUpdate.EffectiveDate}</div>);
 
     return (
         <div>
-            <div><b>Effective Date</b></div>
+            <div className="mb-2"><b>Effective Date</b></div>
             <div>{liveUpdatesBody}</div>
             {processCardsStatus === ProcessCardsStatus.LiveUpdateNeeded && <CreateLiveUpdatePanel setBypassLiveUpdateCheckFlag={setBypassLiveUpdateCheckFlag}/>}
         </div>
@@ -91,8 +91,8 @@ const CreateLiveUpdatePanel = ({ setBypassLiveUpdateCheckFlag }: CreateLiveUpdat
 
     return (
         <div>
-            <input value={effectiveDate} onChange={(e) => setEffectiveDate(e.currentTarget.value)} />
-            <button onClick={handleSubmit}>Submit</button>
+            <input className="border-gray border-1 rounded-md" value={effectiveDate} onChange={(e) => setEffectiveDate(e.currentTarget.value)} />
+            <button className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" onClick={handleSubmit}>Submit</button>
         </div>
     )
 

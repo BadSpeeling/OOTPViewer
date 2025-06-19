@@ -154,7 +154,7 @@
             {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "Timestamp", "type": "INTEGER", "isNullable": false},
             {"name": "Description", "type": "TEXT", "isNullable": false},
-            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false},            
+            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false}            
         ],
         "primaryKey": "StatsBatchID",
         "foreignKeyTables": ["TournamentType"]
@@ -226,7 +226,12 @@
             {"name": "BsR", "type": "REAL", "isNullable": true}
         ],
         "primaryKey": "BattingStatsID",
-        "foreignKeyTables": ["PtCard","StatsBatch"]
+        "foreignKeyTables": ["PtCard","StatsBatch"],
+        "indicies": [
+            {
+                "columns": ["StatsBatchID"]
+            }
+        ]
     },
     "PitchingStats": {
         "columns": [
@@ -315,6 +320,11 @@
             {"name": "SIERA", "type": "REAL", "isNullable": true}
         ],
         "primaryKey": "PitchingStatsID",
-        "foreignKeyTables": ["PtCard","StatsBatch"]
+        "foreignKeyTables": ["PtCard","StatsBatch"],
+        "indicies": [
+            {
+                "columns": ["StatsBatchID"]
+            }
+        ]
     }
 }

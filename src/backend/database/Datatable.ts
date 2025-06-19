@@ -1,4 +1,4 @@
-import {DatatableColumn,Constraint,DatatableModel,CsvDataColumn} from "../types"
+import {DatatableColumn,Constraint,DatatableModel,CsvDataColumn,Index} from "../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 
 export class Datatable {
@@ -9,6 +9,7 @@ export class Datatable {
     constraints?: Constraint[];
     isTemporaryFlag: boolean;
     foreignKeyTables?: string[];
+    indicies?: Index[];
 
     constructor(tableName: string, isTemporaryFlag: boolean, model: DatatableModel) {
         this.tableName = tableName;
@@ -16,6 +17,7 @@ export class Datatable {
         this.primaryKey = model.primaryKey;
         this.constraints = model.constraints;
         this.foreignKeyTables = model.foreignKeyTables;
+        this.indicies = model.indicies;
         this.isTemporaryFlag = isTemporaryFlag;
     }
 
@@ -41,19 +43,36 @@ export class Datatable {
             foreignKeysPart = ','+this.foreignKeyTables.map((fk) => this.#foreignKey(fk)).join(',\n');
         }
 
+        let indiciesPart: string = "";
+
+        if (this.indicies) {
+            indiciesPart = this.indicies.map((i) => this.#createIndex(this.tableName, i)).join('\n');
+        }
+
         return `
 CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${constraintsPart} ${foreignKeysPart});
+${indiciesPart}
 `
 
     }
 
     #foreignKey (referenceTableName: string) {
-        return `CONSTRAINT "FK_${this.tableName}_${referenceTableName}ID_${referenceTableName}_${referenceTableName}ID" FOREIGN KEY("${referenceTableName}ID") REFERENCES "${referenceTableName}"("${referenceTableName}ID")`
+        return `
+CONSTRAINT "FK_${this.tableName}_${referenceTableName}ID_${referenceTableName}_${referenceTableName}ID" FOREIGN KEY("${referenceTableName}ID") REFERENCES "${referenceTableName}"("${referenceTableName}ID")
+`
+    }
+
+    #createIndex (tableName: string, index: Index) {
+        return `
+CREATE INDEX "i${tableName}_${index.columns.join('')}" ON "${tableName}" (
+    ${index.columns.map(c => `"${c}"  ASC`)}
+);
+        `
     }
 
 }
 
-export const createIndicies = () => {
+export const createIndex = (index: Index) => {
     return `
 CREATE INDEX "iBattingStats_StatsBatch" ON "BattingStats" (
 	"StatsBatchID"	ASC

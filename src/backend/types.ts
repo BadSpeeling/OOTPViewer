@@ -19,7 +19,7 @@ export interface DatatableColumn {
 }
 
 export interface Constraint {
-    type: "UNIQUE"|"INDEX"
+    type: "UNIQUE"
     name: string,
     fields: string[],
 }
@@ -29,6 +29,11 @@ export interface DatatableModel {
     primaryKey?: string,
     constraints?: Constraint[],
     foreignKeyTables?: string[],
+    indicies?: Index[],
+}
+
+export interface Index {
+    columns: string[],
 }
 
 export interface PtCard {

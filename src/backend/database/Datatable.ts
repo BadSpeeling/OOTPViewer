@@ -72,18 +72,7 @@ CREATE INDEX "i${tableName}_${index.columns.join('')}" ON "${tableName}" (
 
 }
 
-export const createIndex = (index: Index) => {
-    return `
-CREATE INDEX "iBattingStats_StatsBatch" ON "BattingStats" (
-	"StatsBatchID"	ASC
-);
-CREATE INDEX "iPitchingStats_StatsBatch" ON "PitchingStats" (
-    "StatsBatchID"  ASC
-);    
-    `
-}
-
-export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: string, constraints?: Constraint[], foreignKeyTables?: string[]) => {
+export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: string, constraints?: Constraint[]) => {
 
     const isTemporaryFlag = true;
     const datatableModel: DatatableModel = {
@@ -96,7 +85,6 @@ export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], 
         }),
         constraints,
         primaryKey,
-        foreignKeyTables,
     }
 
     return new Datatable(tableName, isTemporaryFlag, datatableModel);

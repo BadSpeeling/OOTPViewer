@@ -5,11 +5,18 @@ import * as path from 'node:path';
 import { IDatabaseCreator, LocalSqliteDatabaseCreator } from '../src/backend/database-creator/'
 import { Database } from '../src/backend/database/Database';
 
-const databaseFilePathRoot = ['E:','ootp_data','sqlite','test','init-db-tests']
+const databaseFilePathRoot = ['E:','ootp_data','sqlite','test','create-db-tests']
 
 beforeAll(() => {
 
-  	fs.writeFileSync(path.join(...[...databaseFilePathRoot, 'existing.db']), '');
+	const testPath = path.join(...databaseFilePathRoot);
+
+	//if the testing folder doesn't exist, create it
+	if (!fs.existsSync(testPath)) {
+		fs.mkdirSync(testPath);
+	}
+
+  	fs.writeFileSync(path.join(testPath, 'existing.db'), '');
 
 })
 

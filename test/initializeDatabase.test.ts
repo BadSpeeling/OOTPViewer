@@ -1,29 +1,113 @@
-import * as tableColumns from "../json/tableColumns.json";
-import {Datatable} from "../src/backend/database/Datatable";
-
-import { getCards, writeCards, processPtCardList } from "../src/backend/ptCardOperations"
+import { test, expect, beforeAll, afterAll } from '@jest/globals'
 
 import * as fs from 'node:fs'
-import { getDatabase, initializeDatabase } from "../src/backend/database/Database";
+import * as path from 'node:path';
+import { IDatabaseCreator, LocalSqliteDatabaseCreator } from '../src/backend/database-creator/'
+import { Database } from '../src/backend/database/Database';
 
+const databaseFilePathRoot = ['E:','ootp_data','sqlite','test','init-db-tests']
 
-const currTime = Date.now();
+beforeAll(() => {
 
-// test('sandbox', async () => {
+  	fs.writeFileSync(path.join(...[...databaseFilePathRoot, 'existing.db']), '');
 
-//   const db = await open({
-//     filename: `E:\\ootp_data\\sqlite\\pt.db`,
-//     driver: sqlite3.Database
-//   });
+})
 
-//   await db.exec(tables[4].createTableString())
+afterAll(() => {
 
-// })
+  	fs.readdir(path.join(...databaseFilePathRoot), (err, files) => {
+    	if (err) throw err;
 
-const dir = 'E:\\ootp_data\\sqlite\\'
+    	for (const file of files) {
+      		fs.unlink(path.join(...databaseFilePathRoot, file), (err) => {
+        		if (err) throw err;
+      		});
+    	}
+  	});
 
-// test('test db init', async () => {
-//   await initializeDatabase(['E:','ootp_data','sqlite',`${currTime}.db`]);
+})
+
+test('Create database', async () => {
+
+    const databaseFilePath = getDatabaseFilePath();
+    const creator: IDatabaseCreator = new LocalSqliteDatabaseCreator(databaseFilePath);  
+    
+    let db: Database|null = null; 
+    
+    try {
+      	db = creator.createDatabase();
+    }
+    catch {
+
+    }
+    
+    expect(db !== null).toBeTruthy();
+    expect(databaseExists(path.join(...databaseFilePath)));
+
+})
+
+test('Fail if existing', async () => {
+
+  	const existingPath = [...databaseFilePathRoot, 'existing.db'];
+  	const creator: IDatabaseCreator = new LocalSqliteDatabaseCreator(existingPath);  
+
+  	let errMsg: string = '';
+
+  	try {
+    	creator.createDatabase();
+  	}
+  	catch (error) {
+    	if (error instanceof Error) {
+      		errMsg = error.message;
+    	}
+  	}
+
+  	expect(errMsg.includes('is already an existing SQLite db file')).toBeTruthy();
+
+})
+
+test('Fail if not db file', async () => {
+
+  	const existingPath = [...databaseFilePathRoot, 'not-db'];
+  	const creator: IDatabaseCreator = new LocalSqliteDatabaseCreator(existingPath);  
+
+  	let errMsg: string = '';
+
+  	try {
+    	creator.createDatabase();
+  	}
+  	catch (error) {
+    	if (error instanceof Error) {
+      		errMsg = error.message;
+    	}
+  	}
+
+  	expect(errMsg.includes('is not a SQLite db file')).toBeTruthy();
+
+})
+
+test('Fail if folder does not exist', async () => {
+
+  	const existingPath = [...databaseFilePathRoot, 'not-a-folder','pt.db'];
+  	const creator: IDatabaseCreator = new LocalSqliteDatabaseCreator(existingPath);  
+
+  	let errMsg: string = '';
+
+  	try {
+    	creator.createDatabase();
+  	}
+  	catch (error) {
+    	if (error instanceof Error) {
+      		errMsg = error.message;
+    	}
+  	}
+
+  	expect(errMsg.includes('is not a folder that exists')).toBeTruthy();
+
+})
+
+// test('Add table to database', async () => {
+
 // })
 
 // test('Run table load', async () => {
@@ -46,13 +130,22 @@ const dir = 'E:\\ootp_data\\sqlite\\'
 
 // })
 
-test('Run table load', async () => {
+// test('Run table load', async () => {
 
-    const db = getDatabase();
-    await processPtCardList(db);
+//     const db = getDatabase();
+//     await processPtCardList(db);
 
-    const result = await db.get("SELECT COUNT(*) FROM PtCard");
+//     const result = await db.get("SELECT COUNT(*) FROM PtCard");
 
-    console.log(result);
+//     console.log(result);
 
-})
+// })
+
+const databaseExists = (databaseFilePath: string) => {
+  return fs.existsSync(databaseFilePath);
+}
+
+const getDatabaseFilePath = () => {
+  const currTime = Date.now();    
+  return [...databaseFilePathRoot, `${currTime}.db`];
+}

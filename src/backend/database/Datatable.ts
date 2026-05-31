@@ -1,9 +1,9 @@
-import {DatatableColumn,Constraint,DatatableModel,CsvDataColumn,Index} from "../types"
+import {DataTableColumn,Constraint,DatatableModel,CsvDataColumn,Index} from "../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 
 export class Datatable {
 
-    tableColumns: DatatableColumn[];
+    tableColumns: DataTableColumn[];
     tableName: string;
     primaryKey?: string;
     constraints?: Constraint[];
@@ -11,8 +11,8 @@ export class Datatable {
     foreignKeyTables?: string[];
     indicies?: Index[];
 
-    constructor(tableName: string, isTemporaryFlag: boolean, model: DatatableModel) {
-        this.tableName = tableName;
+    constructor(model: DatatableModel, isTemporaryFlag: boolean) {
+        this.tableName = model.tableName;
         this.tableColumns = model.columns;
         this.primaryKey = model.primaryKey;
         this.constraints = model.constraints;
@@ -24,7 +24,7 @@ export class Datatable {
     createTableString () {
 
         const columnBody = this.tableColumns.map((column) => {
-            return `"${column.name}" ${column.type.toString()} ${!column.isNullable ? "NOT NULL" : ""}`
+            return `"${column.name}" ${column.type.toString()} ${column.notNull ? "NOT NULL" : ""}`
         }).join(', ');
 
         const primaryKeyPart = this.primaryKey ? `, PRIMARY KEY(${this.primaryKey})` : "";
@@ -76,17 +76,18 @@ export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], 
 
     const isTemporaryFlag = true;
     const datatableModel: DatatableModel = {
+        tableName,
         columns: columns.map((column) => {
             return {
                 name: column.databaseColumnName,
                 type: parseCsvDataColumnToDatatype(column.type),
-                isNullable: true,
+                notNull: true,
             }
         }),
         constraints,
         primaryKey,
     }
 
-    return new Datatable(tableName, isTemporaryFlag, datatableModel);
+    return new Datatable(datatableModel, isTemporaryFlag);
 
 }

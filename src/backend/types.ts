@@ -12,10 +12,10 @@ export interface CsvDataColumn {
     type: string,
 }
 
-export interface DatatableColumn {
+export interface DataTableColumn {
     name: string,
     type: string,
-    isNullable: boolean,
+    notNull: boolean,
 }
 
 export interface Constraint {
@@ -25,7 +25,8 @@ export interface Constraint {
 }
 
 export interface DatatableModel {
-    columns: DatatableColumn[],
+    tableName: string,
+    columns: DataTableColumn[],
     primaryKey?: string,
     constraints?: Constraint[],
     foreignKeyTables?: string[],

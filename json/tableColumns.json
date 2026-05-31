@@ -1,5 +1,6 @@
-{
-    "PtCard": {
+[
+    {
+        "tableName": "PtCard",
         "columns": [
             {"name":"CardID","type":"INTEGER","isNullable":false},
             {"name":"CardTitle","type":"TEXT","isNullable":false},
@@ -118,6 +119,7 @@
             {"name":"owned","type":"INTEGER","isNullable":false},
             {"name":"brefid","type":"TEXT","isNullable":false},
             {"name":"date","type":"INTEGER","isNullable":false},
+            {"name":"packs","type":"INTEGER","isNullable":false},
             {"name":"LiveUpdateID","type":"INTEGER","isNullable":true},
             {"name":"PtCardID","type":"INTEGER","isNullable":false}
         ],
@@ -130,14 +132,16 @@
             }
         ]
     },
-    "LiveUpdate": {
+    {
+        "tableName": "LiveUpdate",
         "columns": [
             {"name":"LiveUpdateID","type":"INTEGER","isNullable":false},
             {"name":"EffectiveDate","type":"INTEGER","isNullable":false}
         ],
         "primaryKey": "LiveUpdateID"
     },
-    "CardMarketValue": {
+    {
+        "tableName": "CardMarketValue",
         "columns": [
             {"name":"CardMarketValueID","type":"INTEGER","isNullable":false},
             {"name":"PtCardID","type":"INTEGER","isNullable":false},
@@ -149,7 +153,8 @@
         ],
         "primaryKey": "CardMarketValueID"
     },
-    "StatsBatch": {
+    {
+        "tableName": "StatsBatch",
         "columns": [
             {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
             {"name": "Timestamp", "type": "INTEGER", "isNullable": false},
@@ -159,7 +164,8 @@
         "primaryKey": "StatsBatchID",
         "foreignKeyTables": ["TournamentType"]
     },
-    "TournamentType": {
+    {
+        "tableName": "TournamentType",
         "columns": [
             {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false},
             {"name": "Name", "type": "TEXT", "isNullable": false},
@@ -172,7 +178,8 @@
         ],
         "primaryKey": "TournamentTypeID"
     },
-    "BattingStats": {
+    {
+        "tableName": "BattingStats",
         "columns": [
             {"name": "BattingStatsID", "type": "INTEGER", "isNullable": false},
             {"name": "TeamName", "type": "TEXT", "isNullable": false},
@@ -233,7 +240,8 @@
             }
         ]
     },
-    "PitchingStats": {
+    {
+        "tableName": "PitchingStats",
         "columns": [
             {"name": "PitchingStatsID", "type": "INTEGER", "isNullable": false},
             {"name": "TeamName", "type": "TEXT", "isNullable": false},
@@ -327,4 +335,4 @@
             }
         ]
     }
-}
+]

@@ -27,7 +27,7 @@ export interface Constraint {
 export interface DatatableModel {
     tableName: string,
     columns: DataTableColumn[],
-    primaryKey?: string,
+    primaryKey?: PrimaryKey,
     constraints?: Constraint[],
     foreignKeyTables?: string[],
     indicies?: Index[],
@@ -35,6 +35,11 @@ export interface DatatableModel {
 
 export interface Index {
     columns: string[],
+}
+
+export interface PrimaryKey {
+    column: string,
+    autoincrement: boolean,
 }
 
 export interface PtCard {

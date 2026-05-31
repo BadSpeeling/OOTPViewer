@@ -1,11 +1,11 @@
-import {DataTableColumn,Constraint,DatatableModel,CsvDataColumn,Index} from "../types"
+import {DataTableColumn,Constraint,DatatableModel,CsvDataColumn,Index,PrimaryKey} from "../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 
 export class Datatable {
 
     tableColumns: DataTableColumn[];
     tableName: string;
-    primaryKey?: string;
+    primaryKey?: PrimaryKey;
     constraints?: Constraint[];
     isTemporaryFlag: boolean;
     foreignKeyTables?: string[];
@@ -27,7 +27,7 @@ export class Datatable {
             return `"${column.name}" ${column.type.toString()} ${column.notNull ? "NOT NULL" : ""}`
         }).join(', ');
 
-        const primaryKeyPart = this.primaryKey ? `, PRIMARY KEY(${this.primaryKey})` : "";
+        const primaryKeyPart = this.primaryKey ? `, PRIMARY KEY(${this.primaryKey.column}${this.primaryKey.autoincrement ? " AUTOINCREMENT" : ""})` : "";
         
         let constraintsPart: string = ""; 
 
@@ -72,7 +72,7 @@ CREATE INDEX "i${tableName}_${index.columns.join('')}" ON "${tableName}" (
 
 }
 
-export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: string, constraints?: Constraint[]) => {
+export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: PrimaryKey, constraints?: Constraint[]) => {
 
     const isTemporaryFlag = true;
     const datatableModel: DatatableModel = {

@@ -3,7 +3,7 @@ import { test, expect, beforeAll, afterAll } from '@jest/globals'
 import * as fs from 'node:fs'
 import * as path from 'node:path';
 import { Database } from '../src/backend/database/Database';
-import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader } from './fakes/DatatableModelReader/';
+import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader, FakeAutoIncrementDatatableModelReader } from './fakes/DatatableModelReader/';
 import { IDatatableModelReader, IDatatableCreator, LocalSqliteDatatableCreator, ProjectDatatableModelReader } from '../src/backend/database-creator';
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','add-database-tables-tests']
@@ -40,7 +40,7 @@ test('Create 1 table', async () => {
     const creator: IDatatableCreator = new LocalSqliteDatatableCreator(new FakeOneDatatableModelReader(), db);  
     await creator.createDataTables();
 
-	const columns = await db.getAllMapped<SqliteTableColumn>("PRAGMA table_info('TestTableName')")
+	const columns = await getTableColumnsMetadata(db, 'TestTableName');
 
 	const integerCol = columns.find(c => c.name === 'IntegerColumn');
 	expect(integerCol?.type === "INTEGER").toBeTruthy();
@@ -82,11 +82,37 @@ test('Project datatable model reader test', () => {
 
 })
 
+test('Create primary key with autoincrement', async () => {
+
+    const databaseFile = createDatabase();
+	const db = new Database(databaseFile)
+    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(new FakeAutoIncrementDatatableModelReader(), db);  
+    await creator.createDataTables();
+
+	//autoincrement will not be used and verifiable until table has at least 1 record
+	await db.execute('insert into TestTableName (TextColumn) values ("tst");')
+
+	const columns = await getTableColumnsMetadata(db, 'TestTableName');
+	var pkColumn = columns.find(c => c.name === "IntegerColumn");
+	expect(pkColumn?.pk === 1).toBeTruthy();
+	expect(await doesDatatableHasPkAutoincrement(db)).toBeTruthy();
+	
+})
+
 const createDatabase = () => {
   	const currTime = Date.now();    
   	const databaseFile = path.join(...databaseFilePath, `${currTime}.db`);
 	fs.closeSync(fs.openSync(databaseFile, 'w'));
 	return databaseFile;
+}
+
+const getTableColumnsMetadata = async (db: Database, tableName: string) => {
+	return await db.getAllMapped<SqliteTableColumn>(`PRAGMA table_info('${tableName}')`);
+}
+
+const doesDatatableHasPkAutoincrement = async (db: Database) => {
+	const queryResult = await db.getMapped<{cnt:number}>("SELECT COUNT(*) cnt FROM sqlite_sequence WHERE name='TestTableName';");
+	return queryResult.cnt > 0;
 }
 
 type SqliteTableColumn = {

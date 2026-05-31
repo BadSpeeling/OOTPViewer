@@ -123,7 +123,10 @@
             {"name":"LiveUpdateID","type":"INTEGER","isNullable":true},
             {"name":"PtCardID","type":"INTEGER","isNullable":false}
         ],
-        "primaryKey": "PtCardID",
+        "primaryKey": {
+            "column": "PtCardID",
+            "autoincrement": true
+        },
         "constraints": [
             {
                 "type": "UNIQUE",
@@ -138,7 +141,10 @@
             {"name":"LiveUpdateID","type":"INTEGER","isNullable":false},
             {"name":"EffectiveDate","type":"INTEGER","isNullable":false}
         ],
-        "primaryKey": "LiveUpdateID"
+        "primaryKey": {
+            "column": "LiveUpdateID",
+            "autoincrement": true
+        }
     },
     {
         "tableName": "CardMarketValue",
@@ -151,7 +157,10 @@
             {"name":"Last10Price(VAR)","type":"INTEGER","isNullable":false},
             {"name":"Timestamp","type":"INTEGER","isNullable":false}
         ],
-        "primaryKey": "CardMarketValueID"
+        "primaryKey": {
+            "column": "CardMarketValueID",
+            "autoincrement": true
+        }        
     },
     {
         "tableName": "StatsBatch",
@@ -161,7 +170,10 @@
             {"name": "Description", "type": "TEXT", "isNullable": false},
             {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false}            
         ],
-        "primaryKey": "StatsBatchID",
+        "primaryKey": {
+            "column": "StatsBatchID",
+            "autoincrement": true
+        },        
         "foreignKeyTables": ["TournamentType"]
     },
     {
@@ -176,7 +188,10 @@
             {"name": "IsLive", "type": "INTEGER", "isNullable": false},
             {"name": "CapAmount", "type": "INTEGER", "isNullable": false}
         ],
-        "primaryKey": "TournamentTypeID"
+        "primaryKey": {
+            "column": "TournamentTypeID",
+            "autoincrement": true
+        }        
     },
     {
         "tableName": "BattingStats",
@@ -232,7 +247,10 @@
             {"name": "UBR", "type": "REAL", "isNullable": true},
             {"name": "BsR", "type": "REAL", "isNullable": true}
         ],
-        "primaryKey": "BattingStatsID",
+        "primaryKey": {
+            "column": "BattingStatsID",
+            "autoincrement": true
+        },        
         "foreignKeyTables": ["PtCard","StatsBatch"],
         "indicies": [
             {
@@ -327,7 +345,10 @@
             {"name": "rWAR", "type": "REAL", "isNullable": true},
             {"name": "SIERA", "type": "REAL", "isNullable": true}
         ],
-        "primaryKey": "PitchingStatsID",
+        "primaryKey": {
+            "column": "PitchingStatsID",
+            "autoincrement": true
+        },        
         "foreignKeyTables": ["PtCard","StatsBatch"],
         "indicies": [
             {

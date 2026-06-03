@@ -29,45 +29,50 @@ export class Datatable {
 
         const primaryKeyPart = this.primaryKey ? `, PRIMARY KEY(${this.primaryKey.column}${this.primaryKey.autoincrement ? " AUTOINCREMENT" : ""})` : "";
         
-        let constraintsPart: string = ""; 
+        let createConstraintsSQL: string = ""; 
 
         if (this.constraints) {
-            constraintsPart = "\n" + this.constraints.map((constraint) => {
-                return `,${constraint.type} (${constraint.fields.join(',')})`
-            }).join('\n');
+            createConstraintsSQL = this.constraints.map(c => this.#getCreateUniqueConstraintString(c)).join('\n');
         }
 
-        let foreignKeysPart: string = "";
+        let createForeignKeysSQL: string = "";
 
         if (this.foreignKeyTables) {
-            foreignKeysPart = ','+this.foreignKeyTables.map((fk) => this.#foreignKey(fk)).join(',\n');
+            createForeignKeysSQL = ','+this.foreignKeyTables.map((fk) => this.#getCreateForeignKeyString(fk)).join(',\n');
         }
 
-        let indiciesPart: string = "";
+        let createIndiciesSQL: string = "";
 
         if (this.indicies) {
-            indiciesPart = this.indicies.map((i) => this.#createIndex(this.tableName, i)).join('\n');
+            createIndiciesSQL = this.indicies.map((i) => this.#getCreateIndexString(i)).join('\n');
         }
 
         return `
-CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${constraintsPart} ${foreignKeysPart});
-${indiciesPart}
-`
+CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${createForeignKeysSQL});
+${createIndiciesSQL}
+${createConstraintsSQL}
+        `
 
     }
 
-    #foreignKey (referenceTableName: string) {
+    #getCreateUniqueConstraintString (constraint: Constraint) {
         return `
-CONSTRAINT "FK_${this.tableName}_${referenceTableName}ID_${referenceTableName}_${referenceTableName}ID" FOREIGN KEY("${referenceTableName}ID") REFERENCES "${referenceTableName}"("${referenceTableName}ID")
+CREATE UNIQUE INDEX UC_${this.tableName}_${constraint.fields.join('_')} ON ${this.tableName}(${constraint.fields.join(', ')});
 `
     }
 
-    #createIndex (tableName: string, index: Index) {
+    #getCreateForeignKeyString (referenceTableName: string) {
         return `
-CREATE INDEX "i${tableName}_${index.columns.join('')}" ON "${tableName}" (
+CONSTRAINT "FK_${this.tableName}_${referenceTableName}ID_${referenceTableName}ID" FOREIGN KEY("${referenceTableName}ID") REFERENCES "${referenceTableName}"("${referenceTableName}ID")
+`
+    }
+
+    #getCreateIndexString (index: Index) {
+        return `
+CREATE INDEX "NIX_${this.tableName}_${index.columns.join('_')}" ON "${this.tableName}" (
     ${index.columns.map(c => `"${c}"  ASC`)}
 );
-        `
+`
     }
 
 }

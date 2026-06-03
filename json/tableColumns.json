@@ -130,7 +130,6 @@
         "constraints": [
             {
                 "type": "UNIQUE",
-                "name": "ucCardIDLiveUpdateID",
                 "fields": ["CardID","LiveUpdateID"]
             }
         ]

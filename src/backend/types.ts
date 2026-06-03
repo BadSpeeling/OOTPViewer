@@ -20,7 +20,6 @@ export interface DataTableColumn {
 
 export interface Constraint {
     type: "UNIQUE"
-    name: string,
     fields: string[],
 }
 

@@ -3,7 +3,7 @@ import { test, expect, beforeAll, afterAll } from '@jest/globals'
 import * as fs from 'node:fs'
 import * as path from 'node:path';
 import { Database } from '../src/backend/database/Database';
-import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader, FakeAutoIncrementDatatableModelReader } from './fakes/DatatableModelReader/';
+import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader, FakeAutoIncrementDatatableModelReader, FakeForeignKeyDatatableModelReader } from './fakes/DatatableModelReader/';
 import { IDatatableModelReader, IDatatableCreator, LocalSqliteDatatableCreator, ProjectDatatableModelReader } from '../src/backend/database-creator';
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','add-database-tables-tests']
@@ -35,10 +35,7 @@ afterAll(() => {
 
 test('Create 1 table', async () => {
 
-    const databaseFile = createDatabase();
-	const db = new Database(databaseFile)
-    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(new FakeOneDatatableModelReader(), db);  
-    await creator.createDataTables();
+	const db = await initializeDatabase(new FakeOneDatatableModelReader());
 
 	const columns = await getTableColumnsMetadata(db, 'TestTableName');
 
@@ -57,10 +54,7 @@ test('Create 1 table', async () => {
 
 test('Create 2 tables', async () => {
 
-    const databaseFile = createDatabase();
-	const db = new Database(databaseFile)
-    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(new FakeTwoDatatableModelReader(), db);  
-    await creator.createDataTables();
+	const db = await initializeDatabase(new FakeTwoDatatableModelReader());
 
 	const tables = await db.getAllMapped<SqliteTable>("select type,name,tbl_name from sqlite_master where type = 'table'");
 
@@ -84,11 +78,8 @@ test('Project datatable model reader test', () => {
 
 test('Create primary key with autoincrement', async () => {
 
-    const databaseFile = createDatabase();
-	const db = new Database(databaseFile)
-    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(new FakeAutoIncrementDatatableModelReader(), db);  
-    await creator.createDataTables();
-
+	const db = await initializeDatabase(new FakeAutoIncrementDatatableModelReader());
+    
 	//autoincrement will not be used and verifiable until table has at least 1 record
 	await db.execute('insert into TestTableName (TextColumn) values ("tst");')
 
@@ -99,11 +90,39 @@ test('Create primary key with autoincrement', async () => {
 	
 })
 
+test('Create foreign key', async () => {
+
+	const db = await initializeDatabase(new FakeForeignKeyDatatableModelReader());
+
+	const foreignKeys = await getForeignKeyMetadata(db, 'ReferencingTable');
+	const createdForeignKey = foreignKeys.find(fk => fk.table === 'ReferencingTable');
+
+	expect(typeof createdForeignKey !== 'undefined');
+	expect(createdForeignKey?.from === 'ReferencingTable');
+	expect(createdForeignKey?.to === 'BaseTable')
+
+})
+
+const initializeDatabase = async (reader: IDatatableModelReader) => {
+
+    const databaseFile = createDatabase();
+	const db = new Database(databaseFile)
+    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(reader, db);  
+    await creator.createDataTables();
+
+	return db;
+
+}
+
 const createDatabase = () => {
   	const currTime = Date.now();    
   	const databaseFile = path.join(...databaseFilePath, `${currTime}.db`);
 	fs.closeSync(fs.openSync(databaseFile, 'w'));
 	return databaseFile;
+}
+
+const getForeignKeyMetadata = async (db: Database, tableName: string) => {
+	return await db.getAllMapped<SqliteForeignKey>(`PRAGMA foreign_key_list('${tableName}')`);
 }
 
 const getTableColumnsMetadata = async (db: Database, tableName: string) => {
@@ -122,6 +141,17 @@ type SqliteTableColumn = {
 	notnull: 0|1,
 	dflt_value: any,
 	pk: 0|1,
+}
+
+type SqliteForeignKey = {
+	id: number,
+	seq: number,
+	table: string,
+	from: string,
+	to: string,
+	on_update: string,
+	on_delete: string,
+	match: string,
 }
 
 type SqliteTable = {

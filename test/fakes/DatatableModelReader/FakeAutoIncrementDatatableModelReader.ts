@@ -3,7 +3,7 @@ import { DataTableColumn, DatatableModel } from '../../../src/backend/types'
 
 export class FakeAutoIncrementDatatableModelReader implements IDatatableModelReader {
     
-    getDatatableModels () {
+    async getDatatableModels () {
 
         const columns: DataTableColumn[] = [
             {

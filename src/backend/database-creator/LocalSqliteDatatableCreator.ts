@@ -14,7 +14,7 @@ export class LocalSqliteDatatableCreator implements IDatatableCreator {
 
     async createDataTables () {
 
-        const tableModels = this.modelReader.getDatatableModels();
+        const tableModels = await this.modelReader.getDatatableModels();
         const datatables = tableModels.map((tableModel) => new Datatable(tableModel, false))
         const createTableScripts = datatables.map((datatable) => datatable.createTableString());
 

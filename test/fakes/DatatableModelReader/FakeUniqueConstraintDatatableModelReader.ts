@@ -3,7 +3,7 @@ import { DataTableColumn, DatatableModel } from '../../../src/backend/types'
 
 export class FakeUniqueConstraintDatatableModelReader implements IDatatableModelReader {
     
-    getDatatableModels () {
+    async getDatatableModels () {
 
         const columns: DataTableColumn[] = [
             {

@@ -66,10 +66,10 @@ test('Create 2 tables', async () => {
 
 })
 
-test('Project datatable model reader test', () => {
+test('Project datatable model reader test', async () => {
 
 	const reader: IDatatableModelReader = new ProjectDatatableModelReader();
-	const model = reader.getDatatableModels()
+	const model = await reader.getDatatableModels()
 
 	//verify we read something
 	expect(model.length > 0).toBeTruthy();

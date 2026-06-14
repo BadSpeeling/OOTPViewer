@@ -6,11 +6,13 @@ export interface DatabaseRecord {
     [index:string]: string|number,
 }
 
-export interface CsvDataColumn {
+export interface OotpExportDataColumn {
     nameInSource: string,
     databaseColumnName: string,
-    type: string,
+    type: OotpExportDataColumnType,
 }
+
+export type OotpExportDataColumnType = "INTEGER"|"REAL"|"TEXT"|"DATETIME"
 
 export interface DataTableColumn {
     name: string,

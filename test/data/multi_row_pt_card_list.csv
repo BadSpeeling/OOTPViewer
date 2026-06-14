@@ -1,0 +1,4 @@
+//ExampleString,ExampleNumberNullable,ExampleColumn
+Test String,125,5,
+AAAA,,5,
+Test String2,125,15,

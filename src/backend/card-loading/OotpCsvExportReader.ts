@@ -1,31 +1,26 @@
 import { OotpExportDataColumn } from '../types';
-import { IOotpExportReader, PtCardListValue } from '.'
-import { readFileAsync } from '../../utilities'
+import { OotpExportReader, PtCardListValue } from '.'
 
-export class OotpCsvExportReader implements IOotpExportReader {
+export class OotpCsvExportReader extends OotpExportReader {
     
-    expectedHeaders: OotpExportDataColumn[]
-    ptCardListFilePath: string[]
-
     constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
-        this.expectedHeaders = expectedHeaders;
-        this.ptCardListFilePath = ptCardListFile;
+        super(expectedHeaders, ptCardListFile);
     } 
-
+    
     async readExport () {
         
-        const ptCardListText: string = await readFileAsync(this.ptCardListFilePath);
-        const ptCardListSections: PtCardListSections = this.#getPtCardListSections(ptCardListText);
+        const csvText: string = await this.readFile();
+        const csvListSections: PtCardListSections = this.getCsvSections(csvText);
 
-        const sourceHeaders = this.#parseHeaderSection(ptCardListSections.headerSection);
-        this.#validateHeaders(sourceHeaders);
-        const parsedDataSection = this.#parseDataSections(ptCardListSections.dataSection);
+        const sourceHeaders = this.parseHeaderSection(csvListSections.headerSection);
+        this.validateHeaders(sourceHeaders);
+        const parsedDataSection = this.parseDataSections(csvListSections.dataSection);
 
         return Promise.resolve(parsedDataSection);
 
     }
 
-    #getPtCardListSections (ptCardListText: string) {
+    private getCsvSections (ptCardListText: string) {
 
         const lines = ptCardListText.split('\r\n');
         
@@ -41,13 +36,13 @@ export class OotpCsvExportReader implements IOotpExportReader {
 
     }
 
-    #parseHeaderSection (headerSection: string) {
+    private parseHeaderSection (headerSection: string) {
         return headerSection.replace('//','').split(',');
     }
 
-    #parseDataSections (dataSections: string[]) {
+    private parseDataSections (dataSections: string[]) {
 
-        const parsedDataSections: Map<string, PtCardListValue>[] = [];
+        const parsedDataSections: PtCardListValue[][] = [];
 
         for (const rowIndex of [...Array(dataSections.length).keys()]) {
 
@@ -55,7 +50,7 @@ export class OotpCsvExportReader implements IOotpExportReader {
 
             if (curRow.length !== 0) {
                 
-                const parsedRow = this.#parseDataSection(curRow);
+                const parsedRow = this.parseDataSection(curRow);
                 parsedDataSections.push(parsedRow);
 
             }
@@ -66,18 +61,22 @@ export class OotpCsvExportReader implements IOotpExportReader {
 
     }
 
-    #parseDataSection (dataSection: string) {
+    private parseDataSection (dataSection: string) {
 
-        const parsedRow: Map<string, PtCardListValue> = new Map<string, PtCardListValue> ();
+        const parsedRow: PtCardListValue[] = [];
             
-        const cleanedDataLine = this.#removeTrailingComma(dataSection);
+        const cleanedDataLine = this.removeTrailingComma(dataSection);
         const csvRow = cleanedDataLine.split(',');
+
+        if (csvRow.length !== this.expectedHeaders.length) {
+            throw Error ("The row did not have the expected amount of columns per the provided expected headers");
+        }
 
         for (const colIndex of [...Array(csvRow.length).keys()]) {
 
             const curDataColumn = this.expectedHeaders[colIndex];
 
-            parsedRow.set(curDataColumn.nameInSource, {
+            parsedRow.push({
                 fieldName: curDataColumn.nameInSource,
                 fieldType: curDataColumn.type,
                 fieldValue: csvRow[colIndex],
@@ -89,21 +88,7 @@ export class OotpCsvExportReader implements IOotpExportReader {
 
     }
 
-    #validateHeaders (headers: string[]) {
-
-        if (headers.length !== this.expectedHeaders.length) {
-            throw Error("The expected input and actual input do not have the same amount of columns");
-        }
-
-        for (const index of [...Array(headers.length).keys()]) {
-            if (headers[index] !== this.expectedHeaders[index].nameInSource) {
-                throw Error(`${headers[index]} is not the expected column name in place ${index}, expecting ${this.expectedHeaders[index]}`)
-            }
-        }
-
-    }
-
-    #removeTrailingComma (line: string) {
+    private removeTrailingComma (line: string) {
         return line.substring(0,line.length-1)
     }
 

@@ -1,46 +1,7 @@
-import { beforeAll, afterAll, test, expect } from '@jest/globals'
-
-import { Database } from "../src/backend/database/Database"
-import { databaseObjectEqual } from "../src/utilities"
-
-import * as fs from "node:fs"
-import * as path from "node:path"
-
-import { readPtCardList } from "../src/backend/ptCardOperations"
-import { ptCardList } from '../json/csvColumns.json'
-import { writeCards, getLiveUpdates, upsertLiveUpdate, checkIfLiveUpdateOccured } from "../src/backend/ptCardOperations"
-
-import * as readPtCardsTest from "./data/json/readPtCardsTestData"
-
+import { test, expect } from '@jest/globals'
+import { checkErrorMessage } from './util'
 import { OotpExportDataColumn } from '../src/backend/types'
 import { IOotpExportReader, PtCardListValue, OotpCsvExportReader } from '../src/backend/card-loading/'
-
-const databaseFilePathRoot = ['E:','ootp_data','sqlite','test','read-output-data-tests']
-
-beforeAll(() => {
-
-    const testPath = path.join(...databaseFilePathRoot);
-
-    //if the testing folder doesn't exist, create it
-    if (!fs.existsSync(testPath)) {
-        fs.mkdirSync(testPath);
-    }
-
-})
-
-afterAll(() => {
-
-    fs.readdir(path.join(...databaseFilePathRoot), (err, files) => {
-        if (err) throw err;
-
-        for (const file of files) {
-            fs.unlink(path.join(...databaseFilePathRoot, file), (err) => {
-                if (err) throw err;
-            });
-        }
-    });
-
-})
 
 test('Read a card out of the data file', async () => {
 
@@ -63,8 +24,8 @@ test('Read a card out of the data file', async () => {
     expect(ptCards.length === 1).toBeTruthy();
 
     const readCard = ptCards[0];
-    validateColumnValue(readCard.get('ExampleString'), 'Test String');
-    validateColumnValue(readCard.get('ExampleNumber'), '125');
+    validateColumnValue(readCard[0], 'Test String');
+    validateColumnValue(readCard[1], '125');
 
 })
 
@@ -94,7 +55,59 @@ test('Multiple row test with 1 column being empty', async () => {
     expect(ptCards.length === 3).toBeTruthy();
 
     const ptCardWithEmptyCol = ptCards[1];
-    validateColumnValue(ptCardWithEmptyCol.get("ExampleNumberNullable"), '');
+    validateColumnValue(ptCardWithEmptyCol[1], '');
+
+})
+
+test('Test read errors', async () => {
+
+    const callDataReader = async (columns: OotpExportDataColumn[], expectedError: string) => {
+        try {
+            const dataReader: IOotpExportReader = new OotpCsvExportReader(columns, [".","test","data","multi_row_pt_card_list.csv"]);
+            await dataReader.readExport();
+            return false;
+        }
+        catch (err) {
+            return checkErrorMessage(err, expectedError);
+        }
+    }
+
+    const incorrectAmountColumns: OotpExportDataColumn[] = [
+        {
+            databaseColumnName: "ExampleString",
+            nameInSource: "ExampleString",
+            type: "TEXT",
+        },
+        {
+            databaseColumnName: "ExampleNumberNullable",
+            nameInSource: "ExampleNumberNullable",
+            type: "INTEGER",
+        },        
+    ]
+
+    const incorrectColumnCountErrorOccuredFlag = await callDataReader(incorrectAmountColumns, "The expected input and actual input do not have the same amount of columns");
+    expect(incorrectColumnCountErrorOccuredFlag).toBeTruthy();
+
+    const incorrectNameColumns: OotpExportDataColumn[] = [
+        {
+            databaseColumnName: "ExampleString",
+            nameInSource: "ExampleString",
+            type: "TEXT",
+        },
+        {
+            databaseColumnName: "ExampleNumberNullable",
+            nameInSource: "ExampleNumberNullable_INCORRECT",
+            type: "INTEGER",
+        },
+        {
+            databaseColumnName: "ExampleColumn",
+            nameInSource: "ExampleColumn",
+            type: "INTEGER",
+        },        
+    ]
+
+    const incorrectColumnNameErrorOccuredFlag = await callDataReader(incorrectNameColumns, "is not the expected column name in place");
+    expect(incorrectColumnNameErrorOccuredFlag).toBeTruthy();
 
 })
 

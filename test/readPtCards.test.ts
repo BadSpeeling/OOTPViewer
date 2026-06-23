@@ -21,9 +21,9 @@ test('Read a card out of the data file', async () => {
     const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","simple_pt_card_list.csv"]);
     const ptCards = await dataReader.readExport();
 
-    expect(ptCards.length === 1).toBeTruthy();
+    expect(ptCards.recordCount() === 1).toBeTruthy();
 
-    const readCard = ptCards[0];
+    const readCard = ptCards.getRecord(0);
     validateColumnValue(readCard[0], 'Test String');
     validateColumnValue(readCard[1], '125');
 
@@ -52,9 +52,9 @@ test('Multiple row test with 1 column being empty', async () => {
     const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","multi_row_pt_card_list.csv"]);
     const ptCards = await dataReader.readExport();
 
-    expect(ptCards.length === 3).toBeTruthy();
+    expect(ptCards.recordCount() === 3).toBeTruthy();
 
-    const ptCardWithEmptyCol = ptCards[1];
+    const ptCardWithEmptyCol = ptCards.getRecord(1);
     validateColumnValue(ptCardWithEmptyCol[1], '');
 
 })

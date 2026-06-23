@@ -1,10 +1,10 @@
 import { OotpExportDataColumn } from "../types";
-import { IOotpExportReader, PtCardListValue } from "./";
+import { IOotpExportReader, OotpDataExportStats } from "./";
 import { readFileAsync } from '../../utilities'
 
 export abstract class OotpExportReader implements IOotpExportReader {
 
-    abstract readExport (): Promise<PtCardListValue[][]>;
+    abstract readExport (): Promise<OotpDataExportStats>;
 
     protected expectedHeaders: OotpExportDataColumn[]
     protected ptCardListFilePath: string[]

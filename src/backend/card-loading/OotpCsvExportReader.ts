@@ -1,5 +1,5 @@
 import { OotpExportDataColumn } from '../types';
-import { OotpExportReader, PtCardListValue } from '.'
+import { OotpExportReader, OotpDataExportStats, PtCardListValue } from '.'
 
 export class OotpCsvExportReader extends OotpExportReader {
     
@@ -42,16 +42,14 @@ export class OotpCsvExportReader extends OotpExportReader {
 
     private parseDataSections (dataSections: string[]) {
 
-        const parsedDataSections: PtCardListValue[][] = [];
+        const parsedDataSections: OotpDataExportStats = new OotpDataExportStats(this.expectedHeaders);
 
-        for (const rowIndex of [...Array(dataSections.length).keys()]) {
-
-            const curRow = dataSections[rowIndex];
+        for (const curRow of dataSections) {
 
             if (curRow.length !== 0) {
                 
                 const parsedRow = this.parseDataSection(curRow);
-                parsedDataSections.push(parsedRow);
+                parsedDataSections.addStatsRow(parsedRow);
 
             }
 

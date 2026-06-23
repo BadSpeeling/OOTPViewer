@@ -1,7 +1,7 @@
-import { PtCardListValue } from './PtCardListValue'
+import { OotpDataExportStats } from './index'
 
 export interface IOotpExportReader {
 
-    readExport: () => Promise<PtCardListValue[][]>;
-    
+    readExport: () => Promise<OotpDataExportStats>;
+
 }

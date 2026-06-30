@@ -16,7 +16,7 @@ export type OotpExportDataColumnType = "INTEGER"|"REAL"|"TEXT"|"DATETIME"
 
 export interface DataTableColumn {
     name: string,
-    type: string,
+    type: OotpExportDataColumnType,
     notNull: boolean,
 }
 

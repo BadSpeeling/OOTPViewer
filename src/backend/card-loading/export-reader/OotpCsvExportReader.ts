@@ -1,11 +1,12 @@
-import { OotpExportDataColumn } from '../types';
-import { OotpExportReader, OotpDataExportStats, PtCardListValue } from '.'
+import { OotpExportDataColumn } from '../../types';
+import { OotpExportReader, PtCardListValue } from './index'
+import { OotpDataExportStats } from '../export-stats'
 
 export class OotpCsvExportReader extends OotpExportReader {
     
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
-        super(expectedHeaders, ptCardListFile);
-    } 
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
+        super(expectedHeaders, ptCardListFile, exportedStats);
+    }
     
     async readExport () {
         
@@ -14,9 +15,9 @@ export class OotpCsvExportReader extends OotpExportReader {
 
         const sourceHeaders = this.parseHeaderSection(csvListSections.headerSection);
         this.validateHeaders(sourceHeaders);
-        const parsedDataSection = this.parseDataSections(csvListSections.dataSection);
+        this.parseDataSections(csvListSections.dataSection);
 
-        return Promise.resolve(parsedDataSection);
+        return Promise.resolve(this.exportedStats);
 
     }
 
@@ -42,20 +43,16 @@ export class OotpCsvExportReader extends OotpExportReader {
 
     private parseDataSections (dataSections: string[]) {
 
-        const parsedDataSections: OotpDataExportStats = new OotpDataExportStats(this.expectedHeaders);
-
         for (const curRow of dataSections) {
 
             if (curRow.length !== 0) {
                 
                 const parsedRow = this.parseDataSection(curRow);
-                parsedDataSections.addStatsRow(parsedRow);
+                this.exportedStats.addStatsRow(parsedRow);
 
             }
 
         }
-
-        return parsedDataSections;
 
     }
 
@@ -73,12 +70,7 @@ export class OotpCsvExportReader extends OotpExportReader {
         for (const colIndex of [...Array(csvRow.length).keys()]) {
 
             const curDataColumn = this.expectedHeaders[colIndex];
-
-            parsedRow.push({
-                fieldName: curDataColumn.nameInSource,
-                fieldType: curDataColumn.type,
-                fieldValue: csvRow[colIndex],
-            })
+            parsedRow.push(new PtCardListValue(curDataColumn.nameInSource, csvRow[colIndex].trim(), curDataColumn.type))
 
         }
 

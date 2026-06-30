@@ -1,4 +1,4 @@
-import { OotpDataExportStats } from './index'
+import { OotpDataExportStats } from '../export-stats/index'
 
 export interface IOotpExportReader {
 

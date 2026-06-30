@@ -1,7 +1,8 @@
 import { test, expect } from '@jest/globals'
 
 import { OotpExportDataColumn } from '../src/backend/types'
-import { IOotpExportReader, PtCardListValue, OotpHtmlExportReader } from '../src/backend/card-loading/'
+import { IOotpExportReader, PtCardListValue, OotpHtmlExportReader } from '../src/backend/card-loading/export-reader'
+import { OotpDataExportStats } from '../src/backend/card-loading/export-stats'
 import { checkErrorMessage } from './util'
 
 test('Read data out of html file', async () => {
@@ -19,8 +20,9 @@ test('Read data out of html file', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example.html"]);
-    const exportResults = await dataReader.readExport();
+    const exportResults = new OotpDataExportStats(expectedHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example.html"], exportResults);
+    await dataReader.readExport();
 
     expect(exportResults.recordCount() === 2).toBeTruthy();
 
@@ -54,8 +56,9 @@ test('Read data out of html file with an " " in a data cell', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example-empty-cols.html"]);
-    const exportResults = await dataReader.readExport();
+    const exportResults = new OotpDataExportStats(expectedHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example-empty-cols.html"], exportResults);
+    await dataReader.readExport();
 
     expect(exportResults.recordCount() === 3).toBeTruthy();
 
@@ -96,7 +99,9 @@ test('Expected columns are out of order', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"]);
+    const exportResults = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"], exportResults);
+
     let correctErrorOccuredFlag = false;
     
     try {
@@ -140,8 +145,9 @@ test('Read export with duplicate columns', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-duplicate-columns.html"]);
-    const duplicateColumnsData = await dataReader.readExport();
+    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-duplicate-columns.html"], duplicateColumnsData);
+    await dataReader.readExport();
 
     expect(duplicateColumnsData.recordCount() === 1).toBeTruthy();
 
@@ -179,7 +185,9 @@ test('Incorrect amount of columns provided', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"]);
+    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"], duplicateColumnsData);
+
     let correctErrorOccuredFlag = false;
     
     try {
@@ -208,7 +216,9 @@ test('Missing data table test', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-table.html"]);
+    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-table.html"], duplicateColumnsData);
+
     let correctErrorOccuredFlag = false;
     
     try {
@@ -237,7 +247,9 @@ test('Missing headers test', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-header.html"]);
+    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-header.html"], duplicateColumnsData);
+
     let correctErrorOccuredFlag = false;
     
     try {
@@ -266,7 +278,9 @@ test('Missing data test', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-data.html"]);
+    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-data.html"], duplicateColumnsData);
+
     let correctErrorOccuredFlag = false;
     
     try {

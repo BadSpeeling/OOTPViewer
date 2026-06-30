@@ -1,6 +1,7 @@
-import { OotpExportDataColumn } from "../types";
-import { IOotpExportReader, OotpDataExportStats } from "./";
-import { readFileAsync } from '../../utilities'
+import { OotpExportDataColumn } from "../../types";
+import { OotpDataExportStats } from "../export-stats";
+import { IOotpExportReader } from './index'
+import { readFileAsync } from '../../../utilities'
 
 export abstract class OotpExportReader implements IOotpExportReader {
 
@@ -8,10 +9,12 @@ export abstract class OotpExportReader implements IOotpExportReader {
 
     protected expectedHeaders: OotpExportDataColumn[]
     protected ptCardListFilePath: string[]
+    protected exportedStats: OotpDataExportStats;
 
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
         this.expectedHeaders = expectedHeaders;
         this.ptCardListFilePath = ptCardListFile;
+        this.exportedStats = exportedStats;
     } 
 
     protected async readFile  () {
@@ -26,7 +29,7 @@ export abstract class OotpExportReader implements IOotpExportReader {
 
         for (const index of [...Array(sourceHeaders.length).keys()]) {
             if (sourceHeaders[index] !== this.expectedHeaders[index].nameInSource) {
-                throw Error(`${sourceHeaders[index]} is not the expected column name in place ${index}, expecting ${this.expectedHeaders[index]}`)
+                throw Error(`${sourceHeaders[index]} is not the expected column name in place ${index}, expecting ${this.expectedHeaders[index].nameInSource}`)
             }
         }
 

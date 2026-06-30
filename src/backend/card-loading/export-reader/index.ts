@@ -1,6 +1,5 @@
 export { IOotpExportReader } from './IOotpExportReader'
 export { OotpExportReader } from './OotpExportReader'
-export { PtCardListValue } from './PtCardListValue'
 export { OotpCsvExportReader } from './OotpCsvExportReader'
 export { OotpHtmlExportReader } from './OotpHtmlExportReader'
-export { OotpDataExportStats } from './OotpDataExportStats'
+export { PtCardListValue } from './PtCardListValue'

@@ -1,7 +1,8 @@
 import { test, expect } from '@jest/globals'
 import { checkErrorMessage } from './util'
 import { OotpExportDataColumn } from '../src/backend/types'
-import { IOotpExportReader, PtCardListValue, OotpCsvExportReader } from '../src/backend/card-loading/'
+import { IOotpExportReader, PtCardListValue, OotpCsvExportReader } from '../src/backend/card-loading/export-reader'
+import { OotpDataExportStats } from '../src/backend/card-loading/export-stats'
 
 test('Read a card out of the data file', async () => {
 
@@ -18,12 +19,13 @@ test('Read a card out of the data file', async () => {
         }
     ]
 
-    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","simple_pt_card_list.csv"]);
-    const ptCards = await dataReader.readExport();
+    const exportResults = new OotpDataExportStats(expectedHeaders)
+    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","simple_pt_card_list.csv"], exportResults);
+    await dataReader.readExport()
+    
+    expect(exportResults.recordCount() === 1).toBeTruthy();
 
-    expect(ptCards.recordCount() === 1).toBeTruthy();
-
-    const readCard = ptCards.getRecord(0);
+    const readCard = exportResults.getRecord(0);
     validateColumnValue(readCard[0], 'Test String');
     validateColumnValue(readCard[1], '125');
 
@@ -49,12 +51,13 @@ test('Multiple row test with 1 column being empty', async () => {
         },        
     ]
 
-    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","multi_row_pt_card_list.csv"]);
-    const ptCards = await dataReader.readExport();
+    const exportResults = new OotpDataExportStats(expectedHeaders)
+    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","multi_row_pt_card_list.csv"], exportResults);
+    await dataReader.readExport();
 
-    expect(ptCards.recordCount() === 3).toBeTruthy();
+    expect(exportResults.recordCount() === 3).toBeTruthy();
 
-    const ptCardWithEmptyCol = ptCards.getRecord(1);
+    const ptCardWithEmptyCol = exportResults.getRecord(1);
     validateColumnValue(ptCardWithEmptyCol[1], '');
 
 })
@@ -63,8 +66,10 @@ test('Test read errors', async () => {
 
     const callDataReader = async (columns: OotpExportDataColumn[], expectedError: string) => {
         try {
-            const dataReader: IOotpExportReader = new OotpCsvExportReader(columns, [".","test","data","multi_row_pt_card_list.csv"]);
+            const exportResults = new OotpDataExportStats(columns)
+            const dataReader: IOotpExportReader = new OotpCsvExportReader(columns, [".","test","data","multi_row_pt_card_list.csv"], exportResults);
             await dataReader.readExport();
+
             return false;
         }
         catch (err) {

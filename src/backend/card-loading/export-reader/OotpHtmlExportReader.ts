@@ -1,11 +1,12 @@
-import { OotpExportDataColumn } from '../types';
-import { OotpExportReader, PtCardListValue, OotpDataExportStats } from '.'
+import { OotpExportDataColumn } from '../../types';
+import { OotpExportReader, PtCardListValue } from './index'
+import { OotpDataExportStats } from '../export-stats'
 import { parse, HTMLElement } from 'node-html-parser';
 
 export class OotpHtmlExportReader extends OotpExportReader {
     
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
-        super(expectedHeaders, ptCardListFile);
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
+        super(expectedHeaders, ptCardListFile, exportedStats);
     }
 
     async readExport () {
@@ -15,9 +16,9 @@ export class OotpHtmlExportReader extends OotpExportReader {
 
         const sourceHeaders = this.parseHeaderSection(htmlSections.headerSection);
         this.validateHeaders(sourceHeaders);
-        const parsedData = this.parseDataSections(htmlSections.dataSection);
+        this.parseDataSections(htmlSections.dataSection);
 
-        return Promise.resolve(parsedData);
+        return Promise.resolve(this.exportedStats);
 
     }
 
@@ -57,16 +58,12 @@ export class OotpHtmlExportReader extends OotpExportReader {
 
     private parseDataSections (dataSections: HTMLElement[]) {
 
-        const parsedDataSections: OotpDataExportStats = new OotpDataExportStats(this.expectedHeaders);
-
         for (const curRow of dataSections) {
 
             const parsedRow = this.parseDataSection(curRow);
-            parsedDataSections.addStatsRow(parsedRow);
+            this.exportedStats.addStatsRow(parsedRow);
 
         }
-
-        return parsedDataSections;
 
     }
 
@@ -83,12 +80,7 @@ export class OotpHtmlExportReader extends OotpExportReader {
         for (const colIndex of [...Array(dataCols.length).keys()]) {
 
             const curDataColumn = this.expectedHeaders[colIndex];
-
-            parsedRow.push({
-                fieldName: curDataColumn.nameInSource,
-                fieldType: curDataColumn.type,
-                fieldValue: dataCols[colIndex].removeWhitespace().text,
-            })
+            parsedRow.push(new PtCardListValue(curDataColumn.nameInSource, dataCols[colIndex].removeWhitespace().text, curDataColumn.type))
 
         }
 

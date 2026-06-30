@@ -1,20 +1,21 @@
 import { Database } from "../database/Database";
 import { Datatable } from "../database/Datatable";
-import { IDatatableCreator, IDatatableModelReader } from "./index";
+import { IDatatableCreator, IJsonModelReader } from "./index";
+import { DatatableModel } from '../types'
 
 export class LocalSqliteDatatableCreator implements IDatatableCreator {
     
-    modelReader: IDatatableModelReader;
+    modelReader: IJsonModelReader<DatatableModel>;
     database: Database;
 
-    constructor (modelReader: IDatatableModelReader, database: Database) {
+    constructor (modelReader: IJsonModelReader<DatatableModel>, database: Database) {
         this.modelReader = modelReader;
         this.database = database;
     }
 
     async createDataTables () {
 
-        const tableModels = await this.modelReader.getDatatableModels();
+        const tableModels = await this.modelReader.getJsonModels();
         const datatables = tableModels.map((tableModel) => new Datatable(tableModel, false))
         const createTableScripts = datatables.map((datatable) => datatable.createTableString());
 

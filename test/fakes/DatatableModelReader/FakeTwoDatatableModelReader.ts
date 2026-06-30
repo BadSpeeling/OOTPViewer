@@ -1,9 +1,9 @@
-import { IDatatableModelReader } from "../../../src/backend/database-creator/";
+import { IJsonModelReader } from "../../../src/backend/database-creator/";
 import { DataTableColumn, DatatableModel } from '../../../src/backend/types'
 
-export class FakeTwoDatatableModelReader implements IDatatableModelReader {
+export class FakeTwoDatatableModelReader implements IJsonModelReader<DatatableModel> {
     
-    async getDatatableModels () {
+    async getJsonModels () {
 
         const tableOneColumns: DataTableColumn[] = [
             {

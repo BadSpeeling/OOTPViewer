@@ -4,7 +4,8 @@ import * as fs from 'node:fs'
 import * as path from 'node:path';
 import { Database } from '../src/backend/database/Database';
 import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader, FakeAutoIncrementDatatableModelReader, FakeForeignKeyDatatableModelReader, FakeUniqueConstraintDatatableModelReader, FakeNonclusteredDatatableModelReader } from './fakes/DatatableModelReader/';
-import { IDatatableModelReader, IDatatableCreator, LocalSqliteDatatableCreator, ProjectDatatableModelReader } from '../src/backend/database-creator';
+import { IJsonModelReader, IDatatableCreator, LocalSqliteDatatableCreator, ProjectJsonModelReader } from '../src/backend/database-creator';
+import { DatatableModel } from '../src/backend/types'
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','add-database-tables-tests']
 
@@ -68,8 +69,8 @@ test('Create 2 tables', async () => {
 
 test('Project datatable model reader test', async () => {
 
-	const reader: IDatatableModelReader = new ProjectDatatableModelReader();
-	const model = await reader.getDatatableModels()
+	const reader: IJsonModelReader<DatatableModel> = new ProjectJsonModelReader<DatatableModel>("ptCardListColumns.json");
+	const model = await reader.getJsonModels()
 
 	//verify we read something
 	expect(model.length > 0).toBeTruthy();
@@ -141,7 +142,7 @@ test('Create nonclustered index', async () => {
 
 })
 
-const initializeDatabase = async (reader: IDatatableModelReader) => {
+const initializeDatabase = async (reader: IJsonModelReader<DatatableModel>) => {
 
     const databaseFile = createDatabase();
 	const db = new Database(databaseFile)

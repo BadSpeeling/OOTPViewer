@@ -1,4 +1,4 @@
-import {DataTableColumn,Constraint,DatatableModel,CsvDataColumn,Index,PrimaryKey} from "../types"
+import {DataTableColumn,Constraint,DatatableModel,OotpExportDataColumn,Index,PrimaryKey} from "../types"
 import {parseCsvDataColumnToDatatype} from "../../utilities"
 
 export class Datatable {
@@ -51,7 +51,7 @@ export class Datatable {
 CREATE TABLE ${this.isTemporaryFlag ? "temp." : ""}${this.tableName} (${columnBody}${primaryKeyPart} ${createForeignKeysSQL});
 ${createIndiciesSQL}
 ${createConstraintsSQL}
-        `
+`
 
     }
 
@@ -74,25 +74,5 @@ CREATE INDEX "NIX_${this.tableName}_${index.columns.join('_')}" ON "${this.table
 );
 `
     }
-
-}
-
-export const CsvDataToTempTable = (tableName: string, columns: CsvDataColumn[], primaryKey?: PrimaryKey, constraints?: Constraint[]) => {
-
-    const isTemporaryFlag = true;
-    const datatableModel: DatatableModel = {
-        tableName,
-        columns: columns.map((column) => {
-            return {
-                name: column.databaseColumnName,
-                type: parseCsvDataColumnToDatatype(column.type),
-                notNull: true,
-            }
-        }),
-        constraints,
-        primaryKey,
-    }
-
-    return new Datatable(datatableModel, isTemporaryFlag);
 
 }

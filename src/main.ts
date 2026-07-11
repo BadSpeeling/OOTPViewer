@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
-import {HtmlStatsTool,PtFolderSearcher} from './backend/readHtmlStatsExport';
+import {PtFolderSearcher, getStats, writeStats} from './backend/readHtmlStatsExport';
 import {getLiveUpdates, readPtCardList, processPtCardList, upsertLiveUpdate} from "./backend/ptCardOperations";
 import {getSetting,updateSetting} from "./backend/settings";
 
@@ -114,19 +114,19 @@ const openCardImporter = () => {
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value) => {
+  ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value: PtDataStatsFile) => {
     console.log(value)
     
-    const writer = new HtmlStatsTool(settings.databasePath);
-    const liveUpdateID = null;
+    settings.databasePath
+    // const liveUpdateID = null;
 
-    const writeResults = await writer.handleTournamentStatsWrite(value, tournamentTypeID, liveUpdateID);
+    // const writeResults = await writer.handleTournamentStatsWrite(value, tournamentTypeID, liveUpdateID);
 
-    if (writeResults) {
-      await clearPtFolderHtmlFiles(value.path)
-    }
+    // if (writeResults) {
+    //   await clearPtFolderHtmlFiles(value.path)
+    // }
 
-    return writeResults;
+    // return writeResults;
 
   })
 

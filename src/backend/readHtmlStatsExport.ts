@@ -3,203 +3,67 @@ import * as fs  from 'fs';
 import * as path from 'path';
 
 import { statsExport } from "../../json/csvColumns.json"
-import { tournamentBattingStatsWriteScript, tournamentPitchingStatsWriteScript } from "./database/sqliteScripts"
+import { } from "./database/sqliteScripts"
 import { Database, getDatabase } from "./database/Database"
 
 import * as settings from '../../settings.json';
 import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
-import { GeneralStatsWriteFilter } from "./types"
+import { GeneralStatsWriteFilter, OotpExportDataColumn } from "./types"
+import { ProjectJsonModelReader } from './database-creator';
+import { OotpDataBattingExportStats, OotpDataExportStats, OotpDataPitchingExportStats, splitOotpStatsExport } from './card-loading/export-stats';
+import { OotpHtmlExportReader } from './card-loading/export-reader';
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
 const headerTypes = ["generalStats","battingStats","pitchingStats","fieldingStats"];
 
-export class HtmlStatsTool {
-
-    database: Database;
-
-    constructor (databasePath: string[]) {
-        this.database = new Database(path.join(...databasePath))
-    }
-
-    async handleTournamentStatsWrite (htmlOutput: PtDataStatsFile, tournamentTypeID: number, liveUpdateID: number | null) {
-
-        try {
-            const tournamentOutput = await this.#convertHtmlFileToTournamentOutput(htmlOutput)
-        
-            if (!liveUpdateID) {
-                liveUpdateID = await this.getRecentLiveUpdate()
-            }
-        
-            const filter = htmlOutput.onlyMyTeamFlag ? {TeamName: htmlOutput.myTeamName} : undefined
-
-            const statsBatchID = await this.#writeTournamentStats(htmlOutput.description, tournamentTypeID, tournamentOutput.stats, liveUpdateID, filter)
-            return statsBatchID;
-
-        }
-        catch (error) {
-            console.log(error);
-        }
-
-    }
+    async function createStatsBatch (database: Database, description: string, tournamentTypeID: number) : Promise<number> {
     
-    async #writeTournamentStats (description: string, tournamentTypeID: number, stats: PtPlayerStats[], liveUpdateID: number, filter?: GeneralStatsWriteFilter) {
-    
-        const database = this.database;
-    
-        const statsBatchID = await this.createStatsBatch(description, tournamentTypeID);
-        let statsToWrite = stats;
-
-        if (filter) {
-            statsToWrite = this.#statsGeneralFilter(statsToWrite, filter);
-        }
-
-        const battingStats = statsToWrite.filter((stat) => typeof stat.battingStats.G === 'number' && stat.battingStats.G > 0);
-        const pitchingStats = statsToWrite.filter((stat) => typeof stat.pitchingStats.G === 'number' && stat.pitchingStats.G > 0);
-
-        if (battingStats.length > 0) {
-            const battingScript = tournamentBattingStatsWriteScript(battingStats, liveUpdateID, statsBatchID);
-            await database.execute(battingScript);
-        }
-
-        if (pitchingStats.length > 0) {
-            const pitchingScript = tournamentPitchingStatsWriteScript(pitchingStats, liveUpdateID, statsBatchID);
-            await database.execute(pitchingScript);
-        }
-
-        return statsBatchID;
-
-    }
-    
-    async #convertHtmlFileToTournamentOutput (htmlFile): Promise<{stats: PtPlayerStats[], headers: string[]}> {
-    
-        let res = await this.#parseHtmlDataExport(htmlFile)
-        let tournamentStats: PtPlayerStats[] = [] 
-    
-        for (const stats of res.parsedStats) {
-            tournamentStats.push(this.#processStatsIntoCategories(res.parsedHeaders,stats))
-        }
-    
-        return {"stats":tournamentStats,"headers":res.parsedHeaders}
-    
-    }
-    
-    #processStatsIntoCategories (headers: string[],stats: (string | number)[]) : PtPlayerStats {
-    
-        if (headers.length !== stats.length) {
-            throw new Error("Headers and Stats are not the same length!\n" + headers + "\n" + stats)
-        }
-    
-        let statsCategories : PtPlayerStats = {
-            generalStats: {},
-            battingStats: {},
-            pitchingStats: {},
-            fieldingStats: {},
-        };
-        let curHeaderTypeIndex = 0
-        const statsTypeSeperator = 'G'
-    
-        let curStatsCategory: PtStats = {
-    
-        }
-    
-        let setCurStatsCategory = () => {
-            statsCategories[headerTypes[curHeaderTypeIndex]] = curStatsCategory
-            curStatsCategory = {}
-        }
-    
-        for (let curStatIndex = 0; curStatIndex < stats.length; curStatIndex++) {
-    
-            const curHeader = headers[curStatIndex]
-    
-            if (curHeader === statsTypeSeperator) {
-    
-                setCurStatsCategory()
-                curHeaderTypeIndex += 1;
-    
-            }
-    
-            curStatsCategory[curHeader] = stats[curStatIndex]
-    
-        }
-    
-        setCurStatsCategory() //the last set of stats we built still needs to be inserted
-    
-        return statsCategories
-    
-    }
-    
-    #parseHtmlDataExport (htmlFile: PtDataExportFile) : Promise<{parsedHeaders:string[],parsedStats:(string|number)[][]}> {
-    
-        return new Promise ((resolve,reject) => {
-            fs.readFile(path.join(htmlFile.path, htmlFile.fileName), 'utf-8', (err,data) => {
-                const root = parse(data)
-    
-                const statsTable = root.querySelector('table.data.sortable')
-    
-                const headers = statsTable.querySelector('tr:first-child')
-                const statsRows = statsTable.querySelectorAll('tr:not(:first-child)')
-    
-                const parsedHeaders = headers.querySelectorAll('th').map((curHeader) => curHeader.text)
-                const parsedStats:(string|number)[][] = []
-    
-                for (const statsRow of statsRows) {
-    
-                    const curStats = statsRow.querySelectorAll('td')
-                
-                    if (curStats.length === parsedHeaders.length) {
-                        const curStatsTxt = curStats.map((value, parsedHeadersIndex)=> {
-    
-                            const statText = value.removeWhitespace().text !== '' ? value.text : '0'
-                            const statNumber = Number(statText)
-    
-                            return parsedHeaders[parsedHeadersIndex].trim() === 'TM' || isNaN(statNumber) ? statText : statNumber
-    
-                        })
-    
-                        parsedStats.push(curStatsTxt)
-    
-                    }
-                    else {
-                        reject({"err":"The amount of columns in the data row did not match the amount of columns in the header"})
-                    }
-    
-                }
-    
-                resolve({parsedHeaders,parsedStats})
-    
-            })
-    
-        })
-    
-    }
-    
-    async createStatsBatch (description: string, tournamentTypeID: number) : Promise<number> {
-    
-        const db = this.database;
         //description = description.replaceAll('"','""'.replaceAll("'","''"));
-        const statsBatchID = await db.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${description}',${tournamentTypeID})`);
+        const statsBatchID = await database.insertOne(`INSERT INTO StatsBatch ([Timestamp],[Description],[TournamentTypeID]) VALUES (UNIXEPOCH(),'${description}',${tournamentTypeID})`);
     
         return statsBatchID;
     
     } 
     
-    async getRecentLiveUpdate () {
+    // async getRecentLiveUpdate () {
     
-        const db = this.database;
-        const result = await db.getMapped<{LiveUpdateID: number}>("SELECT LiveUpdateID FROM LiveUpdate ORDER BY EffectiveDate DESC LIMIT 1")
+    //     const db = this.database;
+    //     const result = await db.getMapped<{LiveUpdateID: number}>("SELECT LiveUpdateID FROM LiveUpdate ORDER BY EffectiveDate DESC LIMIT 1")
         
-        return result.LiveUpdateID;
+    //     return result.LiveUpdateID;
     
-    }
+    // }
+export async function getStats (path: string[]) {
 
-    #statsGeneralFilter (stats: PtPlayerStats[], filter: GeneralStatsWriteFilter) {
+    const exportedStatsModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("exportedStatsColumns.json")
+    const exportedStatsListModel = await exportedStatsModelReader.getJsonModels();
 
-        return stats.filter((stat) => {
-            return stat.generalStats.TM === filter.TeamName
-        })
+    const exportedStats = new OotpDataExportStats(exportedStatsListModel)
+    const ptCardListReader = new OotpHtmlExportReader(exportedStatsListModel, path, exportedStats);
+    await ptCardListReader.readExport();
 
-    }
+    const exportedCategorizedStats = splitOotpStatsExport(exportedStatsListModel, exportedStats)
+
+    return exportedCategorizedStats;
+
+}
+
+export async function writeStats (stats: {
+    battingSplit: OotpDataBattingExportStats;
+    pitchingSplit: OotpDataPitchingExportStats;
+    fieldingSplit: OotpDataExportStats | undefined;
+}, database: Database, description: string, tournamentTypeID: number) {
+
+    const statsBatchID = await createStatsBatch(database, description, tournamentTypeID);
+    
+    const battingWriteScript = stats.battingSplit.getTournamentBattingStatsWriteScript(statsBatchID);
+    await database.execute(battingWriteScript);
+
+    const pitchingWriteScript = stats.pitchingSplit.getTournamentPitchingStatsWriteScript(statsBatchID);
+    await database.execute(pitchingWriteScript);
+
+    if (stats.fieldingSplit) console.log('Do the fielding write');
 
 }
 

@@ -4,7 +4,7 @@
         {"nameInSource":"Card ID","databaseColumnName":"CardID","type":"INTEGER"},
         {"nameInSource":"Card Value","databaseColumnName":"CardValue","type":"INTEGER"},
         {"nameInSource":"Card Type","databaseColumnName":"CardType","type":"INTEGER"},
-        {"nameInSource":"Card Sub Type","databaseColumnName":"CardSubType","type":"INTEGER"},
+        {"nameInSource":"Card Sub Type","databaseColumnName":"CardSubType","type":"TEXT"},
         {"nameInSource":"Card Badge","databaseColumnName":"CardBadge","type":"TEXT"},
         {"nameInSource":"Card Series","databaseColumnName":"CardSeries","type":"TEXT"},
         {"nameInSource":"Year","databaseColumnName":"Year","type":"INTEGER"},
@@ -120,7 +120,8 @@
         {"nameInSource":"Sell Order Low","databaseColumnName":"SellOrderLow","type":"INTEGER"},
         {"nameInSource":"Last 10 Price","databaseColumnName":"Last10Price","type":"INTEGER"},
         {"nameInSource":"Last 10 Price(VAR)","databaseColumnName":"Last 10 Price(VAR)","type":"INTEGER"},
-        {"nameInSource":"date","databaseColumnName":"date","type":"DATETIME"}
+        {"nameInSource":"date","databaseColumnName":"date","type":"DATETIME"},
+        {"nameInSource":"packs","databaseColumnName":"packs","type":"INTEGER"}
     ],
     "statsExport": {
         "general": [
@@ -147,8 +148,8 @@
             {"nameInSource":"SH", "databaseColumnName":"SH", "type":  "INTEGER"},
             {"nameInSource":"SF", "databaseColumnName":"SF", "type":  "INTEGER"},
             {"nameInSource":"CI", "databaseColumnName":"CI", "type":  "INTEGER"},
-            {"nameInSource":"SO", "databaseColumnName":"SO", "type":  "INTEGER"},
-            {"nameInSource":"SO%", "databaseColumnName":"SO%", "type":  "REAL"},
+            {"nameInSource":"K", "databaseColumnName":"SO", "type":  "INTEGER"},
+            {"nameInSource":"K%", "databaseColumnName":"SO%", "type":  "REAL"},
             {"nameInSource":"GIDP", "databaseColumnName":"GIDP", "type":  "INTEGER"},
             {"nameInSource":"EBH", "databaseColumnName":"EBH", "type":  "INTEGER"},
             {"nameInSource":"TB", "databaseColumnName":"TB", "type":  "INTEGER"},

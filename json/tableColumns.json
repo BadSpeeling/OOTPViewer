@@ -6,7 +6,7 @@
             {"name":"CardTitle","type":"TEXT","isNullable":false},
             {"name":"CardValue","type":"INTEGER","isNullable":false},
             {"name":"CardType","type":"INTEGER","isNullable":false},
-            {"name":"CardSubType","type":"INTEGER","isNullable":false},
+            {"name":"CardSubType","type":"TEXT","isNullable":false},
             {"name":"CardBadge","type":"TEXT","isNullable":false},
             {"name":"CardSeries","type":"TEXT","isNullable":false},
             {"name":"Year","type":"INTEGER","isNullable":false},

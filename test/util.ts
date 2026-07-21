@@ -25,9 +25,9 @@ export const initializeDatabase = async (databaseFilePath: string[], reader: IJs
 
 }
 
-const createDatabase = (databaseFilePath: string[],) => {
+const createDatabase = (databasePath: string[],) => {
     const currTime = Date.now();    
-    const databaseFile = path.join(...databaseFilePath, `${currTime}.db`);
-    fs.closeSync(fs.openSync(databaseFile, 'w'));
-    return databaseFile;
+    const databaseFilePath = [...databasePath, `${currTime}.db`];
+    fs.closeSync(fs.openSync(path.join(...databaseFilePath), 'w'));
+    return databaseFilePath;
 }

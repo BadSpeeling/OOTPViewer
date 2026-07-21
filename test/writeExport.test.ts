@@ -2,17 +2,14 @@ import { test, expect, beforeAll, afterAll } from '@jest/globals'
 import * as fs from 'node:fs'
 import * as path from 'node:path';
 
-import { OotpDataPtCardListExportStats } from '../src/backend/card-loading/export-stats'
-import { IJsonModelReader, ProjectJsonModelReader } from '../src/backend/database-creator'
+import { ProjectJsonModelReader } from '../src/backend/database-creator'
 import { DatatableModel, OotpExportDataColumn } from '../src/backend/types';
-import { IDatabaseCreator, IDatatableCreator, LocalSqliteDatabaseCreator, LocalSqliteDatatableCreator } from '../src/backend/database-creator'
 
-import { getCards, writeCards } from '../src/backend/ptCardOperations'
+import { processPtCardList } from '../src/backend/ptCardOperations'
 import { getStats, writeStats } from '../src/backend/readHtmlStatsExport'
-import { Database } from '../src/backend/database/Database';
 
 import { initializeDatabase } from './util'
-import { simpleCardInsert, liveUpdateTestCardsInsertScript } from './scripts/ptcard-inserts'
+import { simpleCardInsert } from './scripts/ptcard-inserts'
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','data-exports']
 
@@ -48,8 +45,7 @@ test('Read and write real OOTP27 pt_card_list file', async () => {
 
     await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
 
-    const cards = await getCards([process.cwd(), 'test', 'data', 'real_pt_card_list.csv']);
-    await writeCards(db, cards);
+    await processPtCardList([process.cwd(), 'test', 'data', 'real_pt_card_list.csv'], db, false);
 
     const result = await db.getAll("select * from PtCard")
     expect(result.length === 9).toBeTruthy();
@@ -71,8 +67,10 @@ test('Read and write batting and pitching stats', async () => {
     await db.execute("INSERT INTO TournamentType (TournamentTypeID, Name, CardRestriction, MaxOverall, IsQuick, IsCap, IsLive, CapAmount) VALUES (1, 'Test', 'None', 100, 0, 0, 0, 0)");
     await db.execute(simpleCardInsert);
 
-    const stats = await getStats([process.cwd(), 'test', 'data', 'tournament-simple-example.html']);
+    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("exportedStatsColumns.json")
+    const ptCardListModel = await ptCardListModelReader.getJsonModels();
 
+    const stats = await getStats([process.cwd(), 'test', 'data', 'tournament-simple-example.html'], ptCardListModel);
     await writeStats(stats, db, 'test', 1);
 
     const battingStats = await db.getAll("SELECT * FROM BattingStats");

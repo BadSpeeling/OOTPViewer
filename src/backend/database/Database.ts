@@ -5,19 +5,18 @@ import * as path from 'node:path'
 
 import { DatabaseRecord } from '../types'
 
-import * as settings from "../../../settings.json"
 
 export class Database {
 
-    databasePath: string;
+    databasePath: string[];
 
-    constructor (databasePath: string) {
+    constructor (databasePath: string[]) {
         this.databasePath = databasePath;
     }
 
     async #getConnection () {
         return await sqlite.open({
-            filename: this.databasePath,
+            filename: path.join(...this.databasePath),
             driver: sqlite3.Database
         });
     }
@@ -90,8 +89,4 @@ export class Database {
 
     }
 
-}
-
-export const getDatabase = () => {
-    return new Database(path.join(...settings.databasePath));
 }

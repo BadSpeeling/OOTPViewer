@@ -5,10 +5,10 @@ import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {PtFolderSearcher, getStats, writeStats} from './backend/readHtmlStatsExport';
-import {getLiveUpdates, readPtCardList, processPtCardList, upsertLiveUpdate} from "./backend/ptCardOperations";
-import {getSetting,updateSetting} from "./backend/settings";
+import {getLiveUpdates, processPtCardList, upsertLiveUpdate} from "./backend/ptCardOperations";
+import {getSetting} from "./backend/settings";
 
-import { getDatabase, Database } from "./backend/database/Database";
+import { Database } from "./backend/database/Database";
 import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position } from "./backend/types"
 
 import * as settings from '../settings.json';
@@ -116,28 +116,22 @@ const openCardImporter = () => {
 app.whenReady().then(() => {
   ipcMain.handle('writeHtmlTournamentStats', async (_event, tournamentTypeID, value: PtDataStatsFile) => {
     console.log(value)
-    
-    settings.databasePath
-    // const liveUpdateID = null;
 
-    // const writeResults = await writer.handleTournamentStatsWrite(value, tournamentTypeID, liveUpdateID);
 
-    // if (writeResults) {
-    //   await clearPtFolderHtmlFiles(value.path)
-    // }
+    const stats = await getStats(value.path.split('\\'));
 
-    // return writeResults;
+    await writeStats(stats, getDatabase(), value.description, tournamentTypeID);
 
-  })
+  });
 
   ipcMain.handle('getTournamentStats', async (_event, value: TournamentStatsQuery) => {
     console.log(value)
 
     if (value.statsType === StatsType.Batting) {
-      return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
+      return {headers: ['CardTitle','CardValue','Position','Bats','PA','AVG','OBP','SLG','OPS'], stats: await getTournamentStats(settings.databasePath, value)};
     }
     else if (value.statsType === StatsType.Pitching) {
-      return {headers: ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA'], stats: await getTournamentStats(path.join(...settings.databasePath), value)};
+      return {headers: ['CardTitle','CardValue','Throws','G','GS','K/9','BB/9','HR/9','ERA'], stats: await getTournamentStats(settings.databasePath, value)};
     }
     else {
       throw Error(StatsType[value.statsType] + ' is not a valid statsTypeID value');
@@ -181,10 +175,12 @@ function getPtTeams (e) {
 async function writePtCards (e, bypassLiveUpdateOccuredCheck: boolean) {
 
   try {
-    const databasePath = getSetting("databasePath") as string[];
-    const database = new Database(path.join(...databasePath));
-    const result = await processPtCardList(database, bypassLiveUpdateOccuredCheck);
+
+    const ptCardListFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
+    const result = await processPtCardList(ptCardListFilePath, getDatabase(), bypassLiveUpdateOccuredCheck);
+
     return result;
+
   }
   catch (e) {
     return ProcessCardsStatus.Fail;
@@ -239,14 +235,14 @@ async function getRecentTournaments (e, teamName) {
 
   const limitAmount = 10;
 
-  const recentTournaments = await getRecentTournamentsHandler(path.join(...settings.databasePath), teamName, limitAmount);
+  const recentTournaments = await getRecentTournamentsHandler(settings.databasePath, teamName, limitAmount);
   return recentTournaments;
   
 }
 
 async function getSeasonStats (e, args: TournamentStatsQuery) {
 
-  const seasonStats = await getTournamentStats(path.join(...settings.databasePath), args);
+  const seasonStats = await getTournamentStats(settings.databasePath, args);
 
   return seasonStats.map((stat) => {
     if (args.statsType === StatsType.Batting) {
@@ -306,17 +302,13 @@ async function findTournamentExports () : Promise<PtDataExportFile[]> {
 }
 
 async function getLiveUpdatesHandler (): Promise<LiveUpdate[]> {
-  const databasePath = path.join(...settings.databasePath);
-  return getLiveUpdates(databasePath);
+  return getLiveUpdates(settings.databasePath);
 }
 
 async function upsertLiveUpdateHandler (e, liveUpdate: LiveUpdate): Promise<boolean> {
 
-  const databasePath = getSetting('databasePath') as string[];
-  const database = new Database(path.join(...databasePath));
-
   try {
-    upsertLiveUpdate(database, liveUpdate);
+    upsertLiveUpdate(getDatabase(), liveUpdate);
     return true;
   }
   catch (err) {
@@ -324,4 +316,8 @@ async function upsertLiveUpdateHandler (e, liveUpdate: LiveUpdate): Promise<bool
     return false;
   }
 
+}
+
+const getDatabase = () => {
+    return new Database(settings.databasePath);
 }

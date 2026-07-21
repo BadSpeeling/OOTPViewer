@@ -1,7 +1,7 @@
-import { OotpDataBattingExportStats, OotpDataExportStats, OotpDataPitchingExportStats } from './index'
+import { OotpDataExport } from './index'
 import { OotpExportDataColumn } from '../../types'
 
-export const splitOotpStatsExport = (parsedHeaders: OotpExportDataColumn[], statsExport: OotpDataExportStats) => {
+export const splitOotpStatsExport = (parsedHeaders: OotpExportDataColumn[], statsExport: OotpDataExport) => {
 
     const headerNames = parsedHeaders.map(h => h.nameInSource);
 
@@ -14,9 +14,9 @@ export const splitOotpStatsExport = (parsedHeaders: OotpExportDataColumn[], stat
     const pitchingHeaders = parsedHeaders.slice(pitchingBeginIndex, fieldingBeginIndex);
     const fieldingHeaders = fieldingBeginIndex !== -1 ? parsedHeaders.slice(fieldingBeginIndex) : undefined;
 
-    const battingSplit = new OotpDataBattingExportStats([...generalHeaders, ...battingHeaders]);
-    const pitchingSplit = new OotpDataPitchingExportStats([...generalHeaders, ...pitchingHeaders]);
-    const fieldingSplit = fieldingHeaders ? new OotpDataExportStats([...generalHeaders, ...fieldingHeaders!]) : undefined;
+    const battingSplit = new OotpDataExport([...generalHeaders, ...battingHeaders]);
+    const pitchingSplit = new OotpDataExport([...generalHeaders, ...pitchingHeaders]);
+    const fieldingSplit = fieldingHeaders ? new OotpDataExport([...generalHeaders, ...fieldingHeaders!]) : undefined;
 
     for (const statExportRow of statsExport.makeIterator()) {
 

@@ -1,11 +1,11 @@
 import { OotpExportDataColumn } from '../../types';
-import { OotpExportReader, PtCardListValue } from './index'
-import { OotpDataExportStats } from '../export-stats'
+import { OotpExportReader } from './index'
+import { OotpDataExport } from '../export-stats'
 
 export class OotpCsvExportReader extends OotpExportReader {
     
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
-        super(expectedHeaders, ptCardListFile, exportedStats);
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
+        super(expectedHeaders, ptCardListFile);
     }
     
     async readExport () {
@@ -15,9 +15,9 @@ export class OotpCsvExportReader extends OotpExportReader {
 
         const sourceHeaders = this.parseHeaderSection(csvListSections.headerSection);
         this.validateHeaders(sourceHeaders);
-        this.parseDataSections(csvListSections.dataSection);
+        const exportedOotpData = this.parseDataSections(csvListSections.dataSection);
 
-        return Promise.resolve(this.exportedStats);
+        return Promise.resolve(exportedOotpData);
 
     }
 
@@ -43,23 +43,25 @@ export class OotpCsvExportReader extends OotpExportReader {
 
     private parseDataSections (dataSections: string[]) {
 
+        const exportedOotpData = new OotpDataExport(this.expectedHeaders);
+
         for (const curRow of dataSections) {
 
             if (curRow.length !== 0) {
                 
                 const parsedRow = this.parseDataSection(curRow);
-                this.exportedStats.addStatsRow(parsedRow);
+                exportedOotpData.addStatsRow(parsedRow);
 
             }
 
         }
 
+        return exportedOotpData;
+
     }
 
     private parseDataSection (dataSection: string) {
 
-        const parsedRow: PtCardListValue[] = [];
-            
         const cleanedDataLine = this.removeTrailingComma(dataSection);
         const csvRow = cleanedDataLine.split(',');
 
@@ -67,14 +69,7 @@ export class OotpCsvExportReader extends OotpExportReader {
             throw Error ("The row did not have the expected amount of columns per the provided expected headers");
         }
 
-        for (const colIndex of [...Array(csvRow.length).keys()]) {
-
-            const curDataColumn = this.expectedHeaders[colIndex];
-            parsedRow.push(new PtCardListValue(curDataColumn.nameInSource, csvRow[colIndex].trim(), curDataColumn.type))
-
-        }
-
-        return parsedRow;            
+        return csvRow.map(record => record.trim());            
 
     }
 

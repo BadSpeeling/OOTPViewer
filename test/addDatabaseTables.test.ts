@@ -4,8 +4,9 @@ import * as fs from 'node:fs'
 import * as path from 'node:path';
 import { Database } from '../src/backend/database/Database';
 import { FakeOneDatatableModelReader, FakeTwoDatatableModelReader, FakeAutoIncrementDatatableModelReader, FakeForeignKeyDatatableModelReader, FakeUniqueConstraintDatatableModelReader, FakeNonclusteredDatatableModelReader } from './fakes/DatatableModelReader/';
-import { IJsonModelReader, IDatatableCreator, LocalSqliteDatatableCreator, ProjectJsonModelReader } from '../src/backend/database-creator';
+import { IJsonModelReader, ProjectJsonModelReader } from '../src/backend/database-creator';
 import { DatatableModel } from '../src/backend/types'
+import { initializeDatabase } from './util'
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','add-database-tables-tests']
 
@@ -36,7 +37,7 @@ afterAll(() => {
 
 test('Create 1 table', async () => {
 
-	const db = await initializeDatabase(new FakeOneDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeOneDatatableModelReader());
 
 	const columns = await getTableColumnsMetadata(db, 'TestTableName');
 
@@ -55,7 +56,7 @@ test('Create 1 table', async () => {
 
 test('Create 2 tables', async () => {
 
-	const db = await initializeDatabase(new FakeTwoDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeTwoDatatableModelReader());
 
 	const tables = await db.getAllMapped<SqliteTable>("select type,name,tbl_name from sqlite_master where type = 'table'");
 
@@ -79,7 +80,7 @@ test('Project datatable model reader test', async () => {
 
 test('Create primary key with autoincrement', async () => {
 
-	const db = await initializeDatabase(new FakeAutoIncrementDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeAutoIncrementDatatableModelReader());
     
 	//autoincrement will not be used and verifiable until table has at least 1 record
 	await db.execute('insert into TestTableName (TextColumn) values ("tst");')
@@ -93,7 +94,7 @@ test('Create primary key with autoincrement', async () => {
 
 test('Create foreign key', async () => {
 
-	const db = await initializeDatabase(new FakeForeignKeyDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeForeignKeyDatatableModelReader());
 
 	const foreignKeys = await getForeignKeyMetadata(db, 'ReferencingTable');
 	const createdForeignKey = foreignKeys.find(fk => fk.table === 'BaseTable');
@@ -106,7 +107,7 @@ test('Create foreign key', async () => {
 
 test('Create unique constraint', async () => {
 
-	const db = await initializeDatabase(new FakeUniqueConstraintDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeUniqueConstraintDatatableModelReader());
 
 	const uniqueConstraints = await getIndiciesForTable(db, 'TestTableName');
 	const indexName = 'UC_TestTableName_IntegerColumn1_IntegerColumn2';
@@ -125,7 +126,7 @@ test('Create unique constraint', async () => {
 
 test('Create nonclustered index', async () => {
 
-	const db = await initializeDatabase(new FakeNonclusteredDatatableModelReader());
+	const db = await initializeDatabase(databaseFilePath, new FakeNonclusteredDatatableModelReader());
 
 	const indicies = await getIndiciesForTable(db, 'TestTableName');
 	const indexName = 'NIX_TestTableName_IntegerColumn1_IntegerColumn2';
@@ -141,24 +142,6 @@ test('Create nonclustered index', async () => {
 	expect(typeof col2 !== 'undefined').toBeTruthy();
 
 })
-
-const initializeDatabase = async (reader: IJsonModelReader<DatatableModel>) => {
-
-    const databaseFile = createDatabase();
-	const db = new Database(databaseFile)
-    const creator: IDatatableCreator = new LocalSqliteDatatableCreator(reader, db);  
-    await creator.createDataTables();
-
-	return db;
-
-}
-
-const createDatabase = () => {
-  	const currTime = Date.now();    
-  	const databaseFile = path.join(...databaseFilePath, `${currTime}.db`);
-	fs.closeSync(fs.openSync(databaseFile, 'w'));
-	return databaseFile;
-}
 
 const getForeignKeyMetadata = async (db: Database, tableName: string) => {
 	return await db.getAllMapped<SqliteForeignKey>(`PRAGMA foreign_key_list('${tableName}')`);

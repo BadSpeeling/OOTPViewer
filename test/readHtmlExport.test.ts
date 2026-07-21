@@ -1,8 +1,7 @@
 import { test, expect } from '@jest/globals'
 
 import { OotpExportDataColumn } from '../src/backend/types'
-import { IOotpExportReader, PtCardListValue, OotpHtmlExportReader } from '../src/backend/card-loading/export-reader'
-import { OotpDataExportStats } from '../src/backend/card-loading/export-stats'
+import { IOotpExportReader, OotpHtmlExportReader } from '../src/backend/card-loading/export-reader'
 import { checkErrorMessage } from './util'
 
 test('Read data out of html file', async () => {
@@ -20,19 +19,18 @@ test('Read data out of html file', async () => {
         }
     ]
 
-    const exportResults = new OotpDataExportStats(expectedHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example.html"], exportResults);
-    await dataReader.readExport();
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example.html"]);
+    const exportResults = await dataReader.readExport();
 
     expect(exportResults.recordCount() === 2).toBeTruthy();
 
     const result1 = exportResults.getRecord(0);
-    expect(result1[0].fieldValue === "Lil Dickey").toBeTruthy();
-    expect(result1[1].fieldValue === "69647").toBeTruthy();
+    expect(result1[0] === "Lil Dickey").toBeTruthy();
+    expect(result1[1] === "69647").toBeTruthy();
 
     const result2 = exportResults.getRecord(1);
-    expect(result2[0].fieldValue === "Abydos").toBeTruthy();
-    expect(result2[1].fieldValue === "69653").toBeTruthy();
+    expect(result2[0] === "Abydos").toBeTruthy();
+    expect(result2[1] === "69653").toBeTruthy();
 
 })
 
@@ -56,26 +54,25 @@ test('Read data out of html file with an " " in a data cell', async () => {
         }
     ]
 
-    const exportResults = new OotpDataExportStats(expectedHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example-empty-cols.html"], exportResults);
-    await dataReader.readExport();
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(expectedHeaders, [".","test","data","export-example-empty-cols.html"]);
+    const exportResults = await dataReader.readExport();
 
     expect(exportResults.recordCount() === 3).toBeTruthy();
 
     const result1 = exportResults.getRecord(0);
-    expect(result1[0].fieldValue === "Lil Dickey").toBeTruthy();
-    expect(result1[1].fieldValue === "").toBeTruthy();
-    expect(result1[2].fieldValue === "").toBeTruthy();
+    expect(result1[0] === "Lil Dickey").toBeTruthy();
+    expect(result1[1] === "").toBeTruthy();
+    expect(result1[2] === "").toBeTruthy();
 
     const result2 = exportResults.getRecord(1);
-    expect(result2[0].fieldValue === "Abydos").toBeTruthy();
-    expect(result2[1].fieldValue === "1").toBeTruthy();
-    expect(result2[2].fieldValue === "").toBeTruthy();
+    expect(result2[0] === "Abydos").toBeTruthy();
+    expect(result2[1] === "1").toBeTruthy();
+    expect(result2[2] === "").toBeTruthy();
 
     const result3 = exportResults.getRecord(2);
-    expect(result3[0].fieldValue === "Some name").toBeTruthy();
-    expect(result3[1].fieldValue === "5").toBeTruthy();
-    expect(result3[2].fieldValue === "3").toBeTruthy();
+    expect(result3[0] === "Some name").toBeTruthy();
+    expect(result3[1] === "5").toBeTruthy();
+    expect(result3[2] === "3").toBeTruthy();
 
 })
 
@@ -99,8 +96,7 @@ test('Expected columns are out of order', async () => {
         }
     ]
 
-    const exportResults = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"], exportResults);
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"]);
 
     let correctErrorOccuredFlag = false;
     
@@ -145,28 +141,18 @@ test('Read export with duplicate columns', async () => {
         }
     ]
 
-    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-duplicate-columns.html"], duplicateColumnsData);
-    await dataReader.readExport();
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-duplicate-columns.html"]);
+    const duplicateColumnsData = await dataReader.readExport();
 
     expect(duplicateColumnsData.recordCount() === 1).toBeTruthy();
 
     const dataRow = duplicateColumnsData.getRecord(0);
 
-    expect(dataRow[0].fieldName === 'ExampleString').toBeTruthy();
-    expect(dataRow[0].fieldValue === 'Test').toBeTruthy();
-
-    expect(dataRow[1].fieldName === 'G').toBeTruthy();
-    expect(dataRow[1].fieldValue === '10').toBeTruthy();
-
-    expect(dataRow[2].fieldName === 'H').toBeTruthy();
-    expect(dataRow[2].fieldValue === '4').toBeTruthy();
-
-    expect(dataRow[3].fieldName === 'G').toBeTruthy();
-    expect(dataRow[3].fieldValue === '15').toBeTruthy();
-
-    expect(dataRow[4].fieldName === 'ER').toBeTruthy();
-    expect(dataRow[4].fieldValue === '2').toBeTruthy();
+    expect(dataRow[0] === 'Test').toBeTruthy();
+    expect(dataRow[1] === '10').toBeTruthy();
+    expect(dataRow[2] === '4').toBeTruthy();
+    expect(dataRow[3] === '15').toBeTruthy();
+    expect(dataRow[4] === '2').toBeTruthy();
 
 })
 
@@ -185,8 +171,7 @@ test('Incorrect amount of columns provided', async () => {
         }
     ]
 
-    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"], duplicateColumnsData);
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-empty-cols.html"]);
 
     let correctErrorOccuredFlag = false;
     
@@ -216,8 +201,7 @@ test('Missing data table test', async () => {
         }
     ]
 
-    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-table.html"], duplicateColumnsData);
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-table.html"]);
 
     let correctErrorOccuredFlag = false;
     
@@ -247,8 +231,7 @@ test('Missing headers test', async () => {
         }
     ]
 
-    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-header.html"], duplicateColumnsData);
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-header.html"]);
 
     let correctErrorOccuredFlag = false;
     
@@ -278,8 +261,7 @@ test('Missing data test', async () => {
         }
     ]
 
-    const duplicateColumnsData = new OotpDataExportStats(outOfOrderHeaders)
-    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-data.html"], duplicateColumnsData);
+    const dataReader: IOotpExportReader = new OotpHtmlExportReader(outOfOrderHeaders, [".","test","data","export-example-missing-data.html"]);
 
     let correctErrorOccuredFlag = false;
     

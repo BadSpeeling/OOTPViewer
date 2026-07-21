@@ -1,17 +1,13 @@
-import { parse } from 'node-html-parser';
 import * as fs  from 'fs';
 import * as path from 'path';
 
-import { statsExport } from "../../json/csvColumns.json"
-import { } from "./database/sqliteScripts"
-import { Database, getDatabase } from "./database/Database"
+import { Database } from "./database/Database"
 
-import * as settings from '../../settings.json';
-import { PtDataExportFile, PtStats, PtDataStatsFile, PtPlayerStats } from '../types';
-import { GeneralStatsWriteFilter, OotpExportDataColumn } from "./types"
-import { ProjectJsonModelReader } from './database-creator';
-import { OotpDataBattingExportStats, OotpDataExportStats, OotpDataPitchingExportStats, splitOotpStatsExport } from './card-loading/export-stats';
+import { PtDataExportFile } from '../types';
+import { OotpExportDataColumn } from "./types"
+import { BattingExportScriptGenerator, OotpDataExport, PitchingExportScriptGenerator, splitOotpStatsExport } from './card-loading/export-stats';
 import { OotpHtmlExportReader } from './card-loading/export-reader';
+import { ProjectJsonModelReader } from './database-creator';
 
 //let ptFolderRoot = savedGames + '\\' + file + 'news\\html\\temp\\'
 
@@ -34,33 +30,32 @@ const headerTypes = ["generalStats","battingStats","pitchingStats","fieldingStat
     //     return result.LiveUpdateID;
     
     // }
-export async function getStats (path: string[]) {
+
+export async function getStats (statsFile: string[]) {
 
     const exportedStatsModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("exportedStatsColumns.json")
-    const exportedStatsListModel = await exportedStatsModelReader.getJsonModels();
+    const exportedStatsModel = await exportedStatsModelReader.getJsonModels();
+    const ptCardListReader = new OotpHtmlExportReader(exportedStatsModel, statsFile);
+    const exportedStats = await ptCardListReader.readExport();
 
-    const exportedStats = new OotpDataExportStats(exportedStatsListModel)
-    const ptCardListReader = new OotpHtmlExportReader(exportedStatsListModel, path, exportedStats);
-    await ptCardListReader.readExport();
-
-    const exportedCategorizedStats = splitOotpStatsExport(exportedStatsListModel, exportedStats)
+    const exportedCategorizedStats = splitOotpStatsExport(exportedStatsModel, exportedStats)
 
     return exportedCategorizedStats;
 
 }
 
 export async function writeStats (stats: {
-    battingSplit: OotpDataBattingExportStats;
-    pitchingSplit: OotpDataPitchingExportStats;
-    fieldingSplit: OotpDataExportStats | undefined;
+    battingSplit: OotpDataExport;
+    pitchingSplit: OotpDataExport;
+    fieldingSplit: OotpDataExport | undefined;
 }, database: Database, description: string, tournamentTypeID: number) {
 
     const statsBatchID = await createStatsBatch(database, description, tournamentTypeID);
     
-    const battingWriteScript = stats.battingSplit.getTournamentBattingStatsWriteScript(statsBatchID);
+    const battingWriteScript =  new BattingExportScriptGenerator(stats.battingSplit, statsBatchID).getExportWriteScript();
     await database.execute(battingWriteScript);
 
-    const pitchingWriteScript = stats.pitchingSplit.getTournamentPitchingStatsWriteScript(statsBatchID);
+    const pitchingWriteScript =  new PitchingExportScriptGenerator(stats.pitchingSplit, statsBatchID).getExportWriteScript();
     await database.execute(pitchingWriteScript);
 
     if (stats.fieldingSplit) console.log('Do the fielding write');
@@ -83,7 +78,7 @@ export class PtFolderSearcher {
     
             let savedGames = path.join(root, 'saved_games')
     
-            let ptFolders = []
+            let ptFolders: string[] = []
     
             fs.readdir(savedGames, (err, files) => {
                 files.forEach((file) => {

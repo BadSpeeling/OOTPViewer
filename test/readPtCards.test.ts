@@ -1,8 +1,7 @@
 import { test, expect } from '@jest/globals'
 import { checkErrorMessage } from './util'
 import { OotpExportDataColumn } from '../src/backend/types'
-import { IOotpExportReader, PtCardListValue, OotpCsvExportReader } from '../src/backend/card-loading/export-reader'
-import { OotpDataExportStats } from '../src/backend/card-loading/export-stats'
+import { IOotpExportReader, OotpCsvExportReader } from '../src/backend/card-loading/export-reader'
 
 test('Read a card out of the data file', async () => {
 
@@ -19,9 +18,8 @@ test('Read a card out of the data file', async () => {
         }
     ]
 
-    const exportResults = new OotpDataExportStats(expectedHeaders)
-    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","simple_pt_card_list.csv"], exportResults);
-    await dataReader.readExport()
+    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","simple_pt_card_list.csv"]);
+    const exportResults = await dataReader.readExport();
     
     expect(exportResults.recordCount() === 1).toBeTruthy();
 
@@ -51,9 +49,8 @@ test('Multiple row test with 1 column being empty', async () => {
         },        
     ]
 
-    const exportResults = new OotpDataExportStats(expectedHeaders)
-    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","multi_row_pt_card_list.csv"], exportResults);
-    await dataReader.readExport();
+    const dataReader: IOotpExportReader = new OotpCsvExportReader(expectedHeaders, [".","test","data","multi_row_pt_card_list.csv"]);
+    const exportResults = await dataReader.readExport();
 
     expect(exportResults.recordCount() === 3).toBeTruthy();
 
@@ -66,8 +63,7 @@ test('Test read errors', async () => {
 
     const callDataReader = async (columns: OotpExportDataColumn[], expectedError: string) => {
         try {
-            const exportResults = new OotpDataExportStats(columns)
-            const dataReader: IOotpExportReader = new OotpCsvExportReader(columns, [".","test","data","multi_row_pt_card_list.csv"], exportResults);
+            const dataReader: IOotpExportReader = new OotpCsvExportReader(columns, [".","test","data","multi_row_pt_card_list.csv"]);
             await dataReader.readExport();
 
             return false;
@@ -116,8 +112,8 @@ test('Test read errors', async () => {
 
 })
 
-const validateColumnValue = (entry: PtCardListValue | undefined, value: string) => {
-    expect(entry?.fieldValue === value).toBeTruthy();
+const validateColumnValue = (entry: string | undefined, value: string) => {
+    expect(entry === value).toBeTruthy();
 }
 
 // test('LiveUpdate CRUD', async () => {

@@ -1,30 +1,30 @@
 import * as fs from 'fs';
-import * as path from 'node:path'
 
 import { Database } from "./database/Database"
 import { getLiveUpdatesScript, insertLiveUpdateScript, updateLiveUpdateScript } from './database/sqliteScripts'
 
-import { ptCardList } from '../../json/csvColumns.json'
-import { OotpExportDataColumn,CsvRecord,PtCard,LiveUpdate, DataTableColumn } from "./types"
+import { OotpExportDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
 import { ProcessCardsStatus } from "../types"
 
-import * as settings from "../../settings.json"
 import { ProjectJsonModelReader } from './database-creator';
-import { OotpDataPitchingExportStats } from './card-loading/export-stats';
 import { OotpCsvExportReader } from './card-loading/export-reader'
 
-import { OotpDataPtCardListExportStats } from './card-loading/export-stats'
+import { PtCardListExportScriptGenerator } from './card-loading/export-stats'
 
-export async function processPtCardList (database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
+export async function processPtCardList (ptCardListFilePath: string[], database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
 
-    const ptCardFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
-    const cards = await getCards(ptCardFilePath);
+    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
+    const ptCardListModel = await ptCardListModelReader.getJsonModels();
 
-    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, cards) : false;
+    const cards = await getCards(ptCardListFilePath, ptCardListModel);
+
+    const ptCardListScriptGenerator = new PtCardListExportScriptGenerator(cards);
+    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, ptCardListScriptGenerator) : false;
 
     if (!liveUpdateOccuredFlag) {
         try {
-            await writeCards(database, cards);
+            const ptCardListExportScript = ptCardListScriptGenerator.getImportScript();
+            await database.execute(ptCardListExportScript);
         }
         catch (err) {
             console.log(err)
@@ -37,25 +37,13 @@ export async function processPtCardList (database: Database, bypassLiveUpdateOcc
 
 }
 
-export async function getCards (ptCardListFilePath: string[]) {
+export async function getCards (ptCardListFilePath: string[], ptCardListModel: OotpExportDataColumn[]) {
 
-    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
-    const ptCardListModel = await ptCardListModelReader.getJsonModels();
-
-    const exportedStats = new OotpDataPtCardListExportStats(ptCardListModel)
-    const ptCardListReader = new OotpCsvExportReader(ptCardListModel, ptCardListFilePath, exportedStats);
-    await ptCardListReader.readExport();
-
-    return exportedStats;
+    const ptCardListReader = new OotpCsvExportReader(ptCardListModel, ptCardListFilePath);
+    return await ptCardListReader.readExport();
 
 }
 
-export async function writeCards (database: Database, cards: OotpDataPtCardListExportStats) {
-
-    const script = cards.getPtCardListWriteScript();
-    await database.execute(script);
-
-}
 
 export function readPtCardList (file, columns: OotpExportDataColumn[]) : Promise<CsvRecord[]> {
 
@@ -144,7 +132,7 @@ ORDER BY PtCardID asc
 
 }
 
-export const getLiveUpdates = async (databasePath: string) => {
+export const getLiveUpdates = async (databasePath: string[]) => {
     const db = new Database(databasePath);
     return await db.getAllMapped<LiveUpdate>(getLiveUpdatesScript());
 }
@@ -164,7 +152,7 @@ export const upsertLiveUpdate = async (database: Database, liveUpdate: LiveUpdat
     
 }
 
-export const checkIfLiveUpdateOccured = async (database: Database, cards: OotpDataPtCardListExportStats) => {
+export const checkIfLiveUpdateOccured = async (database: Database, cards: PtCardListExportScriptGenerator) => {
 
     const script  = cards.getCheckLiveUpdateScript();
     const cardsInLiveUpdate = await database.getAllMapped<{LiveUpdateOccured: boolean, CardID: number}>(script);

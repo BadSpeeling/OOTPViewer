@@ -1,12 +1,12 @@
 import { OotpExportDataColumn } from '../../types';
-import { OotpExportReader, PtCardListValue } from './index'
-import { OotpDataExportStats } from '../export-stats'
+import { OotpDataExport } from '../export-stats';
+import { OotpExportReader } from './index'
 import { parse, HTMLElement } from 'node-html-parser';
 
 export class OotpHtmlExportReader extends OotpExportReader {
     
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
-        super(expectedHeaders, ptCardListFile, exportedStats);
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
+        super(expectedHeaders, ptCardListFile);
     }
 
     async readExport () {
@@ -16,9 +16,9 @@ export class OotpHtmlExportReader extends OotpExportReader {
 
         const sourceHeaders = this.parseHeaderSection(htmlSections.headerSection);
         this.validateHeaders(sourceHeaders);
-        this.parseDataSections(htmlSections.dataSection);
+        const exportedOotpData = this.parseDataSections(htmlSections.dataSection);
 
-        return Promise.resolve(this.exportedStats);
+        return Promise.resolve(exportedOotpData);
 
     }
 
@@ -58,18 +58,20 @@ export class OotpHtmlExportReader extends OotpExportReader {
 
     private parseDataSections (dataSections: HTMLElement[]) {
 
+        const exportedOotpData = new OotpDataExport(this.expectedHeaders);
+
         for (const curRow of dataSections) {
 
             const parsedRow = this.parseDataSection(curRow);
-            this.exportedStats.addStatsRow(parsedRow);
+            exportedOotpData.addStatsRow(parsedRow);
 
         }
+
+        return exportedOotpData;
 
     }
 
     private parseDataSection (dataSection: HTMLElement) {
-
-        const parsedRow: PtCardListValue[] = [];
 
         const dataCols = dataSection.querySelectorAll('td')
 
@@ -77,14 +79,7 @@ export class OotpHtmlExportReader extends OotpExportReader {
             throw Error ("The row did not have the expected amount of columns per the provided expected headers");
         }
 
-        for (const colIndex of [...Array(dataCols.length).keys()]) {
-
-            const curDataColumn = this.expectedHeaders[colIndex];
-            parsedRow.push(new PtCardListValue(curDataColumn.nameInSource, dataCols[colIndex].removeWhitespace().text, curDataColumn.type))
-
-        }
-
-        return parsedRow;            
+        return dataCols.map(r => r.removeWhitespace().text);            
 
     }
 

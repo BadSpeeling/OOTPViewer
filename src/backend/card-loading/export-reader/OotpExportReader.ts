@@ -1,20 +1,18 @@
 import { OotpExportDataColumn } from "../../types";
-import { OotpDataExportStats } from "../export-stats";
+import { OotpDataExport } from "../export-stats";
 import { IOotpExportReader } from './index'
 import { readFileAsync } from '../../../utilities'
 
 export abstract class OotpExportReader implements IOotpExportReader {
 
-    abstract readExport (): Promise<OotpDataExportStats>;
+    abstract readExport (): Promise<OotpDataExport>;
 
     protected expectedHeaders: OotpExportDataColumn[]
     protected ptCardListFilePath: string[]
-    protected exportedStats: OotpDataExportStats;
 
-    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[], exportedStats: OotpDataExportStats) {
+    constructor (expectedHeaders: OotpExportDataColumn[], ptCardListFile: string[]) {
         this.expectedHeaders = expectedHeaders;
         this.ptCardListFilePath = ptCardListFile;
-        this.exportedStats = exportedStats;
     } 
 
     protected async readFile  () {

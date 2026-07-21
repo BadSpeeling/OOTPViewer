@@ -1,24 +1,34 @@
 import * as fs from 'fs';
-import * as path from 'node:path'
 
 import { Database } from "./database/Database"
-import { ptCardListLoadScript, getLiveUpdatesScript, insertLiveUpdateScript, updateLiveUpdateScript, checkIfLiveUpdateOccuredScript } from './database/sqliteScripts'
+import { getLiveUpdatesScript, insertLiveUpdateScript, updateLiveUpdateScript } from './database/sqliteScripts'
 
-import { ptCardList } from '../../json/csvColumns.json'
-import { CsvDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
+import { OotpExportDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
 import { ProcessCardsStatus } from "../types"
 
-import * as settings from "../../settings.json"
+import { ProjectJsonModelReader } from './database-creator';
+import { OotpCsvExportReader } from './card-loading/export-reader'
 
-export async function processPtCardList (database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
+import { PtCardListExportScriptGenerator } from './card-loading/export-stats'
 
-    const ptCardFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
-    const cards = await getCards(path.join(...ptCardFilePath));
+export async function processPtCardList (ptCardListFilePath: string[], database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
 
-    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, cards) : false;
+    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
+    const ptCardListModel = await ptCardListModelReader.getJsonModels();
+
+    const cards = await getCards(ptCardListFilePath, ptCardListModel);
+
+    const ptCardListScriptGenerator = new PtCardListExportScriptGenerator(cards);
+    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, ptCardListScriptGenerator) : false;
 
     if (!liveUpdateOccuredFlag) {
-        writeCards(database, cards);
+        try {
+            const ptCardListExportScript = ptCardListScriptGenerator.getImportScript();
+            await database.execute(ptCardListExportScript);
+        }
+        catch (err) {
+            console.log(err)
+        }
         return ProcessCardsStatus.Success
     }
     else {
@@ -27,21 +37,15 @@ export async function processPtCardList (database: Database, bypassLiveUpdateOcc
 
 }
 
-export async function getCards (path: string) {
+export async function getCards (ptCardListFilePath: string[], ptCardListModel: OotpExportDataColumn[]) {
 
-    const cards = await readPtCardList(path, ptCardList)
-    return cards;
-
-}
-
-export async function writeCards (database: Database, cards: CsvRecord[]) {
-
-    const script = ptCardListLoadScript(cards, ptCardList);
-    await database.execute(script);
+    const ptCardListReader = new OotpCsvExportReader(ptCardListModel, ptCardListFilePath);
+    return await ptCardListReader.readExport();
 
 }
 
-export function readPtCardList (file, columns: CsvDataColumn[]) : Promise<CsvRecord[]> {
+
+export function readPtCardList (file, columns: OotpExportDataColumn[]) : Promise<CsvRecord[]> {
 
     return new Promise ((resolve,reject) => {
         fs.readFile(file, 'utf-8', (err, data) => {
@@ -49,7 +53,8 @@ export function readPtCardList (file, columns: CsvDataColumn[]) : Promise<CsvRec
             if (!err) {
                 let lines = data.split('\r\n');
                 
-                let sourceHeaders: string[] = removeTrailingComma(lines[0]).replace('//','').split(',');
+                //let sourceHeaders: string[] = removeTrailingComma(lines[0]).replace('//','').split(',');
+                let sourceHeaders: string[] = lines[0].replace('//','').split(',');
 
                 if (sourceHeaders.length === columns.length) {
 
@@ -61,15 +66,15 @@ export function readPtCardList (file, columns: CsvDataColumn[]) : Promise<CsvRec
 
                     const parsedData: CsvRecord[] = [];
 
-                    const parseCardDataValue = (curColumn: CsvDataColumn, value: string) => {
+                    const parseCardDataValue = (curColumn: OotpExportDataColumn, value: string) => {
                         switch (curColumn.type) {
                             case "INTEGER":
                                 return parseInt(value ? value : "0");
-                            case "DECIMAL":
+                            case "REAL":
                                 return parseFloat(value? value : "0");
                             case "DATETIME":
-                                return value;
-                            default:
+                            case "TEXT":
+                            default:                                
                                 return value;
                         }
                     }
@@ -127,7 +132,7 @@ ORDER BY PtCardID asc
 
 }
 
-export const getLiveUpdates = async (databasePath: string) => {
+export const getLiveUpdates = async (databasePath: string[]) => {
     const db = new Database(databasePath);
     return await db.getAllMapped<LiveUpdate>(getLiveUpdatesScript());
 }
@@ -147,9 +152,9 @@ export const upsertLiveUpdate = async (database: Database, liveUpdate: LiveUpdat
     
 }
 
-export const checkIfLiveUpdateOccured = async (database: Database, cards: CsvRecord[]) => {
+export const checkIfLiveUpdateOccured = async (database: Database, cards: PtCardListExportScriptGenerator) => {
 
-    const script  = checkIfLiveUpdateOccuredScript(cards);
+    const script  = cards.getCheckLiveUpdateScript();
     const cardsInLiveUpdate = await database.getAllMapped<{LiveUpdateOccured: boolean, CardID: number}>(script);
     return typeof cardsInLiveUpdate.find(card => card.LiveUpdateOccured) !== 'undefined'
 

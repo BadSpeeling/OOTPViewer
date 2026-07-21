@@ -14,7 +14,7 @@ export class LocalSqliteDatabaseCreator implements IDatabaseCreator {
 
     createDatabase() {
 
-        if (this.DatabaseFilePath.length > 0 && !this.DatabaseFilePath.at(-1)!.includes('.db')) {
+        if (this.DatabaseFilePath.length > 0 && !this.DatabaseFilePath[this.DatabaseFilePath.length-1].includes('.db')) {
             throw new Error(path.join(...this.DatabaseFilePath) + " is not a SQLite db file")
         }
 
@@ -26,14 +26,13 @@ export class LocalSqliteDatabaseCreator implements IDatabaseCreator {
             throw new Error(path.join(...this.DatabaseFilePath) + " is already an existing SQLite db file")
         }
 
-        const databasePathString = path.join(...this.DatabaseFilePath)
-        this.#createDatabaseFile(databasePathString);
-        return new Database(databasePathString)
+        this.createDatabaseFile();
+        return new Database(this.DatabaseFilePath)
         
     }
 
-    #createDatabaseFile (databasePathString: string) {
-        fs.closeSync(fs.openSync(databasePathString, 'w'));
+    private createDatabaseFile () {
+        fs.closeSync(fs.openSync(path.join(...this.DatabaseFilePath), 'w'));
     }
 
     

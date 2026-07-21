@@ -14,7 +14,7 @@
     "@jest/globals": "^30.4.1",
     "@types/electron": "^1.6.12",
     "@types/jquery": "^3.5.32",
-    "electron": "^30.0.2",
+    "electron": "^43.1.1",
     "ts-jest": "^29.4.11",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",

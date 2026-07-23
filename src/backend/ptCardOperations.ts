@@ -4,46 +4,6 @@ import { Database } from "./database/Database"
 import { getLiveUpdatesScript, insertLiveUpdateScript, updateLiveUpdateScript } from './database/sqliteScripts'
 
 import { OotpExportDataColumn,CsvRecord,PtCard,LiveUpdate } from "./types"
-import { ProcessCardsStatus } from "../types"
-
-import { ProjectJsonModelReader } from './database-creator';
-import { OotpCsvExportReader } from './card-loading/export-reader'
-
-import { PtCardListExportScriptGenerator } from './card-loading/export-stats'
-
-export async function processPtCardList (ptCardListFilePath: string[], database: Database, bypassLiveUpdateOccuredCheck: boolean = false) {
-
-    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
-    const ptCardListModel = await ptCardListModelReader.getJsonModels();
-
-    const cards = await getCards(ptCardListFilePath, ptCardListModel);
-
-    const ptCardListScriptGenerator = new PtCardListExportScriptGenerator(cards);
-    const liveUpdateOccuredFlag = !bypassLiveUpdateOccuredCheck ? await checkIfLiveUpdateOccured(database, ptCardListScriptGenerator) : false;
-
-    if (!liveUpdateOccuredFlag) {
-        try {
-            const ptCardListExportScript = ptCardListScriptGenerator.getImportScript();
-            await database.execute(ptCardListExportScript);
-        }
-        catch (err) {
-            console.log(err)
-        }
-        return ProcessCardsStatus.Success
-    }
-    else {
-        return ProcessCardsStatus.LiveUpdateNeeded
-    }
-
-}
-
-export async function getCards (ptCardListFilePath: string[], ptCardListModel: OotpExportDataColumn[]) {
-
-    const ptCardListReader = new OotpCsvExportReader(ptCardListModel, ptCardListFilePath);
-    return await ptCardListReader.readExport();
-
-}
-
 
 export function readPtCardList (file, columns: OotpExportDataColumn[]) : Promise<CsvRecord[]> {
 
@@ -152,10 +112,3 @@ export const upsertLiveUpdate = async (database: Database, liveUpdate: LiveUpdat
     
 }
 
-export const checkIfLiveUpdateOccured = async (database: Database, cards: PtCardListExportScriptGenerator) => {
-
-    const script  = cards.getCheckLiveUpdateScript();
-    const cardsInLiveUpdate = await database.getAllMapped<{LiveUpdateOccured: boolean, CardID: number}>(script);
-    return typeof cardsInLiveUpdate.find(card => card.LiveUpdateOccured) !== 'undefined'
-
-}

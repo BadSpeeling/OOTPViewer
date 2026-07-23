@@ -5,14 +5,17 @@ import * as fs from 'node:fs';
 
 import {getTournamentStats, getRecentTournamentsHandler} from './backend/readTournamentStats'
 import {PtFolderSearcher, getStats, writeStats} from './backend/readHtmlStatsExport';
-import {getLiveUpdates, processPtCardList, upsertLiveUpdate} from "./backend/ptCardOperations";
+import { PtCardImporter } from './backend/PtCardImporter'
+import {getLiveUpdates, upsertLiveUpdate} from "./backend/ptCardOperations";
 import {getSetting} from "./backend/settings";
 
 import { Database } from "./backend/database/Database";
-import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position } from "./backend/types"
+import { DatabaseRecord, BattingStatsExpanded, PitchingStatsExpanded, LiveUpdate, Bats, Throws, Position, OotpExportDataColumn } from "./backend/types"
 
 import * as settings from '../settings.json';
-import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, SeasonStatsQuery, StatsType, TournamentType, PtTeam, ProcessCardsStatus } from './types'
+import { PtDataExportFile, PtDataStatsFile, TournamentStatsQuery, TournamentMetaData, StatsType, TournamentType, PtTeam, ProcessCardsStatus } from './types'
+import { ProjectJsonModelReader } from './backend/database-creator';
+import { IOotpExportReader, OotpCsvExportReader } from './backend/card-loading/export-reader';
 
 declare global {
   interface Window {
@@ -172,19 +175,26 @@ function getPtTeams (e) {
   }) as PtTeam[];
 }
 
-async function writePtCards (e, bypassLiveUpdateOccuredCheck: boolean) {
+async function writePtCards (e) {
 
-  try {
+  	try {
 
-    const ptCardListFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
-    const result = await processPtCardList(ptCardListFilePath, getDatabase(), bypassLiveUpdateOccuredCheck);
+		const db = getDatabase();
+		
+		const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
+		const ptCardListModel = await ptCardListModelReader.getJsonModels();
 
-    return result;
+		const ptCardListFilePath = [...settings.ootpRoot, ...settings.ptCardFile];
+		const ootpExportReader: IOotpExportReader = new OotpCsvExportReader(ptCardListModel, ptCardListFilePath);
 
-  }
-  catch (e) {
-    return ProcessCardsStatus.Fail;
-  }
+		const cardImporter = new PtCardImporter(db, ootpExportReader);
+		const importResult = await cardImporter.importPtCardsAsync();
+		return importResult;
+
+  	}
+  	catch (e) {
+    	return ProcessCardsStatus.FAIL;
+  	}
 
 }
 

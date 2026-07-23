@@ -5,11 +5,14 @@ import * as path from 'node:path';
 import { ProjectJsonModelReader } from '../src/backend/database-creator'
 import { DatatableModel, OotpExportDataColumn } from '../src/backend/types';
 
-import { processPtCardList } from '../src/backend/ptCardOperations'
+import { PtCardImporter } from '../src/backend/PtCardImporter';
 import { getStats, writeStats } from '../src/backend/readHtmlStatsExport'
 
 import { initializeDatabase } from './util'
 import { simpleCardInsert } from './scripts/ptcard-inserts'
+import { FakeOneCardLiveUpdateReader } from './fakes/OotpExportReader/FakeOneCardLiveUpdateReader';
+import { OotpCsvExportReader } from '../src/backend/card-loading/export-reader';
+import { ProcessCardsStatus } from '../src/types';
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','data-exports']
 
@@ -45,7 +48,14 @@ test('Read and write real OOTP27 pt_card_list file', async () => {
 
     await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
 
-    await processPtCardList([process.cwd(), 'test', 'data', 'real_pt_card_list.csv'], db, false);
+    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
+    const ptCardListModel = await ptCardListModelReader.getJsonModels();
+    const csvReader = new OotpCsvExportReader(ptCardListModel, [process.cwd(), 'test', 'data', 'real_pt_card_list.csv']);
+
+    const cardImporter = new PtCardImporter(db, csvReader);
+    const importResult = await cardImporter.importPtCardsAsync();
+
+    expect(importResult === ProcessCardsStatus.SUCCESS).toBeTruthy();
 
     const result = await db.getAll("select * from PtCard")
     expect(result.length === 9).toBeTruthy();
@@ -58,6 +68,21 @@ test('Read and write real OOTP27 pt_card_list file', async () => {
 
 })
 
+test('Do not update because live update occured', async () => {
+
+    const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
+    const db = await initializeDatabase(databaseFilePath, datatableModelReader);
+
+    await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
+    await db.execute(simpleCardInsert);
+
+    const cardImporter = new PtCardImporter(db, new FakeOneCardLiveUpdateReader());
+    const importResult = await cardImporter.importPtCardsAsync();
+
+    expect(importResult === ProcessCardsStatus.LIVE_UPDATE_NEEDED).toBeTruthy();
+
+})
+
 test('Read and write batting and pitching stats', async () => {
 
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
@@ -67,10 +92,7 @@ test('Read and write batting and pitching stats', async () => {
     await db.execute("INSERT INTO TournamentType (TournamentTypeID, Name, CardRestriction, MaxOverall, IsQuick, IsCap, IsLive, CapAmount) VALUES (1, 'Test', 'None', 100, 0, 0, 0, 0)");
     await db.execute(simpleCardInsert);
 
-    const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("exportedStatsColumns.json")
-    const ptCardListModel = await ptCardListModelReader.getJsonModels();
-
-    const stats = await getStats([process.cwd(), 'test', 'data', 'tournament-simple-example.html'], ptCardListModel);
+    const stats = await getStats([process.cwd(), 'test', 'data', 'tournament-simple-example.html']);
     await writeStats(stats, db, 'test', 1);
 
     const battingStats = await db.getAll("SELECT * FROM BattingStats");

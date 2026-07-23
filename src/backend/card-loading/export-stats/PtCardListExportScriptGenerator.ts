@@ -64,7 +64,7 @@ ORDER BY CardID ASC;
 
         return `
 WITH 
-cteLiveUpdate AS (
+cteLatestLiveUpdate AS (
     SELECT LiveUpdateID FROM LiveUpdate ORDER BY EffectiveDate DESC LIMIT 1
 ),
 cteCardOverall(CardID,CardValue) AS (
@@ -72,8 +72,8 @@ cteCardOverall(CardID,CardValue) AS (
 )
 SELECT CASE WHEN t.CardValue != c.CardValue THEN 1 ELSE 0 END LiveUpdateOccured, c.CardID
 FROM cteCardOverall t
-JOIN PtCard c ON t.CardID = c.CardID
-JOIN cteLiveUpdate u ON c.LiveUpdateID = u.LiveUpdateID;     
+JOIN cteLatestLiveUpdate u ON c.LiveUpdateID = u.LiveUpdateID     
+JOIN PtCard c ON t.CardID = c.CardID;
         `        
 
     }

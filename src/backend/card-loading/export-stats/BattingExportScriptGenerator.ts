@@ -26,7 +26,7 @@ ${this.getTournamentBattingStatsWriteScript()}
 
     private getTournamentBattingStatsWriteScript () {
         
-        const databaseColumnNames = this.cardData.sliceColumns('G').map(h => `[${h.databaseColumnName}]`).join(',');
+        const sourceDatabaseColumnNames = this.cardData.sliceColumns('G').map(h => `[${h.databaseColumnName}]`).join(',');
 
         return `
 CREATE TABLE temp.Cards("CardID" INTEGER, "LiveUpdateID" INTEGER, "PtCardID" INTEGER);
@@ -50,8 +50,8 @@ FROM temp.BattingStats t
 JOIN PtCard pt ON t.CardID = pt.CardID AND pt.LiveUpdateID = 0
 WHERE pt.CardType != 1;
 
-INSERT INTO main.BattingStats (PtCardID, TeamName, StatsBatchID, ${databaseColumnNames})
-SELECT c.PtCardID, bs.TeamName, ${this.statsBatchID}, ${databaseColumnNames}
+INSERT INTO main.BattingStats (PtCardID, TeamName, StatsBatchID, ${sourceDatabaseColumnNames})
+SELECT c.PtCardID, bs.TeamName, ${this.statsBatchID}, ${sourceDatabaseColumnNames}
 FROM temp.BattingStats bs
 JOIN temp.Cards c ON bs.CardID = c.CardID
         `

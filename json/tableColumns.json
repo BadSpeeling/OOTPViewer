@@ -95,15 +95,15 @@
             {"name":"OFRange","type":"INTEGER","isNullable":false},
             {"name":"OFError","type":"INTEGER","isNullable":false},
             {"name":"OFArm","type":"INTEGER","isNullable":false},
-            {"name":"PosRatingP","type":"INTEGER","isNullable":true},
-            {"name":"PosRatingC","type":"INTEGER","isNullable":true},
-            {"name":"PosRating1B","type":"INTEGER","isNullable":true},
-            {"name":"PosRating2B","type":"INTEGER","isNullable":true},
-            {"name":"PosRating3B","type":"INTEGER","isNullable":true},
-            {"name":"PosRatingSS","type":"INTEGER","isNullable":true},
-            {"name":"PosRatingLF","type":"INTEGER","isNullable":true},
-            {"name":"PosRatingCF","type":"INTEGER","isNullable":true},
-            {"name":"PosRatingRF","type":"INTEGER","isNullable":true},
+            {"name":"PosRatingP","type":"INTEGER","isNullable":false},
+            {"name":"PosRatingC","type":"INTEGER","isNullable":false},
+            {"name":"PosRating1B","type":"INTEGER","isNullable":false},
+            {"name":"PosRating2B","type":"INTEGER","isNullable":false},
+            {"name":"PosRating3B","type":"INTEGER","isNullable":false},
+            {"name":"PosRatingSS","type":"INTEGER","isNullable":false},
+            {"name":"PosRatingLF","type":"INTEGER","isNullable":false},
+            {"name":"PosRatingCF","type":"INTEGER","isNullable":false},
+            {"name":"PosRatingRF","type":"INTEGER","isNullable":false},
             {"name":"LearnC","type":"INTEGER","isNullable":false},
             {"name":"Learn1B","type":"INTEGER","isNullable":false},
             {"name":"Learn2B","type":"INTEGER","isNullable":false},
@@ -120,7 +120,7 @@
             {"name":"brefid","type":"TEXT","isNullable":false},
             {"name":"date","type":"INTEGER","isNullable":false},
             {"name":"packs","type":"INTEGER","isNullable":false},
-            {"name":"LiveUpdateID","type":"INTEGER","isNullable":true},
+            {"name":"LiveUpdateID","type":"INTEGER","isNullable":false},
             {"name":"PtCardID","type":"INTEGER","isNullable":false}
         ],
         "primaryKey": {
@@ -138,7 +138,7 @@
         "tableName": "LiveUpdate",
         "columns": [
             {"name":"LiveUpdateID","type":"INTEGER","isNullable":false},
-            {"name":"EffectiveDate","type":"INTEGER","isNullable":false}
+            {"name":"EffectiveDate","type":"TEXT","isNullable":false}
         ],
         "primaryKey": {
             "column": "LiveUpdateID",

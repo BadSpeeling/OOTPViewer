@@ -23,7 +23,7 @@ ${this.getPtCardListWriteScript()}
 
     private getPtCardListWriteScript () {
 
-        const databaseColumnNames = [...this.cardData.sliceColumns('CardTitle', 'BuyOrderHigh'), ...this.cardData.sliceColumns('date')].map(h => `[${h.databaseColumnName}]`).join(',');
+        const sourceDatabaseColumnNames = [...this.cardData.sliceColumns('CardTitle', 'BuyOrderHigh'), ...this.cardData.sliceColumns('date')].map(h => `[${h.databaseColumnName}]`).join(',');
 
         return `
 DROP TABLE IF EXISTS temp.CurrentLiveUpdate;
@@ -47,8 +47,8 @@ FROM temp.PtCards tc
 LEFT JOIN PtCard c on tc.CardID = c.CardID
 WHERE c.CardID IS NULL and tc.CardType != 1;
 
-INSERT INTO PtCard (${databaseColumnNames})
-SELECT ${databaseColumnNames}
+INSERT INTO PtCard (${sourceDatabaseColumnNames}, LiveUpdateID)
+SELECT ${sourceDatabaseColumnNames}, LiveUpdateID
 FROM temp.CardInserts
 ORDER BY CardID ASC;
         `

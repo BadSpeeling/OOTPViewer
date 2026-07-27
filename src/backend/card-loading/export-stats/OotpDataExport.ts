@@ -1,5 +1,6 @@
 import { Constraint, DatatableModel, OotpExportDataColumn, PrimaryKey,  } from '../../types';
 import { Datatable } from '../../database/Datatable'
+import { getValue } from '../../database/utils'
 
 export class OotpDataExport {
 
@@ -72,7 +73,7 @@ export class OotpDataExport {
     }
 
     private insertValueScript (record: string[]) {
-        return "(" + record.map((recordValue, headerIndex) => this.getValue(recordValue, headerIndex)).join(', ') + ")";
+        return "(" + record.map((recordValue, headerIndex) => getValue(recordValue, this.expectedHeaders[headerIndex].type)).join(', ') + ")";
     }
 
     private getExportDatatableSchema (tableName: string, primaryKey?: PrimaryKey, constraints?: Constraint[]) {
@@ -95,39 +96,7 @@ export class OotpDataExport {
 
     }
 
-    private getValue (recordValue: string, colIndex: number) {
 
-        const isValueNullFlag = recordValue === '';
-        const fieldType = this.expectedHeaders[colIndex].type;
-
-        if (isValueNullFlag) {
-            switch (fieldType) {
-                case "INTEGER":                
-                case "REAL":
-                    return '0';
-                case "TEXT":
-                    return `''`;
-                case "DATETIME":
-                    return "'1970-01-01'"                    
-                default:
-                    return 'UNKNOWN';
-            }
-        }
-        else {
-            switch (fieldType) {                
-                case "INTEGER":                
-                case "REAL":
-                    return recordValue;
-                case "TEXT":
-                    return `'${recordValue.replaceAll("'","''")}'`;
-                case "DATETIME":
-                    return `'${recordValue}'`;
-                default:
-                    return 'UNKNOWN';
-            }            
-        }
-
-    }
 
     public getSelectedValues (columnNames: string[]) {
 
@@ -137,7 +106,7 @@ export class OotpDataExport {
             const mappedRecord: string[] = [];
 
             for (const columnIndex of columnIndexes) {
-                mappedRecord.push(this.getValue(record[columnIndex], columnIndex))
+                mappedRecord.push(getValue(record[columnIndex], this.expectedHeaders[columnIndex].type))
             }
 
             return mappedRecord;

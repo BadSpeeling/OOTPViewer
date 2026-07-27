@@ -9,10 +9,11 @@ import { PtCardImporter } from '../src/backend/PtCardImporter';
 import { getStats, writeStats } from '../src/backend/readHtmlStatsExport'
 
 import { initializeDatabase } from './util'
-import { simpleCardInsert } from './scripts/ptcard-inserts'
 import { FakeOneCardLiveUpdateReader } from './fakes/OotpExportReader/FakeOneCardLiveUpdateReader';
 import { OotpCsvExportReader } from '../src/backend/card-loading/export-reader';
 import { ProcessCardsStatus } from '../src/types';
+import { LiveUpdate, PtCard, TournamentType } from '../src/backend/database/databaseTypes';
+import { DataInserter } from '../src/backend/database/DataInserter';
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','data-exports']
 
@@ -46,7 +47,17 @@ test('Read and write real OOTP27 pt_card_list file', async () => {
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
 
-    await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
+    const datatableModels = await datatableModelReader.getJsonModels()
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
 
     const ptCardListModelReader = new ProjectJsonModelReader<OotpExportDataColumn>("ptCardListColumns.json")
     const ptCardListModel = await ptCardListModelReader.getJsonModels();
@@ -65,6 +76,11 @@ test('Read and write real OOTP27 pt_card_list file', async () => {
     expect(result1!["brefid"] === 'zobribe01').toBeTruthy();
     expect(result1!["date"] === '2026-05-12').toBeTruthy();
     expect(result1!["packs"] === 1).toBeTruthy();
+    expect(result1!["LiveUpdateID"] === 0).toBeTruthy();
+
+    const liveCardResult = result.find(r => r.CardID === 81776);
+    expect(liveCardResult).toBeTruthy();
+    expect(liveCardResult!["LiveUpdateID"] === 1).toBeTruthy();
 
 })
 
@@ -73,8 +89,28 @@ test('Do not update because live update occured', async () => {
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
 
-    await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
-    await db.execute(simpleCardInsert);
+    const datatableModels = await datatableModelReader.getJsonModels()
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Bryce Harper',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100
+        }
+    ]
+    
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
 
     const cardImporter = new PtCardImporter(db, new FakeOneCardLiveUpdateReader());
     const importResult = await cardImporter.importPtCardsAsync();
@@ -88,9 +124,42 @@ test('Read and write batting and pitching stats', async () => {
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
 
-    await db.execute("INSERT INTO LiveUpdate (LiveUpdateID,EffectiveDate) VALUES (1,'2026-01-01');")
-    await db.execute("INSERT INTO TournamentType (TournamentTypeID, Name, CardRestriction, MaxOverall, IsQuick, IsCap, IsLive, CapAmount) VALUES (1, 'Test', 'None', 100, 0, 0, 0, 0)");
-    await db.execute(simpleCardInsert);
+    const datatableModels = await datatableModelReader.getJsonModels()
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Bryce Harper',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100
+        },
+        {
+            CardID: 2,
+            CardTitle: 'Cristopher Sanchez',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 2,
+            CardValue: 100
+        }
+    ]
+    const tournamentTypes: TournamentType[] = [
+        {
+            TournamentTypeID: 1
+        }
+    ]
+
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
+    await dataInserter.insertRawDataAsync(tournamentTypes, "TournamentType");
 
     const stats = await getStats([process.cwd(), 'test', 'data', 'tournament-simple-example.html']);
     await writeStats(stats, db, 'test', 1);

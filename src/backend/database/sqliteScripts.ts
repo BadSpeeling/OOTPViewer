@@ -2,17 +2,6 @@ import { LiveUpdate } from "../types"
 import {TournamentStatsQuery} from "../../types"
 
 
-export const getTournamentBattingStatsScript = (query: TournamentStatsQuery) => {
-    return `
-select bs.PtCardID,SUM([G]) [G], SUM([GS]) [GS], SUM([PA]) [PA], SUM([AB]) [AB], SUM([H]) [H], SUM([1B]) [1B], SUM([2B]) [2B], SUM([3B]) [3B], SUM([HR]) [HR], SUM([RBI]) [RBI], SUM([R]) [R], SUM([BB]) [BB], SUM([IBB]) [IBB], SUM([HP]) [HP], SUM([SH]) [SH], SUM([SF]) [SF], SUM([CI]) [CI], SUM([SO]) [SO], SUM([GIDP]) [GIDP], SUM([EBH]) [EBH], SUM([TB]) [TB], SUM([RC]) [RC], SUM([WPA]) [WPA], SUM([wRC]) [wRC], ROUND(SUM([wRAA]),1) [wRAA], ROUND(SUM([WAR]),1) [WAR], SUM([SB]) [SB], SUM([CS]) [CS], SUM([BatR]) [BatR], SUM([wSB]) [wSB], SUM([UBR]) [UBR], SUM([BsR]) [BsR]
-from BattingStats bs
-join StatsBatch sb on bs.StatsBatchID = sb.StatsBatchID
-where TournamentTypeID = ${query.tournamentTypeID}
-${query.tourneyTimeframe ? `AND (UNIXEPOCH(TournamentStartDate) >= UNIXEPOCH('${query.tourneyTimeframe.startDate}') AND UNIXEPOCH(TournamentStartDate) <= UNIXEPOCH('${query.tourneyTimeframe.endDate}'))` : ""}
-group by bs.PtCardID
-order by bs.PtCardID ASC;
-`
-}
 
 export const getTournamentPitchingStatsScript = (query: TournamentStatsQuery) => {
 

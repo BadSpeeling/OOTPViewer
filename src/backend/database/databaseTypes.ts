@@ -141,10 +141,11 @@ export interface CardMarketValue extends DataInserterType  {
 }
 
 export interface StatsBatch extends DataInserterType  {
-    StatsBatchID?: number;
-    Timestamp?: number;
+    StatsBatchID: number;
+    Timestamp?: string;
     Description?: string;
-    TournamentTypeID?: number;
+    TournamentTypeID: number;
+    TournamentStartDate?: string;
 }
 
 export interface TournamentType extends DataInserterType  {
@@ -159,7 +160,7 @@ export interface TournamentType extends DataInserterType  {
 }
 
 export interface BattingStats extends DataInserterType {
-    BattingStatsID?: number;
+    BattingStatsID: number;
     TeamName: string;
     PtCardID: number;
     StatsBatchID: number;
@@ -212,7 +213,7 @@ export interface BattingStats extends DataInserterType {
 }
 
 export interface PitchingStats extends DataInserterType  {
-    PitchingStatsID?: number;
+    PitchingStatsID: number;
     TeamName: string;
     PtCardID: number;
     StatsBatchID: number;

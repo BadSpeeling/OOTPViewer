@@ -165,9 +165,10 @@
         "tableName": "StatsBatch",
         "columns": [
             {"name": "StatsBatchID", "type": "INTEGER", "isNullable": false},
-            {"name": "Timestamp", "type": "INTEGER", "isNullable": false},
-            {"name": "Description", "type": "TEXT", "isNullable": false},
-            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false}            
+            {"name": "Timestamp", "type": "DATETIME", "isNullable": false},
+            {"name": "Description", "type": "TEXT", "isNullable": true},
+            {"name": "TournamentTypeID", "type": "INTEGER", "isNullable": false},
+            {"name": "TournamentStartDate", "type": "DATETIME", "isNullable": false}
         ],
         "primaryKey": {
             "column": "StatsBatchID",

@@ -251,3 +251,92 @@ test('Read tourney stats for 1 player when there are 2 live updates', async () =
     expect(stats['AB'] === 25).toBeTruthy();
 
 });
+
+test('Read tourney stats for only 1 tourney', async () => {
+
+    const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
+    const db = await initializeDatabase(databaseFilePath, datatableModelReader);
+
+    const datatableModels = await datatableModelReader.getJsonModels();
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Bryce Harper',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100,
+            Position: 3,
+        }
+    ]
+    const tournamentTypes: TournamentType[] = [
+        {
+            TournamentTypeID: 1
+        },
+        {
+            TournamentTypeID: 2
+        }
+    ]
+    const statsBatches: StatsBatch[] = [
+        {
+            StatsBatchID: 1,
+            TournamentTypeID: 1,
+        },
+        {
+            StatsBatchID: 2,
+            TournamentTypeID: 2,
+        }
+    ]
+    const battingStats: BattingStats[] = [
+        {
+            BattingStatsID: 1,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 1,
+            G: 5,
+            H: 4,
+            PA: 10,
+            AB: 10,
+        },
+        {
+            BattingStatsID: 2,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 2,
+            G: 2,
+            H: 3,
+            PA: 17,
+            AB: 17,
+        }
+    ]
+
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
+    await dataInserter.insertRawDataAsync(tournamentTypes, "TournamentType"); 
+    await dataInserter.insertRawDataAsync(statsBatches, "StatsBatch"); 
+    await dataInserter.insertRawDataAsync(battingStats, "BattingStats"); 
+
+    const battingStatsFilter: BattingStatsFilter = {
+        TournamentTypeID: 1,
+        Positions: 'ANY',
+    }
+    
+    const battingStatsReader: IBattingStatsGetter = new LocalSqliteBattingStatsGetter (db)
+    const tournamentBattingStats = await battingStatsReader.getTournamentStatsAsync(battingStatsFilter);
+
+    expect(tournamentBattingStats.length === 1).toBeTruthy();
+    const stats: BattingStatsExpanded = tournamentBattingStats.find(b => b.PtCardID === 1)!;
+    expect(stats['G'] === 5).toBeTruthy();
+    expect(stats['H'] === 4).toBeTruthy();
+    expect(stats['PA'] === 10).toBeTruthy();
+    expect(stats['AB'] === 10).toBeTruthy();
+
+});

@@ -3,11 +3,11 @@ import * as fs from 'node:fs'
 import * as path from 'node:path';
 import { initializeDatabase } from './util';
 import { ProjectJsonModelReader } from '../src/backend/database-creator';
-import { BattingStatsExpanded, DatatableModel } from '../src/backend/types';
+import { BattingStatsExpanded, DatatableModel, PitchingStatsExpanded } from '../src/backend/types';
 import { DataInserter } from '../src/backend/database/DataInserter';
 
-import { BattingStats, LiveUpdate, PtCard, StatsBatch, TournamentType } from '../src/backend/database/databaseTypes';
-import { BattingStatsFilter, IBattingStatsGetter, LocalSqliteBattingStatsGetter } from '../src/backend/stats-reading'
+import { BattingStats, LiveUpdate, PitchingStats, PtCard, StatsBatch, TournamentType } from '../src/backend/database/databaseTypes';
+import { BattingStatsFilter, IBattingStatsGetter, IPitchingStatsGetter, LocalSqliteBattingStatsGetter, LocalSqlitePitchingStatsGetter, PitchingStatsFilter } from '../src/backend/stats-reading'
 
 const databaseFilePath = ['E:','ootp_data','sqlite','test','load-tournament-stats']
 
@@ -36,7 +36,7 @@ afterAll(() => {
 
 })
 
-test('Read tourney stats for 1 player', async () => {
+test('Read tourney batting stats for 1 player', async () => {
 
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
@@ -131,7 +131,97 @@ test('Read tourney stats for 1 player', async () => {
 
 });
 
-test('Read tourney stats for 1 player when there are 2 live updates', async () => {
+test('Read tourney pitching stats for 1 player', async () => {
+
+    const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
+    const db = await initializeDatabase(databaseFilePath, datatableModelReader);
+
+    const datatableModels = await datatableModelReader.getJsonModels();
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Chrisopher Sanchez',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100,
+            Position: 1,
+        }
+    ]
+    const tournamentTypes: TournamentType[] = [
+        {
+            TournamentTypeID: 1
+        }
+    ]
+    const statsBatches: StatsBatch[] = [
+        {
+            StatsBatchID: 1,
+            TournamentTypeID: 1,
+        },
+        {
+            StatsBatchID: 2,
+            TournamentTypeID: 1,
+        }
+    ]
+    const pitchingStats: PitchingStats[] = [
+        {
+            PitchingStatsID: 1,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 1,
+            G: 5,
+            K: 4,
+            BF: 10,
+        },
+        {
+            PitchingStatsID: 2,
+            TeamName: 'OtherTeam',
+            PtCardID: 1,
+            StatsBatchID: 2,
+            G: 2,
+            K: 1,
+            BF: 4,
+        },        
+        {
+            PitchingStatsID: 3,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 2,
+            G: 7,
+            K: 2,
+            BF: 22,
+        }
+    ]
+    
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
+    await dataInserter.insertRawDataAsync(tournamentTypes, "TournamentType"); 
+    await dataInserter.insertRawDataAsync(statsBatches, "StatsBatch"); 
+    await dataInserter.insertRawDataAsync(pitchingStats, "PitchingStats"); 
+
+    const pitchingStatsFilter: PitchingStatsFilter = {
+        TournamentTypeID: 1,
+    }
+    
+    const pitchingStatsReader: IPitchingStatsGetter = new LocalSqlitePitchingStatsGetter (db)
+    const tournamentPitchingStats = await pitchingStatsReader.getTournamentStatsAsync(pitchingStatsFilter);
+
+    const stats: PitchingStatsExpanded = tournamentPitchingStats.find(b => b.PtCardID === 1)!;
+    expect(stats['G'] === 14).toBeTruthy();
+    expect(stats['K'] === 7).toBeTruthy();
+    expect(stats['BF'] === 36).toBeTruthy();
+
+});
+
+test('Read batting tourney stats for 1 player when there are 2 live updates', async () => {
 
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
@@ -252,7 +342,122 @@ test('Read tourney stats for 1 player when there are 2 live updates', async () =
 
 });
 
-test('Read tourney stats for only 1 tourney', async () => {
+test('Read pitching tourney stats for 1 player when there are 2 live updates', async () => {
+
+    const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
+    const db = await initializeDatabase(databaseFilePath, datatableModelReader);
+
+    const datatableModels = await datatableModelReader.getJsonModels();
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        },
+        {
+            LiveUpdateID: 2,
+            EffectiveDate: '2026-06-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Cristopher Sancez',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100,
+            Position: 1,
+        },
+        {
+            CardID: 1,
+            CardTitle: 'Cristopher Sancez',
+            CardType: 1,
+            LiveUpdateID: 2,
+            PtCardID: 2,
+            CardValue: 95,
+            Position: 1,
+        }
+    ]
+    const tournamentTypes: TournamentType[] = [
+        {
+            TournamentTypeID: 1
+        }
+    ]
+    const statsBatches: StatsBatch[] = [
+        {
+            StatsBatchID: 1,
+            TournamentTypeID: 1,
+            TournamentStartDate: '2026-01-10',
+        },
+        {
+            StatsBatchID: 2,
+            TournamentTypeID: 1,
+            TournamentStartDate: '2026-06-10',
+        },        
+        {
+            StatsBatchID: 3,
+            TournamentTypeID: 1,
+            TournamentStartDate: '2026-06-11',
+        }
+    ]
+    const pitchingStats: PitchingStats[] = [
+        {
+            PitchingStatsID: 1,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 1,
+            G: 5,
+            K: 4,
+            BF: 10,
+        },
+        {
+            PitchingStatsID: 2,
+            TeamName: 'OtherTeam',
+            PtCardID: 2,
+            StatsBatchID: 2,
+            G: 2,
+            K: 1,
+            BF: 4,
+        },        
+        {
+            PitchingStatsID: 3,
+            TeamName: 'Test',
+            PtCardID: 2,
+            StatsBatchID: 3,
+            G: 7,
+            K: 2,
+            BF: 22,
+        }
+    ]
+
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
+    await dataInserter.insertRawDataAsync(tournamentTypes, "TournamentType"); 
+    await dataInserter.insertRawDataAsync(statsBatches, "StatsBatch"); 
+    await dataInserter.insertRawDataAsync(pitchingStats, "PitchingStats"); 
+
+    const pitchingStatsFilter: PitchingStatsFilter = {
+        TournamentTypeID: 1,
+        TournamentTimeRange: {
+            StartDate: "2026-06-01",
+            EndDate: "2026-06-30",
+        }        
+    }
+    
+    const pitchingStatsReader: IPitchingStatsGetter = new LocalSqlitePitchingStatsGetter (db)
+    const tournamentPitchingStats = await pitchingStatsReader.getTournamentStatsAsync(pitchingStatsFilter);
+
+    expect(tournamentPitchingStats.length === 1).toBeTruthy();
+    const stats: PitchingStatsExpanded = tournamentPitchingStats.find(b => b.PtCardID === 2)!;
+    expect(stats['G'] === 9).toBeTruthy();
+    expect(stats['K'] === 3).toBeTruthy();
+    expect(stats['BF'] === 26).toBeTruthy();
+
+});
+
+test('Read batting tourney stats for only 1 tourney', async () => {
 
     const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
     const db = await initializeDatabase(databaseFilePath, datatableModelReader);
@@ -338,5 +543,90 @@ test('Read tourney stats for only 1 tourney', async () => {
     expect(stats['H'] === 4).toBeTruthy();
     expect(stats['PA'] === 10).toBeTruthy();
     expect(stats['AB'] === 10).toBeTruthy();
+
+});
+
+test('Read pitching tourney stats for only 1 tourney', async () => {
+
+    const datatableModelReader = new ProjectJsonModelReader<DatatableModel>("tableColumns.json");
+    const db = await initializeDatabase(databaseFilePath, datatableModelReader);
+
+    const datatableModels = await datatableModelReader.getJsonModels();
+
+    const liveUpdates: LiveUpdate[] = [
+        {
+            LiveUpdateID: 1,
+            EffectiveDate: '2026-01-01'
+        }
+    ]
+    const ptCards: PtCard[] = [
+        {
+            CardID: 1,
+            CardTitle: 'Cristopher Sanchez',
+            CardType: 1,
+            LiveUpdateID: 1,
+            PtCardID: 1,
+            CardValue: 100,
+            Position: 1,
+        }
+    ]
+    const tournamentTypes: TournamentType[] = [
+        {
+            TournamentTypeID: 1
+        },
+        {
+            TournamentTypeID: 2
+        }
+    ]
+    const statsBatches: StatsBatch[] = [
+        {
+            StatsBatchID: 1,
+            TournamentTypeID: 1,
+        },
+        {
+            StatsBatchID: 2,
+            TournamentTypeID: 2,
+        }
+    ]
+    const pitchingStats: PitchingStats[] = [
+        {
+            PitchingStatsID: 1,
+            TeamName: 'Test',
+            PtCardID: 1,
+            StatsBatchID: 1,
+            G: 5,
+            K: 4,
+            BF: 10,
+        },
+        {
+            PitchingStatsID: 2,
+            TeamName: 'OtherTeam',
+            PtCardID: 1,
+            StatsBatchID: 2,
+            G: 2,
+            K: 1,
+            BF: 4,
+        }
+    ]
+
+    const dataInserter = new DataInserter(db, datatableModels);
+    await dataInserter.insertRawDataAsync(liveUpdates, "LiveUpdate");    
+    await dataInserter.insertRawDataAsync(ptCards, "PtCard");
+    await dataInserter.insertRawDataAsync(tournamentTypes, "TournamentType"); 
+    await dataInserter.insertRawDataAsync(statsBatches, "StatsBatch"); 
+    await dataInserter.insertRawDataAsync(pitchingStats, "PitchingStats"); 
+
+    const pitchingStatsFilter: PitchingStatsFilter = {
+        TournamentTypeID: 1,
+    }
+    
+    const pitchingStatsReader: IPitchingStatsGetter = new LocalSqlitePitchingStatsGetter (db)
+    const tournamentPitchingStats = await pitchingStatsReader.getTournamentStatsAsync(pitchingStatsFilter);
+
+    expect(tournamentPitchingStats.length === 1).toBeTruthy();
+    const stats: PitchingStatsExpanded = tournamentPitchingStats.find(b => b.PtCardID === 1)!;
+    expect(stats['G'] === 5).toBeTruthy();
+    expect(stats['K'] === 4).toBeTruthy();
+    expect(stats['BF'] === 10).toBeTruthy();
 
 });

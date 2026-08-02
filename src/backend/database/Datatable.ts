@@ -1,5 +1,4 @@
-import {DataTableColumn,Constraint,DatatableModel,OotpExportDataColumn,Index,PrimaryKey} from "../types"
-import {parseCsvDataColumnToDatatype} from "../../utilities"
+import {DataTableColumn,Constraint,DatatableModel,Index,PrimaryKey} from "../types"
 
 export class Datatable {
 

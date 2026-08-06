@@ -12,8 +12,12 @@
   "license": "ISC",
   "devDependencies": {
     "@jest/globals": "^30.4.1",
+    "@tailwindcss/cli": "^4.3.3",
     "@types/electron": "^1.6.12",
     "@types/jquery": "^3.5.32",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/sqlite3": "^3.1.11",
     "electron": "^43.1.1",
     "ts-jest": "^29.4.11",
     "ts-loader": "^9.5.1",
@@ -22,10 +26,6 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@tailwindcss/cli": "^4.1.8",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.1",
-    "@types/sqlite3": "^3.1.11",
     "datatables.net-dt": "^2.2.2",
     "datatables.net-react": "^1.0.0",
     "node-html-parser": "^6.1.13",
@@ -34,7 +34,6 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "tailwindcss": "^4.1.8",
-    "tedious": "^19.0.0",
     "typescript": "^5.7.2"
   }
 }
